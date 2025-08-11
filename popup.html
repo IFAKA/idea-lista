@@ -19,7 +19,7 @@
 
         <div class="stats-bar">
             <span id="totalProperties">0 propiedades</span>
-            <span id="avgScore">Score: 0</span>
+            <span id="avgScore" class="clickable-score">Score: 0</span>
             <span id="bestPrice">Mejor: 0€</span>
         </div>
 
@@ -33,6 +33,81 @@
             <div class="empty-icon">🏠</div>
             <h3>No hay propiedades guardadas</h3>
             <p>Navega a una propiedad de Idealista y haz clic en "Agregar" para comenzar</p>
+        </div>
+    </div>
+
+    <!-- Scoring Explanation Modal -->
+    <div id="scoringModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📊 Cálculo del Score</h2>
+                <span class="close" id="closeModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="scoring-overview">
+                    <h3>Algoritmo de Puntuación Objetiva</h3>
+                    <p>El score se calcula usando estadísticas del mercado inmobiliario español, con pesos basados en la importancia real de cada factor para el valor de una propiedad.</p>
+                </div>
+                
+                <div class="scoring-breakdown">
+                    <h4>Desglose por Categorías:</h4>
+                    <div id="scoringDetails">
+                        <!-- Scoring details will be populated here -->
+                    </div>
+                </div>
+
+                <div class="scoring-stats">
+                    <h4>📈 Estadísticas del Mercado (Madrid):</h4>
+                    <ul>
+                        <li><strong>Precio promedio:</strong> 750€/mes</li>
+                        <li><strong>Precio por m²:</strong> 12€/m²</li>
+                        <li><strong>Tamaño promedio:</strong> 65m²</li>
+                        <li><strong>Habitaciones promedio:</strong> 2.5</li>
+                    </ul>
+                </div>
+
+                <div class="scoring-weights">
+                    <h4>⚖️ Distribución de Pesos (Basada en Análisis de Mercado):</h4>
+                    <div class="weight-chart">
+                        <div class="weight-item">
+                            <span class="weight-label">Precio (30%)</span>
+                            <div class="weight-bar">
+                                <div class="weight-fill" style="width: 30%"></div>
+                            </div>
+                        </div>
+                        <div class="weight-item">
+                            <span class="weight-label">Tamaño (20%)</span>
+                            <div class="weight-bar">
+                                <div class="weight-fill" style="width: 20%"></div>
+                            </div>
+                        </div>
+                        <div class="weight-item">
+                            <span class="weight-label">Habitaciones (15%)</span>
+                            <div class="weight-bar">
+                                <div class="weight-fill" style="width: 15%"></div>
+                            </div>
+                        </div>
+                        <div class="weight-item">
+                            <span class="weight-label">Características (15%)</span>
+                            <div class="weight-bar">
+                                <div class="weight-fill" style="width: 15%"></div>
+                            </div>
+                        </div>
+                        <div class="weight-item">
+                            <span class="weight-label">Precio/m² (10%)</span>
+                            <div class="weight-bar">
+                                <div class="weight-fill" style="width: 10%"></div>
+                            </div>
+                        </div>
+                        <div class="weight-item">
+                            <span class="weight-label">Baños (10%)</span>
+                            <div class="weight-bar">
+                                <div class="weight-fill" style="width: 10%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

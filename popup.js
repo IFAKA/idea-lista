@@ -19,6 +19,17 @@ class PropertyManager {
         
         // Add click listener to "Mejor" stat
         document.getElementById('bestPrice').addEventListener('click', () => this.showBestProperty());
+        
+        // Add click listener to score display
+        document.getElementById('avgScore').addEventListener('click', () => this.showScoringBreakdown());
+        
+        // Modal close functionality
+        document.getElementById('closeModal').addEventListener('click', () => this.closeModal());
+        document.getElementById('scoringModal').addEventListener('click', (e) => {
+            if (e.target.id === 'scoringModal') {
+                this.closeModal();
+            }
+        });
     }
 
     setupMessageListener() {
@@ -31,7 +42,160 @@ class PropertyManager {
         });
     }
 
+    showScoringBreakdown() {
+        const modal = document.getElementById('scoringModal');
+        const scoringDetails = document.getElementById('scoringDetails');
+        
+        // Calculate average scores for each category
+        const avgScores = this.calculateAverageScores();
+        
+        // Populate scoring details
+        scoringDetails.innerHTML = this.generateScoringDetails(avgScores);
+        
+        // Show modal
+        modal.style.display = 'block';
+    }
 
+    closeModal() {
+        const modal = document.getElementById('scoringModal');
+        modal.style.display = 'none';
+    }
+
+    calculateAverageScores() {
+        if (this.properties.length === 0) {
+            return {
+                price: 0,
+                size: 0,
+                rooms: 0,
+                bathrooms: 0,
+                features: 0,
+                pricePerM2: 0
+            };
+        }
+
+        const totals = {
+            price: 0,
+            size: 0,
+            rooms: 0,
+            bathrooms: 0,
+            features: 0,
+            pricePerM2: 0
+        };
+
+        this.properties.forEach(property => {
+            // Price scoring (30% weight)
+            if (property.price) {
+                totals.price += Math.max(0, 30 - (property.price - 600) / 5);
+            }
+
+            // Size scoring (20% weight)
+            if (property.squareMeters) {
+                totals.size += Math.min(20, (property.squareMeters - 50) / 2);
+            }
+
+            // Rooms scoring (15% weight)
+            if (property.rooms) {
+                totals.rooms += Math.min(15, property.rooms * 5);
+            }
+
+            // Bathrooms scoring (10% weight)
+            if (property.bathrooms) {
+                totals.bathrooms += Math.min(10, property.bathrooms * 5);
+            }
+
+            // Features scoring (15% weight)
+            let featuresScore = 0;
+            if (property.heating) featuresScore += 5;
+            if (property.furnished) featuresScore += 3;
+            if (property.elevator) featuresScore += 2;
+            if (!property.seasonal) featuresScore += 5;
+            totals.features += featuresScore;
+
+            // Price per m² scoring (10% weight)
+            if (property.pricePerM2) {
+                totals.pricePerM2 += Math.max(0, 10 - (property.pricePerM2 - 8) / 0.5);
+            }
+        });
+
+        // Calculate averages
+        const count = this.properties.length;
+        return {
+            price: Math.round(totals.price / count),
+            size: Math.round(totals.size / count),
+            rooms: Math.round(totals.rooms / count),
+            bathrooms: Math.round(totals.bathrooms / count),
+            features: Math.round(totals.features / count),
+            pricePerM2: Math.round(totals.pricePerM2 / count)
+        };
+    }
+
+    generateScoringDetails(avgScores) {
+        const categories = [
+            {
+                name: '💰 Precio (30% peso)',
+                score: avgScores.price,
+                weight: 30,
+                description: 'Precio mensual del alquiler. Menor precio = mayor puntuación.',
+                formula: '30 - (precio - 600€) / 5',
+                marketData: 'Precio promedio en Madrid: 750€/mes'
+            },
+            {
+                name: '📏 Tamaño (20% peso)',
+                score: avgScores.size,
+                weight: 20,
+                description: 'Metros cuadrados de la propiedad. Mayor tamaño = mayor puntuación.',
+                formula: '(m² - 50) / 2 (máx. 20 puntos)',
+                marketData: 'Tamaño promedio en Madrid: 65m²'
+            },
+            {
+                name: '🛏️ Habitaciones (15% peso)',
+                score: avgScores.rooms,
+                weight: 15,
+                description: 'Número de habitaciones. Más habitaciones = mayor puntuación.',
+                formula: 'habitaciones × 5 (máx. 15 puntos)',
+                marketData: 'Promedio de habitaciones: 2.5'
+            },
+            {
+                name: '🚿 Baños (10% peso)',
+                score: avgScores.bathrooms,
+                weight: 10,
+                description: 'Número de baños. Más baños = mayor puntuación.',
+                formula: 'baños × 5 (máx. 10 puntos)',
+                marketData: 'Promedio de baños: 1.2'
+            },
+            {
+                name: '🏠 Características (15% peso)',
+                score: avgScores.features,
+                weight: 15,
+                description: 'Calefacción (+5), Amueblado (+3), Ascensor (+2), Largo plazo (+5).',
+                formula: 'Suma de características disponibles',
+                marketData: 'Características más valoradas: calefacción y largo plazo'
+            },
+            {
+                name: '📊 Precio/m² (10% peso)',
+                score: avgScores.pricePerM2,
+                weight: 10,
+                description: 'Precio por metro cuadrado. Menor precio/m² = mayor puntuación.',
+                formula: '10 - (precio/m² - 8€) / 0.5',
+                marketData: 'Precio promedio por m²: 12€/m²'
+            }
+        ];
+
+        return categories.map(category => {
+            const scoreClass = this.getScoreCategory(category.score);
+            return `
+                <div class="scoring-category ${scoreClass}">
+                    <div>
+                        <div class="category-name">${category.name}</div>
+                        <div class="category-weight">${category.description}</div>
+                        <div class="category-weight">📐 Fórmula: ${category.formula}</div>
+                        <div class="category-weight">📈 ${category.marketData}</div>
+                    </div>
+                    <div class="category-score">${category.score}/${category.weight}</div>
+                </div>
+            `;
+        }).join('');
+    }
 
     getScoreCategory(score) {
         if (score >= 80) return 'excellent';
@@ -85,6 +249,169 @@ class PropertyManager {
                 }
             });
         });
+
+        // Add click listeners to individual property scores
+        document.querySelectorAll('.property-score').forEach(scoreElement => {
+            scoreElement.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const propertyId = parseInt(scoreElement.closest('.property-card').getAttribute('data-id'));
+                const property = this.properties.find(p => p.id === propertyId);
+                if (property) {
+                    this.showPropertyScoringBreakdown(property);
+                }
+            });
+        });
+    }
+
+    showPropertyScoringBreakdown(property) {
+        const modal = document.getElementById('scoringModal');
+        const scoringDetails = document.getElementById('scoringDetails');
+        
+        // Calculate individual property scores
+        const scores = this.calculatePropertyScores(property);
+        
+        // Populate scoring details for this specific property
+        scoringDetails.innerHTML = this.generatePropertyScoringDetails(property, scores);
+        
+        // Update modal title
+        document.querySelector('.modal-header h2').textContent = `📊 Score: ${property.score}/100`;
+        
+        // Show modal
+        modal.style.display = 'block';
+    }
+
+    calculatePropertyScores(property) {
+        const scores = {};
+
+        // Price scoring (30% weight)
+        if (property.price) {
+            scores.price = Math.max(0, 30 - (property.price - 600) / 5);
+        } else {
+            scores.price = 0;
+        }
+
+        // Size scoring (20% weight)
+        if (property.squareMeters) {
+            scores.size = Math.min(20, (property.squareMeters - 50) / 2);
+        } else {
+            scores.size = 0;
+        }
+
+        // Rooms scoring (15% weight)
+        if (property.rooms) {
+            scores.rooms = Math.min(15, property.rooms * 5);
+        } else {
+            scores.rooms = 0;
+        }
+
+        // Bathrooms scoring (10% weight)
+        if (property.bathrooms) {
+            scores.bathrooms = Math.min(10, property.bathrooms * 5);
+        } else {
+            scores.bathrooms = 0;
+        }
+
+        // Features scoring (15% weight)
+        let featuresScore = 0;
+        if (property.heating) featuresScore += 5;
+        if (property.furnished) featuresScore += 3;
+        if (property.elevator) featuresScore += 2;
+        if (!property.seasonal) featuresScore += 5;
+        scores.features = featuresScore;
+
+        // Price per m² scoring (10% weight)
+        if (property.pricePerM2) {
+            scores.pricePerM2 = Math.max(0, 10 - (property.pricePerM2 - 8) / 0.5);
+        } else {
+            scores.pricePerM2 = 0;
+        }
+
+        return scores;
+    }
+
+    generatePropertyScoringDetails(property, scores) {
+        const categories = [
+            {
+                name: '💰 Precio (30% peso)',
+                score: Math.round(scores.price),
+                weight: 30,
+                value: property.price ? `${property.price}€` : 'N/A',
+                description: 'Precio mensual del alquiler',
+                formula: property.price ? `30 - (${property.price}€ - 600€) / 5 = ${Math.round(scores.price)}` : 'Sin datos'
+            },
+            {
+                name: '📏 Tamaño (20% peso)',
+                score: Math.round(scores.size),
+                weight: 20,
+                value: property.squareMeters ? `${property.squareMeters}m²` : 'N/A',
+                description: 'Metros cuadrados de la propiedad',
+                formula: property.squareMeters ? `(${property.squareMeters}m² - 50) / 2 = ${Math.round(scores.size)}` : 'Sin datos'
+            },
+            {
+                name: '🛏️ Habitaciones (15% peso)',
+                score: Math.round(scores.rooms),
+                weight: 15,
+                value: property.rooms ? `${property.rooms} hab.` : 'N/A',
+                description: 'Número de habitaciones',
+                formula: property.rooms ? `${property.rooms} × 5 = ${Math.round(scores.rooms)}` : 'Sin datos'
+            },
+            {
+                name: '🚿 Baños (10% peso)',
+                score: Math.round(scores.bathrooms),
+                weight: 10,
+                value: property.bathrooms ? `${property.bathrooms} baño(s)` : 'N/A',
+                description: 'Número de baños',
+                formula: property.bathrooms ? `${property.bathrooms} × 5 = ${Math.round(scores.bathrooms)}` : 'Sin datos'
+            },
+            {
+                name: '🏠 Características (15% peso)',
+                score: Math.round(scores.features),
+                weight: 15,
+                value: this.getFeaturesList(property),
+                description: 'Características disponibles',
+                formula: this.getFeaturesFormula(property)
+            },
+            {
+                name: '📊 Precio/m² (10% peso)',
+                score: Math.round(scores.pricePerM2),
+                weight: 10,
+                value: property.pricePerM2 ? `${property.pricePerM2}€/m²` : 'N/A',
+                description: 'Precio por metro cuadrado',
+                formula: property.pricePerM2 ? `10 - (${property.pricePerM2}€/m² - 8€/m²) / 0.5 = ${Math.round(scores.pricePerM2)}` : 'Sin datos'
+            }
+        ];
+
+        return categories.map(category => {
+            const scoreClass = this.getScoreCategory(category.score);
+            return `
+                <div class="scoring-category ${scoreClass}">
+                    <div>
+                        <div class="category-name">${category.name}</div>
+                        <div class="category-weight">${category.description}: ${category.value}</div>
+                        <div class="category-weight">📐 ${category.formula}</div>
+                    </div>
+                    <div class="category-score">${category.score}/${category.weight}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    getFeaturesList(property) {
+        const features = [];
+        if (property.heating) features.push('Calefacción');
+        if (property.furnished) features.push('Amueblado');
+        if (property.elevator) features.push('Ascensor');
+        if (!property.seasonal) features.push('Largo plazo');
+        return features.length > 0 ? features.join(', ') : 'Ninguna';
+    }
+
+    getFeaturesFormula(property) {
+        const parts = [];
+        if (property.heating) parts.push('+5 (calefacción)');
+        if (property.furnished) parts.push('+3 (amueblado)');
+        if (property.elevator) parts.push('+2 (ascensor)');
+        if (!property.seasonal) parts.push('+5 (largo plazo)');
+        return parts.length > 0 ? parts.join(' + ') : '0 puntos';
     }
 
     showBestProperty() {
@@ -185,8 +512,6 @@ class PropertyManager {
         }
     }
 
-
-
     exportData() {
         if (this.properties.length === 0) {
             alert('No hay propiedades para exportar');
@@ -246,6 +571,7 @@ class PropertyManager {
             emptyState.style.display = 'flex';
             totalProperties.textContent = '0 propiedades';
             avgScore.textContent = 'Score: 0';
+            avgScore.title = 'Haz clic para ver el cálculo del score';
             bestPrice.textContent = '🏆 Mejor: 0€';
             bestPrice.title = '';
             return;
@@ -261,6 +587,7 @@ class PropertyManager {
             this.properties.reduce((sum, p) => sum + p.score, 0) / this.properties.length
         );
         avgScore.textContent = `Score: ${avgScoreValue}`;
+        avgScore.title = 'Haz clic para ver el cálculo del score';
 
         const bestPriceValue = Math.min(...this.properties.map(p => p.price || Infinity));
         bestPrice.textContent = `🏆 Mejor: ${bestPriceValue !== Infinity ? bestPriceValue + '€' : '0€'}`;
@@ -296,7 +623,7 @@ class PropertyManager {
                         <span class="property-chip">${property.rooms || 'N/A'}hab</span>
                         ${property.bathrooms ? `<span class="property-chip">${property.bathrooms}baño</span>` : ''}
                     </div>
-                    <span class="property-score">${property.score}</span>
+                    <span class="property-score" title="Haz clic para ver el cálculo detallado">${property.score}</span>
                 </div>
                 <div class="property-details">
                     ${chips.join('')}
