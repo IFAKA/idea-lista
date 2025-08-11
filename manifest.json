@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "Idealista Property Manager",
+  "version": "2.0",
+  "description": "Professional property analyzer with automatic scoring and comparison system",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": [
+    "https://www.idealista.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://www.idealista.com/inmueble/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_end"
+    }
+  ],
+  "action": {
+    "default_title": "Idealista Property Manager",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}

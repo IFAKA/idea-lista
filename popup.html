@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Idealista Property Manager</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="popup-container">
+        <header class="popup-header">
+            <h1>🏠 Property Manager</h1>
+            <div class="header-actions">
+                <button id="debugBtn" class="btn btn-secondary">🐛 Debug</button>
+                <button id="exportBtn" class="btn btn-secondary">📊 Exportar</button>
+                <button id="clearBtn" class="btn btn-danger">🗑️ Limpiar</button>
+            </div>
+        </header>
+
+        <div class="stats-bar">
+            <span id="totalProperties">0 propiedades</span>
+            <span id="avgScore">Score: 0</span>
+            <span id="bestPrice">Mejor: 0€</span>
+        </div>
+
+        <div class="properties-container">
+            <div id="propertiesList" class="properties-list">
+                <!-- Properties will be inserted here -->
+            </div>
+        </div>
+
+        <div id="emptyState" class="empty-state">
+            <div class="empty-icon">🏠</div>
+            <h3>No hay propiedades guardadas</h3>
+            <p>Navega a una propiedad de Idealista y haz clic en "Agregar" para comenzar</p>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

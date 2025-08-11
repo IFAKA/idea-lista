@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Icons</title>
+</head>
+<body>
+    <h1>Click the buttons below to generate icon files</h1>
+    <button onclick="generateIcon(16)">Generate icon16.png</button>
+    <button onclick="generateIcon(48)">Generate icon48.png</button>
+    <button onclick="generateIcon(128)">Generate icon128.png</button>
+    <button onclick="generateAll()">Generate All Icons</button>
+    
+    <script>
+        function generateIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // Blue gradient background
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#2196F3');
+            gradient.addColorStop(1, '#1976D2');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // White border
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = Math.max(1, size / 32);
+            ctx.strokeRect(size/16, size/16, size-size/8, size-size/8);
+            
+            // White text "IA"
+            ctx.fillStyle = '#fff';
+            ctx.font = `bold ${size/3}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('IA', size/2, size/2);
+            
+            // Download
+            const link = document.createElement('a');
+            link.download = `icon${size}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        function generateAll() {
+            generateIcon(16);
+            setTimeout(() => generateIcon(48), 100);
+            setTimeout(() => generateIcon(128), 200);
+        }
+    </script>
+</body>
+</html>

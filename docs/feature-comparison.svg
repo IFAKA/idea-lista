@@ -1,0 +1,122 @@
+<svg width="1000" height="600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .title { font-family: Arial, sans-serif; font-size: 24px; font-weight: bold; fill: #2c3e50; }
+      .subtitle { font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; fill: #34495e; }
+      .label { font-family: Arial, sans-serif; font-size: 14px; fill: #2c3e50; }
+      .small-label { font-family: Arial, sans-serif; font-size: 12px; fill: #2c3e50; }
+      .header { fill: #3498db; stroke: #2980b9; stroke-width: 2; }
+      .traditional { fill: #e74c3c; stroke: #c0392b; stroke-width: 2; }
+      .property-manager { fill: #27ae60; stroke: #229954; stroke-width: 2; }
+      .check { fill: #27ae60; }
+      .cross { fill: #e74c3c; }
+      .neutral { fill: #f39c12; }
+    </style>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1000" height="600" fill="#ecf0f1"/>
+  
+  <!-- Title -->
+  <text x="500" y="40" text-anchor="middle" class="title">Property Manager vs Traditional Methods</text>
+  
+  <!-- Headers -->
+  <rect x="50" y="80" width="400" height="50" class="traditional" rx="10"/>
+  <text x="250" y="110" text-anchor="middle" class="subtitle" fill="white">Traditional Property Search</text>
+  
+  <rect x="550" y="80" width="400" height="50" class="property-manager" rx="10"/>
+  <text x="750" y="110" text-anchor="middle" class="subtitle" fill="white">Property Manager</text>
+  
+  <!-- Feature Comparison -->
+  <!-- Data Extraction -->
+  <rect x="50" y="150" width="400" height="60" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2" rx="5"/>
+  <text x="70" y="175" class="label">Manual Data Collection</text>
+  <text x="70" y="195" class="small-label">• Copy-paste from listings</text>
+  <text x="70" y="210" class="small-label">• Risk of errors</text>
+  
+  <rect x="550" y="150" width="400" height="60" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2" rx="5"/>
+  <text x="570" y="175" class="label">Automatic Data Extraction</text>
+  <text x="570" y="195" class="small-label">• 15+ data points automatically</text>
+  <text x="570" y="210" class="small-label">• 100% accurate extraction</text>
+  
+  <!-- Analysis -->
+  <rect x="50" y="230" width="400" height="60" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2" rx="5"/>
+  <text x="70" y="255" class="label">Manual Comparison</text>
+  <text x="70" y="275" class="small-label">• Subjective evaluation</text>
+  <text x="70" y="290" class="small-label">• Time-consuming analysis</text>
+  
+  <rect x="550" y="230" width="400" height="60" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2" rx="5"/>
+  <text x="570" y="255" class="label">Professional Scoring Algorithm</text>
+  <text x="570" y="275" class="small-label">• Objective 0-100 scoring</text>
+  <text x="570" y="290" class="small-label">• Real estate industry standards</text>
+  
+  <!-- Organization -->
+  <rect x="50" y="310" width="400" height="60" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2" rx="5"/>
+  <text x="70" y="335" class="label">Excel/Spreadsheet Management</text>
+  <text x="70" y="355" class="small-label">• Manual sorting and filtering</text>
+  <text x="70" y="370" class="small-label">• Risk of data loss</text>
+  
+  <rect x="550" y="310" width="400" height="60" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2" rx="5"/>
+  <text x="570" y="335" class="label">Smart Property Management</text>
+  <text x="570" y="355" class="small-label">• Automatic sorting by score</text>
+  <text x="570" y="370" class="small-label">• Persistent browser storage</text>
+  
+  <!-- Visualization -->
+  <rect x="50" y="390" width="400" height="60" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2" rx="5"/>
+  <text x="70" y="415" class="label">Basic Text/Number Display</text>
+  <text x="70" y="435" class="small-label">• Plain data presentation</text>
+  <text x="70" y="450" class="small-label">• No visual indicators</text>
+  
+  <rect x="550" y="390" width="400" height="60" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2" rx="5"/>
+  <text x="570" y="415" class="label">Color-Coded Visual Interface</text>
+  <text x="570" y="435" class="small-label">• Quality indicators (🟢🔵🟡🔴)</text>
+  <text x="570" y="450" class="small-label">• Interactive property cards</text>
+  
+  <!-- Time Investment -->
+  <rect x="50" y="470" width="400" height="60" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2" rx="5"/>
+  <text x="70" y="495" class="label">Hours of Manual Work</text>
+  <text x="70" y="515" class="small-label">• 2-3 hours per property</text>
+  <text x="70" y="530" class="small-label">• Repetitive data entry</text>
+  
+  <rect x="550" y="470" width="400" height="60" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2" rx="5"/>
+  <text x="570" y="495" class="label">Seconds of Automated Work</text>
+  <text x="570" y="515" class="small-label">• One-click property addition</text>
+  <text x="570" y="530" class="small-label">• Instant analysis and scoring</text>
+  
+  <!-- Feature Checkmarks -->
+  <!-- Traditional Column -->
+  <circle cx="420" cy="180" r="8" class="cross"/>
+  <text x="420" y="185" text-anchor="middle" class="small-label" fill="white">✕</text>
+  
+  <circle cx="420" cy="260" r="8" class="cross"/>
+  <text x="420" y="265" text-anchor="middle" class="small-label" fill="white">✕</text>
+  
+  <circle cx="420" cy="340" r="8" class="neutral"/>
+  <text x="420" y="345" text-anchor="middle" class="small-label" fill="white">~</text>
+  
+  <circle cx="420" cy="420" r="8" class="cross"/>
+  <text x="420" y="425" text-anchor="middle" class="small-label" fill="white">✕</text>
+  
+  <circle cx="420" cy="500" r="8" class="cross"/>
+  <text x="420" y="505" text-anchor="middle" class="small-label" fill="white">✕</text>
+  
+  <!-- Property Manager Column -->
+  <circle cx="920" cy="180" r="8" class="check"/>
+  <text x="920" y="185" text-anchor="middle" class="small-label" fill="white">✓</text>
+  
+  <circle cx="920" cy="260" r="8" class="check"/>
+  <text x="920" y="265" text-anchor="middle" class="small-label" fill="white">✓</text>
+  
+  <circle cx="920" cy="340" r="8" class="check"/>
+  <text x="920" y="345" text-anchor="middle" class="small-label" fill="white">✓</text>
+  
+  <circle cx="920" cy="420" r="8" class="check"/>
+  <text x="920" y="425" text-anchor="middle" class="small-label" fill="white">✓</text>
+  
+  <circle cx="920" cy="500" r="8" class="check"/>
+  <text x="920" y="505" text-anchor="middle" class="small-label" fill="white">✓</text>
+  
+  <!-- Legend -->
+  <rect x="50" y="560" width="900" height="30" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2" rx="5"/>
+  <text x="500" y="580" text-anchor="middle" class="label">Legend: ✓ Excellent | ~ Acceptable | ✕ Poor</text>
+</svg>
