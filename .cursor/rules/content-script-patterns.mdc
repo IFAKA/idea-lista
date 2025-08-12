@@ -1,0 +1,360 @@
+# Content Script Patterns for Idealista Integration
+
+## Core Integration Principles
+
+### 1. Non-Intrusive Design
+- **Minimal DOM Changes**: Add elements without disrupting existing layout
+- **CSS Isolation**: Use specific selectors to avoid conflicts
+- **Graceful Degradation**: Work even if Idealista changes their structure
+- **Performance**: Efficient DOM queries and minimal reflows
+
+### 2. Data Extraction Strategy
+- **Robust Selectors**: Use multiple fallback selectors for each data point
+- **Error Handling**: Gracefully handle missing or malformed data
+- **Validation**: Verify extracted data before processing
+- **Caching**: Cache DOM queries for performance
+
+## DOM Integration Patterns
+
+### Property Data Extraction
+```javascript
+const extractPropertyData = () => {
+    const data = {};
+    
+    // Price extraction with fallbacks
+    data.price = extractPrice() || 
+                 extractFromSelector('.price') ||
+                 extractFromSelector('[data-price]');
+    
+    // Square meters with validation
+    data.squareMeters = extractSquareMeters();
+    if (data.squareMeters && data.squareMeters > 500) {
+        data.squareMeters = null; // Invalid data
+    }
+    
+    // Features extraction
+    data.heating = extractFeature('heating', ['calefacción', 'heating']);
+    data.furnished = extractFeature('furnished', ['amueblado', 'furnished']);
+    data.elevator = extractFeature('elevator', ['ascensor', 'elevator']);
+    
+    return data;
+};
+```
+
+### Feature Detection Patterns
+```javascript
+const extractFeature = (featureName, keywords) => {
+    const pageText = document.body.textContent.toLowerCase();
+    const hasFeature = keywords.some(keyword => 
+        pageText.includes(keyword)
+    );
+    
+    // Additional DOM checks for specific features
+    if (featureName === 'elevator') {
+        return hasFeature || document.querySelector('.elevator-icon');
+    }
+    
+    return hasFeature;
+};
+```
+
+### Coordinates Extraction
+```javascript
+const extractCoordinates = () => {
+    // Look for Google Maps API responses in script tags
+    const scripts = document.querySelectorAll('script');
+    for (const script of scripts) {
+        const content = script.textContent;
+        const match = content.match(/lat["\s]*:["\s]*([0-9.-]+)["\s]*,\s*lng["\s]*:["\s]*([0-9.-]+)/);
+        if (match) {
+            return {
+                lat: parseFloat(match[1]),
+                lng: parseFloat(match[2])
+            };
+        }
+    }
+    return null;
+};
+```
+
+## UI Integration Patterns
+
+### Button Injection
+```javascript
+const injectAddButton = () => {
+    // Find the best location for the button
+    const container = findButtonContainer();
+    if (!container) return;
+    
+    // Create button with proper styling
+    const button = createAddButton();
+    
+    // Insert without disrupting layout
+    container.appendChild(button);
+    
+    // Add event listener
+    button.addEventListener('click', handleAddProperty);
+};
+```
+
+### Button State Management
+```javascript
+const updateButtonState = (propertyId) => {
+    const button = document.querySelector('.analyzer-add-btn');
+    if (!button) return;
+    
+    if (isPropertyAdded(propertyId)) {
+        button.textContent = '✅ Agregado';
+        button.disabled = true;
+        button.classList.add('added');
+    } else {
+        button.textContent = 'Agregar';
+        button.disabled = false;
+        button.classList.remove('added');
+    }
+};
+```
+
+### Chip Display System
+```javascript
+const createPropertyChips = (propertyData) => {
+    const chips = [];
+    
+    // Price chip
+    if (propertyData.price) {
+        chips.push(createChip('price', `${propertyData.price}€`));
+    }
+    
+    // Features chips
+    if (propertyData.heating) {
+        chips.push(createChip('heating', 'Calefacción'));
+    }
+    
+    if (propertyData.furnished) {
+        chips.push(createChip('furnished', 'Amueblado'));
+    }
+    
+    if (propertyData.elevator) {
+        chips.push(createChip('elevator', 'Ascensor'));
+    }
+    
+    return chips;
+};
+```
+
+## CSS Integration Patterns
+
+### Scoped Styling
+```css
+/* Use specific selectors to avoid conflicts */
+.analyzer-add-btn {
+    /* Button styles */
+}
+
+.analyzer-chip {
+    /* Chip styles */
+}
+
+.analyzer-container {
+    /* Container styles */
+}
+```
+
+### Apple Design System Integration
+```css
+/* Apply Apple colors to content script elements */
+.analyzer-add-btn {
+    background-color: var(--color-primary);
+    color: var(--text-inverse);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+}
+
+.analyzer-chip.price {
+    color: var(--color-primary);
+    background: rgba(0, 122, 255, 0.15);
+    border-color: rgba(0, 122, 255, 0.3);
+}
+```
+
+### Animation Integration
+```css
+/* Apply Apple Watch animation principles */
+.analyzer-add-btn {
+    transition: all var(--animation-quick) var(--easing-spring);
+    transform: var(--transform-base);
+    backface-visibility: var(--backface-visibility);
+    will-change: transform, box-shadow;
+}
+
+.analyzer-add-btn:hover {
+    transform: var(--transform-base) scale(1.02);
+    box-shadow: var(--shadow-md);
+}
+```
+
+## Error Handling Patterns
+
+### Graceful Degradation
+```javascript
+const safeExtract = (extractor, fallback = null) => {
+    try {
+        return extractor();
+    } catch (error) {
+        console.warn('Extraction failed:', error);
+        return fallback;
+    }
+};
+```
+
+### DOM Change Detection
+```javascript
+const observeDOMChanges = () => {
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'childList') {
+                // Check if our elements were removed
+                checkAndReinjectElements();
+            }
+        });
+    });
+    
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+};
+```
+
+### Retry Mechanisms
+```javascript
+const retryExtraction = (extractor, maxAttempts = 3) => {
+    for (let i = 0; i < maxAttempts; i++) {
+        const result = extractor();
+        if (result) return result;
+        
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    return null;
+};
+```
+
+## Performance Optimization
+
+### Efficient DOM Queries
+```javascript
+// Cache selectors for repeated use
+const SELECTORS = {
+    PRICE: '.price, [data-price], .main-info__price',
+    TITLE: '.main-info__title-main, h1',
+    FEATURES: '.details-property-feature, .icon-feature'
+};
+
+// Use cached selectors
+const getPrice = () => {
+    return document.querySelector(SELECTORS.PRICE)?.textContent;
+};
+```
+
+### Debounced Updates
+```javascript
+const debounce = (func, wait) => {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+};
+
+const debouncedUpdate = debounce(updatePropertyDisplay, 300);
+```
+
+### Memory Management
+```javascript
+const cleanup = () => {
+    // Remove event listeners
+    document.removeEventListener('click', handleClick);
+    
+    // Clear intervals
+    if (updateInterval) {
+        clearInterval(updateInterval);
+    }
+    
+    // Remove observers
+    if (observer) {
+        observer.disconnect();
+    }
+};
+```
+
+## Communication Patterns
+
+### Background Script Communication
+```javascript
+const sendToBackground = (action, data) => {
+    return new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({ action, data }, (response) => {
+            if (chrome.runtime.lastError) {
+                reject(chrome.runtime.lastError);
+            } else {
+                resolve(response);
+            }
+        });
+    });
+};
+```
+
+### Cross-Tab Synchronization
+```javascript
+const listenForUpdates = () => {
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        if (request.action === 'propertiesUpdated') {
+            updateButtonStates();
+        }
+    });
+};
+```
+
+## Testing Patterns
+
+### Mock Data for Testing
+```javascript
+const mockPropertyData = {
+    price: 650,
+    squareMeters: 45,
+    rooms: 2,
+    heating: true,
+    furnished: false,
+    elevator: true,
+    orientation: 'Este',
+    floor: '2',
+    coordinates: { lat: 40.4168, lng: -3.7038 }
+};
+```
+
+### Validation Functions
+```javascript
+const validatePropertyData = (data) => {
+    const errors = [];
+    
+    if (!data.price || data.price <= 0) {
+        errors.push('Invalid price');
+    }
+    
+    if (data.squareMeters && data.squareMeters > 500) {
+        errors.push('Invalid square meters');
+    }
+    
+    return errors.length === 0;
+};
+```
+description:
+globs:
+alwaysApply: false
+---

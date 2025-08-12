@@ -1,0 +1,196 @@
+# Property Scoring Algorithm for Idea-lista
+
+## Scoring Philosophy
+The scoring algorithm evaluates properties based on user preferences for remote work, accessibility, and financial considerations. Properties are scored from 0-100, with higher scores indicating better matches.
+
+## Core Scoring Categories
+
+### 1. Price (25% Weight)
+**Critical Factor**: Budget is the primary constraint
+- **Base Score**: 25 points maximum
+- **Calculation**: `25 - (price / 750) * 25`
+- **Penalty**: Properties over 750€ get negative scores
+- **Bonus**: Properties under 500€ get bonus points
+
+### 2. Features (20% Weight)
+**Essential amenities for remote work and comfort**
+- **Heating**: +3 points (essential for comfort)
+- **Furnished**: +2 points (convenience for remote work)
+- **Seasonal**: +1 point (flexibility)
+- **Desk**: +4 points per desk (critical for remote work)
+- **Elevator**: +2 points (accessibility)
+
+### 3. Location & Accessibility (15% Weight)
+**Floor level and building accessibility**
+- **Ground Floor**: +3 points (no elevator needed)
+- **Elevator Access**: +2 points (if not ground floor)
+- **Floor Penalty**: -1 point per floor above 3rd (without elevator)
+
+### 4. Orientation (7% Weight)
+**Natural light preferences for remote work**
+- **East (Amanecer)**: +7 points (best for morning work)
+- **South**: +5 points (good all-day light)
+- **West**: +3 points (afternoon light)
+- **North**: +1 point (minimal direct light)
+- **Unknown**: +2 points (neutral)
+
+### 5. Size & Layout (15% Weight)
+**Space efficiency and room distribution**
+- **Square Meters**: +0.5 points per m² (up to 60m²)
+- **Rooms**: +2 points per room (up to 3 rooms)
+- **Bathrooms**: +3 points per bathroom
+- **Efficiency**: Bonus for good m²/room ratio
+
+### 6. Financial Efficiency (10% Weight)
+**Value for money considerations**
+- **Price per m²**: Lower is better
+- **Deposit**: Lower is better
+- **Energy Rating**: Higher efficiency gets bonus
+- **Additional Costs**: Penalty for high maintenance fees
+
+### 7. Special Considerations (8% Weight)
+**Unique features and conveniences**
+- **Coordinates**: +2 points (location verification)
+- **Professional Photos**: +1 point (quality indication)
+- **Detailed Description**: +1 point (transparency)
+- **Recent Listing**: +1 point (availability)
+
+## Critical Penalties
+
+### Elevator Logic (CRITICAL FACTOR)
+```javascript
+// Elevator logic - CRITICAL FACTOR
+if (property.elevator) {
+    featuresScore += 2; // Bonus for having elevator
+} else {
+    // Check if it's ground floor (acceptable without elevator)
+    const isGroundFloor = property.floor === '0' ||
+                        property.floor === 'Bajo' ||
+                        property.floor === 'bajo' ||
+                        property.floor === 'Planta baja' ||
+                        property.floor === 'planta baja';
+
+    if (!isGroundFloor) {
+        // SEVERE PENALTY for no elevator when not ground floor
+        featuresScore -= 15; // This makes the property unacceptable
+    }
+    // No penalty for ground floor without elevator
+}
+```
+
+### Budget Violations
+- **Over Budget**: Properties over 750€ get severe penalties
+- **Unrealistic**: Properties over 1000€ are essentially rejected
+- **Emergency Only**: Only consider over-budget for exceptional properties
+
+## Score Categories
+
+### Excellent (80-100 points)
+- **Criteria**: Exceptional properties meeting most criteria
+- **Color**: Green (#34C759)
+- **Action**: Highly recommended
+
+### Good (60-79 points)
+- **Criteria**: Good properties with minor compromises
+- **Color**: Blue (#007AFF)
+- **Action**: Recommended
+
+### Average (40-59 points)
+- **Criteria**: Acceptable properties with notable compromises
+- **Color**: Orange (#FF9500)
+- **Action**: Consider if no better options
+
+### Poor (0-39 points)
+- **Criteria**: Properties with significant issues
+- **Color**: Red (#FF3B30)
+- **Action**: Avoid unless desperate
+
+## Calculation Method
+
+### Base Formula
+```javascript
+const calculateScore = (property) => {
+    let totalScore = 0;
+    
+    // Price scoring (25%)
+    totalScore += calculatePriceScore(property.price);
+    
+    // Features scoring (20%)
+    totalScore += calculateFeaturesScore(property);
+    
+    // Location scoring (15%)
+    totalScore += calculateLocationScore(property);
+    
+    // Orientation scoring (7%)
+    totalScore += calculateOrientationScore(property.orientation);
+    
+    // Size scoring (15%)
+    totalScore += calculateSizeScore(property);
+    
+    // Financial scoring (10%)
+    totalScore += calculateFinancialScore(property);
+    
+    // Special scoring (8%)
+    totalScore += calculateSpecialScore(property);
+    
+    return Math.max(0, Math.min(100, totalScore));
+};
+```
+
+### Normalization
+- **Minimum**: 0 points (worst possible property)
+- **Maximum**: 100 points (perfect property)
+- **Rounding**: Scores are rounded to nearest integer
+- **Clamping**: Scores outside 0-100 range are clamped
+
+## Special Cases
+
+### New Listings
+- **Fresh Properties**: +2 points for listings under 7 days
+- **Updated Properties**: +1 point for recent updates
+- **Seasonal Properties**: +1 point for flexibility
+
+### Location Factors
+- **City Center**: +3 points for convenience
+- **Public Transport**: +2 points for accessibility
+- **Quiet Area**: +2 points for remote work
+- **High Floor**: +1 point for views (if elevator available)
+
+### Property Type
+- **Studio**: Base score (no bonus/penalty)
+- **1 Bedroom**: +2 points (good for remote work)
+- **2+ Bedrooms**: +3 points (flexibility)
+- **Penthouse**: +1 point (premium feel)
+
+## Data Quality Considerations
+
+### Missing Data
+- **Unknown Values**: Use neutral scores (2-3 points)
+- **Partial Data**: Score based on available information
+- **Incomplete Properties**: Lower confidence scores
+
+### Data Validation
+- **Price Verification**: Cross-check with listing details
+- **Feature Verification**: Validate against property description
+- **Location Verification**: Use coordinates when available
+
+## Algorithm Updates
+
+### Version Control
+- **Current Version**: 2.0 (includes elevator logic)
+- **Previous Version**: 1.0 (basic scoring)
+- **Future Updates**: Document all changes
+
+### A/B Testing
+- **Weight Adjustments**: Test different weight combinations
+- **New Factors**: Evaluate impact of new criteria
+- **User Feedback**: Incorporate user preferences
+
+### Continuous Improvement
+- **Performance Monitoring**: Track algorithm accuracy
+- **User Satisfaction**: Measure against user choices
+- **Market Changes**: Adapt to market conditions
+description:
+globs:
+alwaysApply: false
+---

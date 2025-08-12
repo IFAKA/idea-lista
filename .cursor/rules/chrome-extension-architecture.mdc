@@ -1,0 +1,243 @@
+# Chrome Extension Architecture for Idea-lista
+
+## Project Structure
+```
+idea-lista/
+├── manifest.json                    # Extension configuration
+├── background.js                    # Service worker (core logic)
+├── content.js                       # Content script (Idealista integration)
+├── popup.html                       # Popup interface
+├── popup.css                        # Popup styles (Apple design system)
+├── styles.css                       # Content script styles
+├── icon16.png                       # Extension icon (16px)
+├── icon48.png                       # Extension icon (48px)
+├── icon128.png                      # Extension icon (128px)
+├── generate-icons.html              # Icon generation utility
+├── INSTALLATION.md                  # Installation instructions
+├── README.md                        # Project documentation
+├── docs/                            # Documentation and diagrams
+│   ├── architecture-diagram.svg     # System architecture
+│   ├── feature-comparison.svg       # Feature comparison
+│   ├── popup-mockup.svg             # UI mockups
+│   ├── preview.html                 # Preview page
+│   ├── scoring-algorithm.svg        # Scoring system
+│   └── workflow-diagram.svg         # User workflow
+├── src/popup/                       # Modular popup architecture
+│   ├── popup.js                     # Entry point
+│   ├── core/
+│   │   └── PropertyManager.js       # Main controller
+│   └── services/
+│       ├── UIService.js             # UI rendering and interactions
+│       ├── ScoringService.js        # Property scoring algorithms
+│       ├── DataService.js           # Import/export operations
+│       └── ModalService.js          # Modal management
+└── .cursor/rules/                   # Cursor rules and guidelines
+    ├── README.md                    # Rules documentation
+    ├── apple-design-system.mdc      # Apple design system
+    ├── animation-principles.mdc     # Animation guidelines
+    ├── ui-ux-guidelines.mdc         # UI/UX patterns
+    ├── chrome-extension-architecture.mdc # Architecture standards
+    ├── scoring-algorithm.mdc        # Property evaluation system
+    └── content-script-patterns.mdc  # Content script patterns
+```
+
+## Architecture Principles
+
+### 1. Modular Design
+- **Single Responsibility**: Each service handles one domain
+- **Dependency Injection**: Services receive dependencies via constructor
+- **Event-Driven**: Services communicate via events and callbacks
+- **Testable**: Services can be tested in isolation
+
+### 2. Service-Oriented Architecture
+```javascript
+// Service pattern
+export class ServiceName {
+    constructor(dependencies) {
+        this.dependencies = dependencies;
+    }
+    
+    // Public methods
+    publicMethod() {
+        // Implementation
+    }
+    
+    // Private methods
+    #privateMethod() {
+        // Internal logic
+    }
+}
+```
+
+### 3. Property Manager Pattern
+```javascript
+// Main controller orchestrates services
+export class PropertyManager {
+    constructor() {
+        this.uiService = new UIService(this);
+        this.scoringService = new ScoringService();
+        this.dataService = new DataService();
+        this.modalService = new ModalService();
+        
+        // Connect services
+        this.dataService.setPropertyManager(this);
+        this.modalService.setPropertyManager(this);
+    }
+}
+```
+
+## File Size Limits
+- **Maximum 500 lines per file** - Enforce modularity
+- **Split large files** into smaller, focused modules
+- **Use ES6 modules** for clean imports/exports
+- **Avoid circular dependencies** - Use event patterns instead
+
+## Coding Standards
+
+### JavaScript
+- **ES6+ Features**: Use modern JavaScript syntax
+- **Async/Await**: Prefer over Promises for readability
+- **Arrow Functions**: Use for callbacks and short functions
+- **Destructuring**: Extract object properties cleanly
+- **Template Literals**: Use for string interpolation
+
+### CSS
+- **CSS Variables**: Use Apple design system variables
+- **BEM Methodology**: Block__Element--Modifier naming
+- **Mobile First**: Start with mobile styles
+- **Hardware Acceleration**: Use transform and opacity for animations
+
+### HTML
+- **Semantic Elements**: Use appropriate HTML5 elements
+- **Accessibility**: Include ARIA labels and roles
+- **Clean Structure**: Minimal nesting, clear hierarchy
+- **Icon Integration**: SVG icons with proper titles
+
+## Communication Patterns
+
+### Background ↔ Content Script
+```javascript
+// Send message from content to background
+chrome.runtime.sendMessage({
+    action: 'addProperty',
+    property: propertyData
+}, (response) => {
+    // Handle response
+});
+
+// Listen in background script
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'addProperty') {
+        // Handle action
+        sendResponse({ success: true });
+    }
+});
+```
+
+### Popup ↔ Background
+```javascript
+// Get data from background
+chrome.runtime.sendMessage({
+    action: 'getProperties'
+}, (properties) => {
+    // Update UI with properties
+});
+```
+
+### Cross-Tab Synchronization
+```javascript
+// Notify all components of changes
+chrome.storage.onChanged.addListener((changes, namespace) => {
+    if (namespace === 'local' && changes.properties) {
+        // Update all open popups and content scripts
+        chrome.runtime.sendMessage({
+            action: 'propertiesUpdated',
+            properties: changes.properties.newValue
+        });
+    }
+});
+```
+
+## Data Management
+
+### Chrome Storage
+- **Local Storage**: For property data and settings
+- **Session Storage**: For temporary UI state
+- **Sync Storage**: For user preferences (if needed)
+
+### Data Flow
+1. **Content Script**: Extracts property data
+2. **Background Script**: Processes and stores data
+3. **Popup**: Displays and manages data
+4. **Cross-Tab**: Synchronizes changes across tabs
+
+## Error Handling
+
+### Try-Catch Patterns
+```javascript
+try {
+    const result = await riskyOperation();
+    return result;
+} catch (error) {
+    console.error('Operation failed:', error);
+    // Provide user feedback
+    this.showError('Operation failed. Please try again.');
+    return null;
+}
+```
+
+### Graceful Degradation
+- **Network Failures**: Cache data locally
+- **API Errors**: Show user-friendly messages
+- **Storage Errors**: Fallback to session storage
+- **Script Errors**: Prevent complete failure
+
+## Performance Guidelines
+
+### Memory Management
+- **Event Listeners**: Remove when components unmount
+- **Large Objects**: Avoid storing in memory unnecessarily
+- **DOM References**: Clear references to prevent leaks
+- **Timers**: Clear intervals and timeouts
+
+### Optimization
+- **Debounce**: User input operations
+- **Throttle**: Frequent operations
+- **Lazy Loading**: Load data as needed
+- **Caching**: Store frequently accessed data
+
+## Security Considerations
+
+### Content Security Policy
+- **Inline Scripts**: Avoid inline JavaScript
+- **External Resources**: Whitelist trusted domains
+- **Data Validation**: Validate all user inputs
+- **XSS Prevention**: Sanitize dynamic content
+
+### Data Privacy
+- **Local Storage**: Keep sensitive data local
+- **User Consent**: Request permission for data access
+- **Data Minimization**: Collect only necessary data
+- **Secure Communication**: Use HTTPS for external APIs
+
+## Testing Strategy
+
+### Unit Tests
+- **Service Tests**: Test individual services
+- **Utility Tests**: Test helper functions
+- **Mock Dependencies**: Use mocks for external APIs
+
+### Integration Tests
+- **Component Tests**: Test service interactions
+- **End-to-End Tests**: Test complete workflows
+- **Cross-Tab Tests**: Test synchronization
+
+### Manual Testing
+- **Cross-Browser**: Test in Chrome, Firefox, Safari
+- **Cross-Platform**: Test on Windows, macOS, Linux
+- **Mobile**: Test responsive design
+- **Accessibility**: Test with screen readers
+description:
+globs:
+alwaysApply: false
+---

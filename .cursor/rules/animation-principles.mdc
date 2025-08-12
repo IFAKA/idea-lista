@@ -1,0 +1,114 @@
+# Animation Principles - Apple Watch Style
+
+## Core Animation Philosophy
+Follow Apple Watch animation principles: **Fast, Natural, Purposeful, Accessible, Interruptible, Hardware Accelerated**
+
+## Animation Durations
+- **Fast**: 100ms - Immediate feedback for quick interactions
+- **Quick**: 150ms - Standard micro-interactions
+- **Open**: 180ms - Element appearance animations
+- **Close**: 200ms - Element disappearance animations
+- **Standard**: 300ms - Complex transitions (avoid when possible)
+
+## Easing Curves
+- **Spring**: `cubic-bezier(0.25, 0.46, 0.45, 0.94)` - Primary easing for natural motion
+- **Ease Out**: `cubic-bezier(0.0, 0.0, 0.2, 1)` - Secondary easing for interactions
+- **Ease In**: `cubic-bezier(0.4, 0.0, 1, 1)` - For disappearing elements
+
+## Hardware Acceleration
+Always use these properties for animations:
+- `transform` - Scale, translate, rotate
+- `opacity` - Fade in/out effects
+- `box-shadow` - Elevation changes
+
+**NEVER animate**: `width`, `height`, `padding`, `margin`, `top`, `left` - These cause layout thrashing
+
+## Animation Guidelines
+
+### Button Interactions
+```css
+.btn {
+    transition: all var(--animation-quick) var(--easing-spring);
+    transform: var(--transform-base);
+    backface-visibility: var(--backface-visibility);
+    will-change: transform, box-shadow;
+}
+
+.btn:hover {
+    transform: var(--transform-base) scale(1.02);
+    box-shadow: var(--shadow-md);
+}
+
+.btn:active {
+    transform: var(--transform-base) scale(0.98);
+    transition: all var(--animation-fast) var(--easing-ease-in);
+}
+```
+
+### Modal Animations
+- **Open**: 180ms spring easing
+- **Close**: 200ms ease-out
+- **Backdrop**: Fade in/out with opacity
+- **Content**: Scale and fade simultaneously
+
+### Loading States
+- **Spinner**: Continuous rotation animation
+- **Skeleton**: Subtle pulse animation
+- **Progress**: Smooth width transitions
+
+### State Changes
+- **Enable/Disable**: Quick opacity and scale changes
+- **Error States**: Gentle shake animation
+- **Success States**: Subtle scale and color transitions
+
+## Accessibility
+- Respect `prefers-reduced-motion` media query
+- Provide instant alternatives for motion-sensitive users
+- Ensure animations don't interfere with screen readers
+- Maintain focus indicators during animations
+
+## Performance Best Practices
+1. **Use transform and opacity only**
+2. **Set will-change property for animated elements**
+3. **Use backface-visibility: hidden for 3D transforms**
+4. **Batch DOM reads and writes**
+5. **Use requestAnimationFrame for complex animations**
+
+## Animation Variables (CSS)
+```css
+:root {
+    --animation-fast: 100ms;
+    --animation-quick: 150ms;
+    --animation-open: 180ms;
+    --animation-close: 200ms;
+    --animation-standard: 300ms;
+    
+    --easing-spring: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --easing-ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
+    --easing-ease-in: cubic-bezier(0.4, 0.0, 1, 1);
+    
+    --transform-base: translateZ(0);
+    --backface-visibility: hidden;
+}
+```
+
+## Animation Examples
+
+### Hover Effects
+- Scale: 1.02x for buttons, 1.05x for cards
+- Shadow: Increase elevation on hover
+- Color: Smooth transitions between states
+
+### Loading Animations
+- Update button: Show spinner for 150ms, then "reloaded" message for 200ms
+- Import/Export: Brief loading state with progress indication
+- Modal opening: Fade in backdrop + scale up content
+
+### Micro-interactions
+- Button clicks: Scale down to 0.98x
+- Form validation: Gentle shake for errors
+- Success feedback: Green flash with scale
+description:
+globs:
+alwaysApply: false
+---

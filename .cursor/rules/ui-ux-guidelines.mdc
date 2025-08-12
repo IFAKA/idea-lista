@@ -1,0 +1,157 @@
+# UI/UX Guidelines for Idea-lista
+
+## Core UX Principles
+
+### 1. Icon-Only Interface
+- **Buttons**: Use only SVG icons with descriptive `title` attributes
+- **No Text Labels**: Icons should be self-explanatory or have tooltips
+- **Consistent Sizing**: 12px for compact, 16px for standard, 20px for large
+- **Semantic Icons**: Each icon clearly represents its function
+
+### 2. Universal Modal System
+- **Single Modal**: Use `#universalModal` for all modal content
+- **Dynamic Content**: Populate title and body via `showModal(title, content)`
+- **Consistent Structure**: Same header, close button, and body layout
+- **Proper Close**: Click outside or close button to dismiss
+
+### 3. Compact Property Cards
+- **Minimal Information**: Show essential data only
+- **Visual Hierarchy**: Price and score prominently displayed
+- **Feature Icons**: Use SVG icons for property features
+- **Action Buttons**: Icon-only delete and view buttons
+
+## Interface Patterns
+
+### Header Actions
+```html
+<button class="btn btn-secondary btn-icon-only" title="Action description">
+    <svg>...</svg>
+</button>
+```
+
+### Property Cards
+```html
+<div class="property-card score-{category}">
+    <div class="property-compact-header">
+        <div class="property-compact-main">
+            <div class="property-compact-price-score">
+                <span class="property-compact-price">{price}</span>
+                <span class="property-compact-score">{score}</span>
+            </div>
+            <div class="property-compact-title">{title}</div>
+            <div class="property-compact-specs">{specs}</div>
+        </div>
+        <div class="property-compact-features">{feature-icons}</div>
+    </div>
+    <div class="property-compact-actions">
+        <button class="btn btn-outline btn-compact btn-icon-only" title="Delete">
+            <svg>🗑️</svg>
+        </button>
+        <button class="btn btn-primary btn-compact btn-icon-only" title="View">
+            <svg>👁️</svg>
+        </button>
+    </div>
+</div>
+```
+
+### Stats Bar
+```html
+<div class="stats-bar">
+    <span id="totalProperties" title="Click for metrics">
+        <svg>📋</svg> {count} properties
+    </span>
+    <span id="avgScore" title="Click for score breakdown">
+        <svg>⚡</svg> Score: {score}
+    </span>
+    <span id="bestPrice" title="Click for best property">
+        <svg>⭐</svg> Best: {price}€
+    </span>
+</div>
+```
+
+## Interaction Patterns
+
+### Button States
+1. **Default**: Normal appearance with subtle shadow
+2. **Hover**: Scale to 1.02x, enhanced shadow, color change
+3. **Active**: Scale to 0.98x, immediate feedback
+4. **Disabled**: Reduced opacity, not-allowed cursor
+
+### Loading States
+1. **Update Button**: Spinner → "reloaded" message → normal
+2. **Import/Export**: Brief loading with progress
+3. **Modal Opening**: Fade in backdrop + scale up content
+
+### Feedback Patterns
+- **Success**: Green color with subtle scale animation
+- **Error**: Red color with gentle shake animation
+- **Warning**: Orange color with attention-grabbing animation
+- **Info**: Blue color with smooth transitions
+
+## Accessibility Guidelines
+
+### Cursor Rules
+- **Default**: `cursor: default` - Normal text and content
+- **Pointer**: `cursor: pointer` - All interactive elements
+- **Not Allowed**: `cursor: not-allowed` - Disabled buttons
+- **Text**: `cursor: text` - Text input areas
+- **Grab/Grabbing**: `cursor: grab/grabbing` - Draggable elements
+- **Wait**: `cursor: wait` - Loading states
+- **Help**: `cursor: help` - Help tooltips
+
+### Keyboard Navigation
+- **Tab Order**: Logical flow through interactive elements
+- **Focus Indicators**: Clear visual focus states
+- **Enter/Space**: Activate buttons and interactive elements
+- **Escape**: Close modals and dismiss dialogs
+
+### Screen Reader Support
+- **Alt Text**: Descriptive text for all icons
+- **ARIA Labels**: Proper labeling for complex interactions
+- **Semantic HTML**: Use appropriate HTML elements
+- **Live Regions**: Announce dynamic content changes
+
+## Responsive Design
+
+### Breakpoints
+- **Mobile**: < 768px - Compact layout
+- **Tablet**: 768px - 1024px - Medium layout
+- **Desktop**: > 1024px - Full layout
+
+### Adaptive Patterns
+- **Icon Sizing**: Scale icons based on screen size
+- **Spacing**: Reduce spacing on smaller screens
+- **Typography**: Adjust font sizes for readability
+- **Touch Targets**: Minimum 44px for mobile interactions
+
+## Performance Guidelines
+
+### Loading Optimization
+- **Lazy Loading**: Load content as needed
+- **Progressive Enhancement**: Core functionality first
+- **Caching**: Cache frequently accessed data
+- **Minification**: Optimize CSS and JavaScript
+
+### Animation Performance
+- **Hardware Acceleration**: Use transform and opacity
+- **Frame Rate**: Maintain 60fps animations
+- **Reduced Motion**: Respect user preferences
+- **Efficient Transitions**: Batch DOM operations
+
+## Error Handling
+
+### User-Friendly Messages
+- **Clear Language**: Avoid technical jargon
+- **Actionable**: Provide next steps when possible
+- **Consistent**: Use same error message format
+- **Localized**: Support multiple languages
+
+### Graceful Degradation
+- **Offline Support**: Handle network failures
+- **Fallback Content**: Provide alternatives
+- **Error Boundaries**: Prevent complete failures
+- **Recovery Options**: Allow users to retry actions
+description:
+globs:
+alwaysApply: false
+---

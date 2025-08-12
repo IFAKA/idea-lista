@@ -1,8 +1,8 @@
-# Installation Guide for Idealista Property Manager
+# Installation Guide for Idea-lista
 
 ## Overview
 
-The **Idealista Property Manager** is a professional Chrome extension that transforms your property search experience. It automatically analyzes Idealista listings, calculates professional scores, and helps you manage and compare properties efficiently.
+**Idea-lista** is a professional Chrome extension that transforms your property search experience. It automatically analyzes Idealista listings, calculates professional scores, and helps you manage and compare properties efficiently.
 
 ### Key Features:
 - 🏠 **Automatic Property Analysis** - Extracts all relevant data from listings
@@ -44,7 +44,7 @@ The **Idealista Property Manager** is a professional Chrome extension that trans
 
 ### Verify Installation:
 
-1. You should see "Idealista Property Manager" in your extensions list
+1. You should see "Idea-lista" in your extensions list
 2. The extension should show as "Enabled"
 3. You should see the extension icon in your browser toolbar
 4. Navigate to any Idealista property page (e.g., https://www.idealista.com/inmueble/88214200/)
@@ -149,7 +149,7 @@ The **Idealista Property Manager** is a professional Chrome extension that trans
 
 Your extension folder should look like this:
 ```
-idealista-property-manager/
+idea-lista/
 ├── manifest.json
 ├── content.js
 ├── styles.css
@@ -169,7 +169,7 @@ idealista-property-manager/
 
 To update the extension after making changes:
 1. Go to `chrome://extensions/`
-2. Find "Idealista Property Manager"
+2. Find "Idea-lista"
 3. Click the refresh/reload icon (🔄)
 4. Or click "Remove" and "Load unpacked" again
 
@@ -177,7 +177,7 @@ To update the extension after making changes:
 
 To remove the extension:
 1. Go to `chrome://extensions/`
-2. Find "Idealista Property Manager"
+2. Find "Idea-lista"
 3. Click "Remove"
 4. Confirm the removal
 5. Note: This will delete all saved properties
@@ -211,4 +211,4 @@ If you encounter issues:
 3. Verify all files are present and correctly named
 4. Try reinstalling the extension
 
-The Property Manager is designed to make your property search more efficient and data-driven. Enjoy your enhanced Idealista experience! 🏠✨
+Idea-lista is designed to make your property search more efficient and data-driven. Enjoy your enhanced Idealista experience! 🏠✨

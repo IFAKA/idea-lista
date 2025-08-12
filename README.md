@@ -1,10 +1,10 @@
-# Idealista Property Manager Chrome Extension
+# Idea-lista Chrome Extension
 
-A professional Chrome extension that transforms your Idealista property search experience with automatic analysis, intelligent scoring, and comprehensive property management.
+A professional Chrome extension that transforms your Idealista property search experience with automatic analysis, intelligent scoring, and comprehensive property management using the Idea-lista system.
 
 ## 🏠 Overview
 
-The **Idealista Property Manager** is not just an analyzer—it's your complete property search assistant. It automatically extracts data from Idealista listings, calculates professional scores based on real estate criteria, and helps you manage, compare, and organize your property search efficiently.
+**Idea-lista** is not just an analyzer—it's your complete property search assistant. It automatically extracts data from Idealista listings, calculates professional scores based on real estate criteria, and helps you manage, compare, and organize your property search efficiently.
 
 ![Architecture Diagram](docs/architecture-diagram.svg)
 
@@ -37,10 +37,14 @@ The **Idealista Property Manager** is not just an analyzer—it's your complete 
 - **Detailed Advantages**: Professional breakdown of property strengths
 - **Comparative Insights**: See how properties stack up against each other
 
-### 📋 **Export & Backup**
+### 📋 **Export & Import**
 - **One-Click Export**: Download all data as TSV file
+- **Score-Sorted Export**: Properties ordered from best to worst score
+- **Import Functionality**: Import properties from TSV/CSV files
+- **Duplicate Prevention**: Automatically avoids importing duplicate properties
 - **Excel-Ready Format**: Perfect for further analysis
 - **Complete Data Set**: All extracted information included
+- **Position Ranking**: Includes position column for easy reference
 
 ## 🔍 Extracted Information
 
@@ -49,6 +53,7 @@ The **Idealista Property Manager** is not just an analyzer—it's your complete 
 - Square meters and room count
 - Bathrooms and floor number
 - Orientation and energy certificate
+- **GPS Coordinates**: Latitude and longitude with Google Maps integration
 
 ### **Features & Amenities**
 - Heating availability
@@ -61,6 +66,7 @@ The **Idealista Property Manager** is not just an analyzer—it's your complete 
 - Phone number
 - Last update date
 - Property ID and URL
+- **Coordinates & Location**: GPS coordinates with direct Google Maps links
 
 ### **Smart Analysis**
 - Months mentioned in descriptions
@@ -75,7 +81,7 @@ Our scoring system is based on real estate industry standards:
 
 *The scoring algorithm combines multiple factors with professional weights to provide objective property evaluation.*
 
-### **Price Analysis (30% weight)**
+### **Price Analysis (25% weight)**
 - Lower prices score higher
 - Optimal range: 600-750€
 - Penalties for overpriced properties
@@ -93,8 +99,11 @@ Our scoring system is based on real estate industry standards:
 ### **Feature Assessment (15% weight)**
 - Heating: +5 points
 - Furnished: +3 points
-- Elevator: +2 points
 - Long-term rental: +5 points
+- **Elevator logic**:
+  - Has elevator: +2 points
+  - No elevator (not ground floor): -3 points penalty
+  - No elevator (ground floor): 0 points (no penalty)
 
 ### **Value Analysis (10% weight)**
 - Price per m² evaluation
@@ -104,6 +113,23 @@ Our scoring system is based on real estate industry standards:
 ### **Bathroom Count (10% weight)**
 - More bathrooms = higher score
 - Modern standards consideration
+
+### **Desk Analysis (5% weight)**
+- **2+ desks**: +5 points - Ideal for remote work
+- **1 desk**: +2.5 points - Good for single remote worker
+- **No desks**: 0 points - No dedicated workspace
+
+### **Orientation Analysis (7% weight)**
+- **East (Este)**: +7 points - Best case (sunrise, morning light)
+- **South (Sur)**: +6 points - Good (full sun exposure)
+- **West (Oeste)**: +4 points - Moderate (afternoon sun)
+- **North (Norte)**: +3 points - Lower (limited sun exposure)
+- **Other orientations**: +2 points - Unknown orientation
+
+### **Desk Analysis (8% weight)**
+- **2+ desks**: +8 points - Ideal for remote work (multiple people)
+- **1 desk**: +4 points - Good for single remote worker
+- **No desks**: 0 points - No dedicated workspace
 
 ## 🚀 Installation
 
@@ -308,4 +334,4 @@ For help and support:
 
 **Transform your property search with professional-grade analysis and management tools!** 🏠✨
 
-*The Idealista Property Manager - Your smart companion for finding the perfect home.*
+*Idea-lista - Your smart companion for finding the perfect home.*

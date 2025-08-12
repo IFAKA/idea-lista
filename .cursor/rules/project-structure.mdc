@@ -1,0 +1,235 @@
+# Project Structure for Idea-lista
+
+## Root Directory Structure
+
+### Core Extension Files
+```
+idea-lista/
+├── manifest.json                    # Chrome extension manifest
+├── background.js                    # Service worker (background script)
+├── content.js                       # Content script (Idealista integration)
+├── popup.html                       # Popup interface HTML
+├── popup.css                        # Popup styles (Apple design system)
+├── styles.css                       # Content script styles
+```
+
+### Assets and Icons
+```
+├── icon16.png                       # Extension icon (16x16px)
+├── icon48.png                       # Extension icon (48x48px)
+├── icon128.png                      # Extension icon (128x128px)
+├── generate-icons.html              # Icon generation utility
+```
+
+### Documentation
+```
+├── INSTALLATION.md                  # Installation and setup guide
+├── README.md                        # Project overview and features
+├── docs/                            # Visual documentation
+│   ├── architecture-diagram.svg     # System architecture diagram
+│   ├── feature-comparison.svg       # Feature comparison chart
+│   ├── popup-mockup.svg             # UI mockups and wireframes
+│   ├── preview.html                 # Interactive preview page
+│   ├── scoring-algorithm.svg        # Scoring system visualization
+│   └── workflow-diagram.svg         # User workflow diagram
+```
+
+### Modular Architecture
+```
+├── src/popup/                       # Modular popup architecture
+│   ├── popup.js                     # Main entry point
+│   ├── core/
+│   │   └── PropertyManager.js       # Main controller and orchestrator
+│   └── services/
+│       ├── UIService.js             # UI rendering and interactions
+│       ├── ScoringService.js        # Property scoring algorithms
+│       ├── DataService.js           # Import/export operations
+│       └── ModalService.js          # Modal management system
+```
+
+### Development Guidelines
+```
+└── .cursor/rules/                   # Cursor rules and development guidelines
+    ├── README.md                    # Rules documentation and usage
+    ├── apple-design-system.mdc      # Apple design system specifications
+    ├── animation-principles.mdc     # Animation guidelines and principles
+    ├── ui-ux-guidelines.mdc         # UI/UX patterns and accessibility
+    ├── chrome-extension-architecture.mdc # Architecture standards
+    ├── scoring-algorithm.mdc        # Property evaluation system
+    ├── content-script-patterns.mdc  # Content script integration patterns
+    └── project-structure.mdc        # This file - project organization
+```
+
+## File Responsibilities
+
+### Extension Configuration
+- **manifest.json**: Chrome extension configuration, permissions, and metadata
+- **background.js**: Service worker handling core logic, data management, and cross-tab communication
+- **content.js**: Content script for Idealista integration, data extraction, and UI injection
+
+### User Interface
+- **popup.html**: Main popup interface structure
+- **popup.css**: Apple design system styles for popup interface
+- **styles.css**: Content script styles for Idealista page integration
+
+### Visual Assets
+- **icon16.png, icon48.png, icon128.png**: Extension icons for different contexts
+- **generate-icons.html**: Utility for generating and updating extension icons
+
+### Documentation
+- **INSTALLATION.md**: Step-by-step installation and setup instructions
+- **README.md**: Project overview, features, and usage guide
+- **docs/**: Visual documentation including architecture diagrams and mockups
+
+### Modular Architecture (src/popup/)
+
+#### Entry Point
+- **popup.js**: Main entry point that initializes the PropertyManager and makes it globally accessible
+
+#### Core Components
+- **PropertyManager.js**: Central controller that orchestrates all services and manages application state
+
+#### Services
+- **UIService.js**: Handles all UI rendering, property card creation, and user interactions
+- **ScoringService.js**: Manages property scoring algorithms and score calculations
+- **DataService.js**: Handles import/export operations, file I/O, and data persistence
+- **ModalService.js**: Manages the universal modal system and modal interactions
+
+### Development Guidelines (.cursor/rules/)
+
+#### Design System
+- **apple-design-system.mdc**: Complete Apple design system including colors, typography, spacing, and shadows
+- **animation-principles.mdc**: Apple Watch-inspired animation principles and performance guidelines
+
+#### Architecture and Patterns
+- **ui-ux-guidelines.mdc**: Interface patterns, accessibility guidelines, and user experience principles
+- **chrome-extension-architecture.mdc**: Modular architecture patterns, coding standards, and best practices
+- **content-script-patterns.mdc**: Content script integration patterns and DOM manipulation guidelines
+
+#### Business Logic
+- **scoring-algorithm.mdc**: Property evaluation system, scoring weights, and calculation methods
+
+#### Documentation
+- **README.md**: Comprehensive guide to using and maintaining the Cursor rules
+- **project-structure.mdc**: This file - complete project organization and file responsibilities
+
+## Architecture Principles
+
+### Modular Design
+- **Single Responsibility**: Each file has a clear, focused purpose
+- **Separation of Concerns**: UI, business logic, and data management are separated
+- **Dependency Injection**: Services receive dependencies through constructors
+- **Event-Driven**: Components communicate through events and callbacks
+
+### File Organization
+- **Logical Grouping**: Related files are grouped together
+- **Clear Naming**: File names clearly indicate their purpose
+- **Consistent Structure**: Similar components follow the same structure
+- **Documentation**: Each major component is documented
+
+### Development Workflow
+- **Cursor Rules**: Automated guidance for consistent development
+- **Version Control**: All files are tracked and versioned
+- **Documentation**: Visual and textual documentation for all components
+- **Testing**: Manual testing procedures for all features
+
+## File Size Guidelines
+
+### Maximum Limits
+- **JavaScript Files**: 500 lines maximum per file
+- **CSS Files**: 2000 lines maximum per file
+- **HTML Files**: 200 lines maximum per file
+- **Documentation**: No strict limit, but keep focused and organized
+
+### Splitting Guidelines
+- **Large Files**: Split into smaller, focused modules
+- **Related Functionality**: Group related functions in the same file
+- **Service Boundaries**: Each service should be in its own file
+- **Component Separation**: UI components should be separate from business logic
+
+## Naming Conventions
+
+### Files
+- **JavaScript**: camelCase.js (e.g., PropertyManager.js)
+- **CSS**: kebab-case.css (e.g., popup.css)
+- **HTML**: kebab-case.html (e.g., popup.html)
+- **Documentation**: UPPER_CASE.md (e.g., README.md)
+
+### Directories
+- **Source Code**: camelCase (e.g., src/popup/)
+- **Documentation**: kebab-case (e.g., .cursor/rules/)
+- **Assets**: descriptive names (e.g., docs/, icons/)
+
+### Components
+- **Classes**: PascalCase (e.g., PropertyManager)
+- **Functions**: camelCase (e.g., calculateScore)
+- **Constants**: UPPER_SNAKE_CASE (e.g., MAX_FILE_SIZE)
+- **CSS Classes**: kebab-case (e.g., property-card)
+
+## Import/Export Patterns
+
+### ES6 Modules
+```javascript
+// Named exports for services
+export class UIService { ... }
+export class ScoringService { ... }
+
+// Default exports for main components
+export default class PropertyManager { ... }
+
+// Named imports
+import { UIService } from './services/UIService.js';
+import { ScoringService } from './services/ScoringService.js';
+
+// Default imports
+import PropertyManager from './core/PropertyManager.js';
+```
+
+### Module Organization
+- **Core**: Main application logic and controllers
+- **Services**: Specialized functionality and utilities
+- **Utils**: Helper functions and common utilities
+- **Types**: Type definitions and interfaces (if using TypeScript)
+
+## Development Guidelines
+
+### Adding New Files
+1. **Determine Purpose**: What is the file's responsibility?
+2. **Choose Location**: Place in appropriate directory
+3. **Follow Naming**: Use consistent naming conventions
+4. **Document**: Add comments and documentation
+5. **Update Rules**: Update relevant Cursor rules if needed
+
+### Modifying Existing Files
+1. **Check Size**: Ensure file doesn't exceed size limits
+2. **Maintain Structure**: Follow existing patterns
+3. **Update Documentation**: Keep documentation current
+4. **Test Changes**: Verify functionality works correctly
+
+### Refactoring
+1. **Identify Issues**: Find files that violate guidelines
+2. **Plan Changes**: Design new structure
+3. **Implement Gradually**: Make changes incrementally
+4. **Update Dependencies**: Fix import/export statements
+5. **Test Thoroughly**: Ensure everything still works
+
+## Maintenance
+
+### Regular Reviews
+- **Monthly**: Review file sizes and organization
+- **Quarterly**: Update documentation and diagrams
+- **Annually**: Refactor and optimize structure
+
+### Documentation Updates
+- **New Features**: Update relevant documentation
+- **Architecture Changes**: Update diagrams and structure docs
+- **Rule Changes**: Update Cursor rules as needed
+
+### Performance Monitoring
+- **File Sizes**: Monitor for files approaching limits
+- **Import Complexity**: Check for circular dependencies
+- **Build Times**: Monitor impact of structure on build performance
+description:
+globs:
+alwaysApply: false
+---

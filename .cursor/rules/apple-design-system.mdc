@@ -1,0 +1,98 @@
+# Apple Design System for Idea-lista
+
+## Color Palette - Official Apple System Colors
+
+### Primary Colors
+- **Apple Blue**: `#007AFF` - Primary actions, links, and main brand color
+- **Apple Purple**: `#5856D6` - Secondary elements and special features
+- **Apple Green**: `#34C759` - Success states and positive feedback
+- **Apple Orange**: `#FF9500` - Warning states and alerts
+- **Apple Red**: `#FF3B30` - Error states and destructive actions
+- **Apple Light Blue**: `#5AC8FA` - Information and neutral actions
+
+### Extended Apple Colors
+- **Apple Yellow**: `#FFCC02` - Additional accent color
+- **Apple Pink**: `#FF2D92` - Additional accent color
+- **Apple Teal**: `#64D2FF` - Additional accent color
+- **Apple Indigo**: `#AF52DE` - Additional accent color
+
+### Apple System Grays (Dark Mode)
+- **System Gray**: `#8E8E93` - Primary gray for text
+- **System Gray 2**: `#636366` - Secondary gray
+- **System Gray 3**: `#48484A` - Tertiary gray
+- **System Gray 4**: `#3A3A3C` - Quaternary gray
+- **System Gray 5**: `#2C2C2E` - Quinary gray
+- **System Gray 6**: `#1C1C1E` - Senary gray
+
+### Background Colors (Dark Mode)
+- **Pure Black**: `#000000` - Primary background
+- **System Gray 6**: `#1C1C1E` - Secondary background
+- **System Gray 5**: `#2C2C2E` - Tertiary background
+- **System Gray 4**: `#3A3A3C` - Elevated background
+- **System Gray 3**: `#48484A` - Quaternary background
+
+### Text Colors (Dark Mode)
+- **White**: `#FFFFFF` - Primary text
+- **System Gray**: `#EBEBF5` - Secondary text
+- **System Gray (60%)**: `#EBEBF599` - Tertiary text
+- **System Gray (30%)**: `#EBEBF54D` - Quaternary text
+- **Black**: `#000000` - Inverse text
+
+### Border Colors (Dark Mode)
+- **System Gray 4**: `#38383A` - Light borders
+- **System Gray 3**: `#48484A` - Medium borders
+- **System Gray 2**: `#636366` - Dark borders
+
+## Typography Scale
+- **XS**: 11px - Small labels and captions
+- **SM**: 12px - Body text and buttons
+- **Base**: 14px - Default text size
+- **LG**: 16px - Headings and important text
+- **XL**: 18px - Large headings
+- **2XL**: 20px - Page titles
+- **3XL**: 24px - Main titles
+
+## Font Weights
+- **Light**: 300 - Subtle text
+- **Normal**: 400 - Default text
+- **Medium**: 500 - Emphasized text
+- **Semibold**: 600 - Important text
+- **Bold**: 700 - Headings and critical text
+
+## Spacing Scale
+- **1**: 4px - Minimal spacing
+- **2**: 8px - Small spacing
+- **3**: 12px - Medium spacing
+- **4**: 16px - Standard spacing
+- **5**: 20px - Large spacing
+- **6**: 24px - Extra large spacing
+- **8**: 32px - Section spacing
+- **10**: 40px - Major spacing
+- **12**: 48px - Maximum spacing
+
+## Border Radius
+- **XS**: 4px - Small elements
+- **SM**: 6px - Buttons and cards
+- **MD**: 8px - Medium elements
+- **LG**: 12px - Large elements
+- **XL**: 16px - Extra large elements
+- **2XL**: 20px - Maximum radius
+- **Full**: 9999px - Circular elements
+
+## Shadow System (Dark Mode)
+- **XS**: `0 1px 3px rgba(0, 0, 0, 0.4)` - Subtle elevation
+- **SM**: `0 2px 6px rgba(0, 0, 0, 0.4)` - Light elevation
+- **MD**: `0 4px 12px rgba(0, 0, 0, 0.4)` - Medium elevation
+- **LG**: `0 8px 24px rgba(0, 0, 0, 0.4)` - High elevation
+- **XL**: `0 16px 48px rgba(0, 0, 0, 0.4)` - Maximum elevation
+
+## Design Principles
+1. **Consistency**: Use Apple's design language throughout
+2. **Accessibility**: High contrast ratios and clear visual hierarchy
+3. **Simplicity**: Clean, uncluttered interfaces
+4. **Responsiveness**: Smooth interactions and immediate feedback
+5. **Professional**: Business-appropriate aesthetic
+description:
+globs:
+alwaysApply: false
+---
