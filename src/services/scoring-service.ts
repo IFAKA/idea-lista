@@ -1,5 +1,6 @@
 import { Property, PropertyType } from '@/store/property-store'
-import { ImportanceLevel } from '@/components/ui/importance-selector'
+
+export type ImportanceLevel = 'irrelevante' | 'valorable' | 'esencial'
 
 export interface ScoringImportance {
   // Core financial and size

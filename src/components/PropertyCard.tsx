@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Property, PropertyFeatureState } from "@/store/property-store";
+import { Property, PropertyFeatureState, ContactStatus, PropertyStatus } from "@/store/property-store";
 import { defaultScoringConfig, ScoringConfig } from "@/services/scoring-service";
 import { motion } from "motion/react";
 import {
@@ -15,7 +15,6 @@ import {
   Clock,
   Clock3,
   Compass,
-
   DoorOpen,
   Euro,
   Eye,
@@ -41,6 +40,8 @@ import {
   Wind,
   Wrench,
   Zap,
+  Calendar,
+  Phone,
 } from "lucide-react";
 
 interface PropertyDetail {
@@ -86,6 +87,13 @@ const getSizeValue = (property: Property): string | number => {
   return 'N/A';
 };
 
+const formatPropertyTitle = (title: string): string => {
+  return title
+    .replace(/^Avenida de\s+la\s+/i, '')
+    .replace(/^Avenida de\s+/i, '')
+    .replace(/^Calle\s+/i, '');
+};
+
 const getPropertyDetails = (property: Property, formatPrice: (price: number) => string, currentConfig?: ScoringConfig): PropertyDetail[] => {
   const config = currentConfig || defaultScoringConfig;
   const details: PropertyDetail[] = [
@@ -116,7 +124,7 @@ const getPropertyDetails = (property: Property, formatPrice: (price: number) => 
       key: "bathrooms",
       icon: Bath,
       title: "Baños",
-      value: property.bathrooms,
+      value: property.bathrooms != null ? `${property.bathrooms} ${property.bathrooms > 1 ? 'baños' : 'baño'}` : 'N/A',
       weight: config.weights.bathrooms,
     },
     {
@@ -368,12 +376,14 @@ interface PropertyCardProps {
   property: Property;
   onDelete: (id: string) => void;
   currentConfig?: ScoringConfig;
+  onManageVisits?: (property: Property) => void;
 }
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({
   property,
   onDelete,
-  currentConfig
+  currentConfig,
+  onManageVisits
 }) => {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("es-ES", {
@@ -388,6 +398,50 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     if (score >= 60) return "bg-yellow-500";
     return "bg-red-500";
   };
+
+  const getStatusColor = (status: ContactStatus | PropertyStatus) => {
+    switch (status) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'available':
+        return 'bg-green-100 text-green-800'
+      case 'contacted':
+      case 'under_contract':
+        return 'bg-blue-100 text-blue-800'
+      case 'responded':
+      case 'visited':
+        return 'bg-green-100 text-green-800'
+      case 'scheduled':
+        return 'bg-purple-100 text-purple-800'
+      case 'no_response':
+      case 'sold':
+        return 'bg-red-100 text-red-800'
+      case 'not_interested':
+      case 'off_market':
+        return 'bg-gray-100 text-gray-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+
+
+  const getStatusLabel = (status: ContactStatus | PropertyStatus) => {
+    const labels: Record<string, string> = {
+      pending: 'Pendiente',
+      contacted: 'Contactado',
+      responded: 'Respondido',
+      scheduled: 'Agendado',
+      visited: 'Visitado',
+      no_response: 'Sin Respuesta',
+      not_interested: 'No Interesado',
+      available: 'Disponible',
+      under_contract: 'Reservado',
+      sold: 'No Disponible',
+      off_market: 'Fuera de Mercado'
+    }
+    return labels[status] || status
+  }
 
   // Check if property has an image
   const hasImage = !!(property.imageUrl || property.image);
@@ -428,7 +482,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                     hasImage ? 'text-white drop-shadow-lg' : ''
                   }`}
                 >
-                  {property.title}
+                  {formatPropertyTitle(property.title || '')}
                 </CardTitle>
                 {property.location && (
                   <div className={`flex items-center text-sm mt-1 ${
@@ -450,6 +504,19 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 >
                   {isNaN(property.score) ? 'N/A' : Math.round(property.score)}
                 </Badge>
+                {onManageVisits && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onManageVisits(property)}
+                    className={`h-8 w-8 ${
+                      hasImage ? 'text-white hover:bg-white/20' : ''
+                    }`}
+                    title="Gestionar visitas"
+                  >
+                    <Calendar className="w-4 h-4" />
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   size="icon"
@@ -501,6 +568,31 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                     </span>
                   </div>
                 ))}
+            </div>
+
+            {/* Visit tracking status badges */}
+            <div className="flex flex-wrap gap-2 mt-3">
+              {/* Always show availability status */}
+              <Badge className={`text-xs ${getStatusColor(property.propertyStatus || 'available')}`}>
+                {getStatusLabel(property.propertyStatus || 'available')}
+              </Badge>
+              {property.contactStatus && (
+                <Badge className={`text-xs ${getStatusColor(property.contactStatus)}`}>
+                  {getStatusLabel(property.contactStatus)}
+                </Badge>
+              )}
+              {property.visits && property.visits.length > 0 && (
+                <Badge className="text-xs bg-purple-100 text-purple-800">
+                  <Calendar className="w-3 h-3 mr-1" />
+                  {property.visits.length} visita{property.visits.length > 1 ? 's' : ''}
+                </Badge>
+              )}
+              {property.contacts && property.contacts.length > 0 && (
+                <Badge className="text-xs bg-blue-100 text-blue-800">
+                  <Phone className="w-3 h-3 mr-1" />
+                  {property.contacts.length} contacto{property.contacts.length > 1 ? 's' : ''}
+                </Badge>
+              )}
             </div>
 
             {property.notes && (

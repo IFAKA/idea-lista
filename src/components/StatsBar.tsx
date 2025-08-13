@@ -20,11 +20,30 @@ export const StatsBar: React.FC<StatsBarProps> = ({ metrics }) => {
         className="bg-muted/50 rounded-lg p-2 mb-3"
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Home className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm font-medium">
-              {metrics.totalProperties} {metrics.totalProperties === 1 ? 'propiedad' : 'propiedades'}
-            </span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Home className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium">
+                {metrics.totalProperties} {metrics.totalProperties === 1 ? 'propiedad' : 'propiedades'}
+              </span>
+            </div>
+            {metrics.visitMetrics.totalVisits > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">
+                  {metrics.visitMetrics.totalVisits} visita{metrics.visitMetrics.totalVisits > 1 ? 's' : ''}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  ({metrics.visitMetrics.visitSuccessRate}% éxito)
+                </span>
+              </div>
+            )}
+            {metrics.contactMetrics.totalContacts > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">
+                  {metrics.contactMetrics.totalContacts} contacto{metrics.contactMetrics.totalContacts > 1 ? 's' : ''}
+                </span>
+              </div>
+            )}
           </div>
           <Badge 
             variant="secondary" 

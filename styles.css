@@ -313,6 +313,145 @@ body {
     border-color: rgba(90, 200, 250, 0.3);
 }
 
+/* Additional amenities */
+.chip.parking { 
+    color: var(--color-success); 
+    background: rgba(52, 199, 89, 0.15); 
+    border-color: rgba(52, 199, 89, 0.3);
+}
+.chip.terrace { 
+    color: var(--color-warning); 
+    background: rgba(255, 149, 0, 0.15); 
+    border-color: rgba(255, 149, 0, 0.3);
+}
+.chip.balcony { 
+    color: var(--color-warning); 
+    background: rgba(255, 149, 0, 0.15); 
+    border-color: rgba(255, 149, 0, 0.3);
+}
+.chip.air-conditioning { 
+    color: var(--color-info); 
+    background: rgba(90, 200, 250, 0.15); 
+    border-color: rgba(90, 200, 250, 0.3);
+}
+.chip.garden { 
+    color: var(--color-success); 
+    background: rgba(52, 199, 89, 0.15); 
+    border-color: rgba(52, 199, 89, 0.3);
+}
+.chip.pool { 
+    color: var(--color-info); 
+    background: rgba(90, 200, 250, 0.15); 
+    border-color: rgba(90, 200, 250, 0.3);
+}
+.chip.accessible { 
+    color: var(--color-success); 
+    background: rgba(52, 199, 89, 0.15); 
+    border-color: rgba(52, 199, 89, 0.3);
+}
+.chip.cleaning { 
+    color: var(--color-success); 
+    background: rgba(52, 199, 89, 0.15); 
+    border-color: rgba(52, 199, 89, 0.3);
+}
+.chip.lgbt { 
+    color: var(--color-primary); 
+    background: rgba(0, 122, 255, 0.15); 
+    border-color: rgba(0, 122, 255, 0.3);
+}
+.chip.owner-absent { 
+    color: var(--color-warning); 
+    background: rgba(255, 149, 0, 0.15); 
+    border-color: rgba(255, 149, 0, 0.3);
+}
+.chip.private-bathroom { 
+    color: var(--color-success); 
+    background: rgba(52, 199, 89, 0.15); 
+    border-color: rgba(52, 199, 89, 0.3);
+}
+.chip.window { 
+    color: var(--color-info); 
+    background: rgba(90, 200, 250, 0.15); 
+    border-color: rgba(90, 200, 250, 0.3);
+}
+.chip.couples { 
+    color: var(--color-success); 
+    background: rgba(52, 199, 89, 0.15); 
+    border-color: rgba(52, 199, 89, 0.3);
+}
+.chip.minors { 
+    color: var(--color-success); 
+    background: rgba(52, 199, 89, 0.15); 
+    border-color: rgba(52, 199, 89, 0.3);
+}
+.chip.wardrobes { 
+    color: var(--color-info); 
+    background: rgba(90, 200, 250, 0.15); 
+    border-color: rgba(90, 200, 250, 0.3);
+}
+.chip.garage { 
+    color: var(--color-success); 
+    background: rgba(52, 199, 89, 0.15); 
+    border-color: rgba(52, 199, 89, 0.3);
+}
+.chip.storage { 
+    color: var(--color-info); 
+    background: rgba(90, 200, 250, 0.15); 
+    border-color: rgba(90, 200, 250, 0.3);
+}
+.chip.floor-plan { 
+    color: var(--color-info); 
+    background: rgba(90, 200, 250, 0.15); 
+    border-color: rgba(90, 200, 250, 0.3);
+}
+.chip.virtual-tour { 
+    color: var(--color-primary); 
+    background: rgba(0, 122, 255, 0.15); 
+    border-color: rgba(0, 122, 255, 0.3);
+}
+.chip.bank { 
+    color: var(--color-warning); 
+    background: rgba(255, 149, 0, 0.15); 
+    border-color: rgba(255, 149, 0, 0.3);
+}
+.chip.smokers { 
+    color: var(--color-warning); 
+    background: rgba(255, 149, 0, 0.15); 
+    border-color: rgba(255, 149, 0, 0.3);
+}
+.chip.bed { 
+    color: var(--color-success); 
+    background: rgba(52, 199, 89, 0.15); 
+    border-color: rgba(52, 199, 89, 0.3);
+}
+.chip.roommates { 
+    color: var(--color-info); 
+    background: rgba(90, 200, 250, 0.15); 
+    border-color: rgba(90, 200, 250, 0.3);
+}
+
+/* Property type and condition */
+.chip.property-type { 
+    color: var(--color-primary); 
+    background: rgba(0, 122, 255, 0.15); 
+    border-color: rgba(0, 122, 255, 0.3);
+}
+.chip.condition { 
+    color: var(--color-warning); 
+    background: rgba(255, 149, 0, 0.15); 
+    border-color: rgba(255, 149, 0, 0.3);
+}
+.chip.gender { 
+    color: var(--color-primary); 
+    background: rgba(0, 122, 255, 0.15); 
+    border-color: rgba(0, 122, 255, 0.3);
+}
+.chip.maintenance { 
+    color: var(--color-warning); 
+    background: rgba(255, 149, 0, 0.15); 
+    border-color: rgba(255, 149, 0, 0.3);
+}
+
 .chip.id, .chip.muted { 
     color: var(--text-tertiary); 
     background: var(--bg-tertiary); 
@@ -680,6 +819,19 @@ body {
     color: var(--text-inverse) !important;
     opacity: 1 !important;
     cursor: not-allowed !important;
+}
+
+/* Delete button hover state */
+.analyzer-add-btn--compact.delete-mode:hover {
+    background-color: #c82333 !important;
+    transform: var(--transform-base) scale(1.02);
+    box-shadow: var(--shadow-md);
+}
+
+/* Delete button active state */
+.analyzer-add-btn--compact.delete-mode:active {
+    background-color: #bd2130 !important;
+    transform: var(--transform-base) scale(0.98);
 }
 
 /* Responsive */

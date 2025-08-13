@@ -1,313 +1,496 @@
-# Idea-lista Chrome Extension
+# 🏠 Idea-lista - Professional Property Analyzer
 
-A professional Chrome extension that transforms your Idealista property search experience with automatic analysis, intelligent scoring, and comprehensive property management using the Idea-lista system.
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/your-username/idea-lista)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-yellow.svg)](https://chrome.google.com/webstore)
 
-## 🏠 Overview
+> **Transform your Idealista property search with AI-powered analysis, intelligent scoring, and professional property management.**
 
-**Idea-lista** is not just an analyzer—it's your complete property search assistant. It automatically extracts data from Idealista listings, calculates professional scores based on real estate criteria, and helps you manage, compare, and organize your property search efficiently.
+## 📋 Table of Contents
+
+- [🎯 Overview](#-overview)
+- [✨ Features](#-features)
+- [🏗️ Architecture](#️-architecture)
+- [🚀 Installation](#-installation)
+- [📖 Usage](#-usage)
+- [🔧 Development](#-development)
+- [📊 API Reference](#-api-reference)
+- [🤝 Contributing](#-contributing)
+
+## 🎯 Overview
+
+**Idea-lista** is a sophisticated Chrome extension that revolutionizes property search on Idealista.com. It combines advanced data extraction, intelligent scoring algorithms, and comprehensive property management to help you find your perfect home efficiently.
+
+### 🎯 Key Benefits
+
+- **⚡ Real-time Analysis**: Instant property evaluation as you browse
+- **🧠 Intelligent Scoring**: Professional algorithm (0-100) based on real estate criteria
+- **💾 Smart Management**: Save, compare, and organize properties effortlessly
+- **📊 Data Export**: Export to TSV/Excel for further analysis
+- **🎨 Modern UI**: Beautiful, responsive interface with dark/light themes
+
+## ✨ Features
+
+### 🎯 **Core Functionality**
+
+#### **Automatic Data Extraction**
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Data Extraction Pipeline                 │
+├─────────────────────────────────────────────────────────────┤
+│ 1. Property Details    │ 2. Amenities        │ 3. Location │
+│    • Price (€/month)   │    • Heating        │    • GPS    │
+│    • Size (m²)         │    • Elevator       │    • Floor  │
+│    • Rooms/Bathrooms   │    • Furnished      │    • Area   │
+│    • Energy Rating     │    • Parking        │    • URL    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### **Intelligent Scoring System**
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Scoring Algorithm                       │
+├─────────────────────────────────────────────────────────────┤
+│ 🟢 Excellent (80-100) │ Outstanding properties - Act fast! │
+│ 🔵 Good (60-79)       │ Very good options - Strong choice │
+│ 🟡 Average (40-59)    │ Decent properties - Consider      │
+│ 🔴 Poor (0-39)        │ Below average - Skip              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### **Property Management**
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Property Manager                        │
+├─────────────────────────────────────────────────────────────┤
+│ 📋 Collection View    │ 🏆 Best Analysis    │ 📊 Export   │
+│    • Score-sorted     │    • Detailed       │    • TSV    │
+│    • Quick actions    │    • Advantages     │    • Excel  │
+│    • Visual filters   │    • Comparisons    │    • Backup │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 🎨 **Advanced Features**
+
+#### **Smart UI Components**
+- **Responsive Design**: Works on all screen sizes
+- **Theme Support**: Dark/light mode with system detection
+- **Real-time Updates**: Instant feedback on all actions
+- **Accessibility**: Keyboard navigation and screen reader support
+
+#### **Data Intelligence**
+- **Duplicate Prevention**: Automatic detection and handling
+- **Smart Validation**: Ensures data integrity
+- **Persistent Storage**: Chrome storage with sync support
+- **Export Formats**: TSV, JSON, and Excel-ready formats
+
+## 🏗️ Architecture
+
+### **System Architecture**
 
 ![Architecture Diagram](docs/architecture-diagram.svg)
 
-*The Property Manager uses a sophisticated architecture with content scripts for data extraction, background scripts for scoring and storage, and a popup interface for property management.*
+*The Idea-lista system uses a sophisticated architecture with content scripts for data extraction, background scripts for scoring and storage, and a popup interface for property management.*
 
-## ✨ Key Features
-
-### 🎯 **Professional Property Analysis**
-- **Automatic Data Extraction**: Extracts 15+ data points from every listing
-- **Intelligent Scoring System**: Professional algorithm that ranks properties (0-100)
-- **Real-time Analysis**: Instant evaluation as you browse
-
-### 🎨 **Smart Visual Interface**
-- **Color-Coded Quality Indicators**:
-  - 🟢 **Excellent (80-100)**: Outstanding properties
-  - 🔵 **Good (60-79)**: Very good options  
-  - 🟡 **Average (40-59)**: Decent properties
-  - 🔴 **Poor (0-39)**: Below average
-- **Compact Design**: Optimized for efficient browsing
-- **Responsive Layout**: Works perfectly on all screen sizes
-
-### 💾 **Property Management System**
-- **Save & Organize**: Add properties to your personal collection
-- **Smart Sorting**: Automatically ordered by score (best first)
-- **Quick Actions**: View, remove, and manage properties instantly
-- **Persistent Storage**: Your data stays safe between sessions
-
-### 📊 **Advanced Comparison Tools**
-- **Best Property Analysis**: Click "🏆 Mejor" to see why a property is the best
-- **Detailed Advantages**: Professional breakdown of property strengths
-- **Comparative Insights**: See how properties stack up against each other
-
-### 📋 **Export & Import**
-- **One-Click Export**: Download all data as TSV file
-- **Score-Sorted Export**: Properties ordered from best to worst score
-- **Import Functionality**: Import properties from TSV/CSV files
-- **Duplicate Prevention**: Automatically avoids importing duplicate properties
-- **Excel-Ready Format**: Perfect for further analysis
-- **Complete Data Set**: All extracted information included
-- **Position Ranking**: Includes position column for easy reference
-
-## 🔍 Extracted Information
-
-### **Core Property Data**
-- Price (€/month) and price per m²
-- Square meters and room count
-- Bathrooms and floor number
-- Orientation and energy certificate
-- **GPS Coordinates**: Latitude and longitude with Google Maps integration
-
-### **Features & Amenities**
-- Heating availability
-- Furnished status
-- Elevator access
-- Seasonal vs. long-term rental
-
-### **Contact & Details**
-- Professional/Private advertiser
-- Phone number
-- Last update date
-- Property ID and URL
-- **Coordinates & Location**: GPS coordinates with direct Google Maps links
-
-### **Smart Analysis**
-- Months mentioned in descriptions
-- Deposit information
-- Professional scoring (0-100)
-
-## 🧠 Professional Scoring Algorithm
-
-Our scoring system is based on real estate industry standards:
+### **Data Flow**
 
 ![Scoring Algorithm](docs/scoring-algorithm.svg)
 
-*The scoring algorithm uses a simple 3-state importance system to provide objective property evaluation.*
+*The scoring algorithm processes property data through feature extraction, weight application, and range validation to produce a final score from 0-100.*
 
-### **3-State Importance System**
-- **Essential (2)**: Critical factors that significantly impact the decision
-- **Valuable (1)**: Important factors that add value but aren't critical
-- **Irrelevant (0)**: Factors that don't affect the decision
-
-### **Core Property Factors**
-- **Price**: Essential - Lower prices score higher within your range
-- **Size**: Essential - Bigger properties score higher within your range
-- **Rooms**: Essential - More rooms score higher within your range
-- **Bathrooms**: Essential - More bathrooms score higher within your range
-
-### **Essential Amenities**
-- **Heating**: Essential - Critical for comfort
-- **Elevator**: Essential - Important for accessibility
-- **Furnished**: Essential for rooms, Valuable for apartments
-- **Parking**: Essential for apartments, Valuable for rooms
-
-### **Property-Specific Features**
-- **Vivienda (Apartments/Houses)**: Focus on size, rooms, parking, and essential amenities
-- **Habitación (Rooms)**: Focus on price, furnished status, roommates, and privacy features
-
-### **Scoring Logic**
-- Properties are scored from 0-100 based on how well they match your preferences
-- Only relevant factors (importance > 0) are considered in scoring
-- Final score is calculated as a percentage of the maximum possible score
+### **Component Structure**
+```
+src/
+├── components/
+│   ├── ui/                    # Reusable UI components
+│   │   ├── button.tsx         # Button component
+│   │   ├── card.tsx           # Card component
+│   │   ├── dialog.tsx         # Modal dialogs
+│   │   ├── input.tsx          # Input fields
+│   │   ├── select.tsx         # Dropdown selects
+│   │   ├── tabs.tsx           # Tab navigation
+│   │   └── ...
+│   ├── PropertyCard.tsx       # Property display card
+│   ├── SettingsView.tsx       # Configuration interface
+│   ├── StatisticsModal.tsx    # Analytics modal
+│   ├── VisitManagementView.tsx # Visit tracking
+│   └── ...
+├── services/
+│   └── scoring-service.ts     # Scoring algorithm
+├── store/
+│   └── property-store.ts      # State management
+├── lib/
+│   ├── utils.ts               # Utility functions
+│   └── theme.ts               # Theme configuration
+└── App.tsx                    # Main application
+```
 
 ## 🚀 Installation
 
-### **Step 1: Generate Icons**
-1. Open `generate-icons.html` in your browser
-2. Click "Generate All Icons"
-3. Save the three PNG files to your extension folder
+### **Prerequisites**
+- Chrome browser (version 88+)
+- Node.js (for development)
+- Git (for cloning)
 
-### **Step 2: Install Extension**
-1. Open Chrome and go to `chrome://extensions/`
-2. Enable "Developer mode"
+### **Quick Start**
+
+#### **1. Clone the Repository**
+```bash
+git clone https://github.com/your-username/idea-lista.git
+cd idea-lista
+```
+
+#### **2. Install Dependencies**
+```bash
+npm install
+```
+
+#### **3. Build the Extension**
+```bash
+npm run build:extension
+```
+
+#### **4. Load in Chrome**
+1. Open Chrome and navigate to `chrome://extensions/`
+2. Enable "Developer mode" (top right toggle)
 3. Click "Load unpacked"
-4. Select your extension folder
-5. Verify installation in toolbar
+4. Select the project directory
+5. Verify the extension appears in your toolbar
 
-### **Step 3: First Use**
-1. Visit any Idealista property page
-2. Look for the analysis panel above property details
-3. Click "➕ Agregar" to save your first property
-4. Click the extension icon to open your property manager
+### **Development Setup**
 
-## 📖 Usage Guide
+#### **Development Mode**
+```bash
+npm run dev:extension
+```
 
-![Workflow Diagram](docs/workflow-diagram.svg)
+#### **Type Checking**
+```bash
+npm run type-check
+```
+
+#### **Linting**
+```bash
+npm run lint
+```
+
+## 📖 Usage
+
+### **Basic Workflow**
+
+![User Workflow](docs/workflow-diagram.svg)
 
 *The complete workflow from browsing properties to making informed decisions.*
 
-### **Adding Properties**
-1. **Browse** Idealista listings
-2. **Analyze** the automatic evaluation
-3. **Click** "➕ Agregar" for promising properties
-4. **Confirm** with green "✅ Agregado" message
-
-### **Managing Your Collection**
-1. **Open** the extension popup
-2. **Review** properties sorted by score
-3. **Compare** using color-coded indicators
-4. **Take action** with View/Remove buttons
-
-### **Advanced Features**
-
-#### **Best Property Analysis**
-- Click **"🏆 Mejor: X€"** in the popup
-- See detailed breakdown of advantages
-- Compare with other properties
-- Understand scoring decisions
-
-#### **Data Export**
-- Click **"📊 Exportar"** for complete data
-- Download TSV file for Excel
-- Includes all extracted information
-- Perfect for further analysis
-
-#### **Debug & Troubleshooting**
-- Click **"🐛 Debug"** for technical info
-- Check browser console for logs
-- Verify data extraction accuracy
-
-### **Property Manager Interface**
-
-![Popup Interface](docs/popup-mockup.svg)
-
-*The Property Manager popup shows properties sorted by score with color-coded quality indicators and quick action buttons.*
-
-## 🎯 Professional Workflow
-
-![Feature Comparison](docs/feature-comparison.svg)
-
-*See how the Property Manager compares to traditional property search methods.*
-
-### **Efficient Property Search**
-1. **Browse systematically** - Focus on areas of interest
-2. **Add selectively** - Only properties with score > 60
-3. **Review regularly** - Check your collection daily
-4. **Compare intelligently** - Use the "🏆 Mejor" feature
-5. **Export when ready** - Download data for final decisions
-
-### **Score Interpretation**
-- **85+**: Exceptional properties - act quickly
-- **70-84**: Very good options - strong contenders
-- **60-69**: Good properties - worth considering
-- **Below 60**: May have significant drawbacks
-
-## 🛠️ File Structure
-
+#### **1. Browse Properties**
 ```
-idealista-property-manager/
-├── manifest.json          # Extension configuration
-├── content.js            # Property analysis & UI
-├── styles.css            # Visual styling
-├── background.js         # Data management & scoring
-├── popup.html            # Manager interface
-├── popup.css             # Popup styling
-├── popup.js              # Popup functionality
-├── icon16.png            # Extension icon (16x16)
-├── icon48.png            # Extension icon (48x48)
-├── icon128.png           # Extension icon (128x128)
-├── README.md             # This documentation
-├── INSTALLATION.md       # Detailed installation guide
-├── generate-icons.html   # Icon generation tool
-└── docs/                 # Documentation assets
-    ├── architecture-diagram.svg
-    ├── scoring-algorithm.svg
-    ├── workflow-diagram.svg
-    ├── popup-mockup.svg
-    └── feature-comparison.svg
+┌─────────────────────────────────────────────────────────────┐
+│                    Property Analysis                        │
+├─────────────────────────────────────────────────────────────┤
+│ 🏠 Beautiful 2-bedroom apartment in Madrid                 │
+│ 📍 Location: Salamanca, Madrid                             │
+│ 💰 Price: €1,200/month                                     │
+│ 📏 Size: 75m²                                              │
+│ 🛏️ Rooms: 2 | 🚿 Bathrooms: 1                             │
+│ 🏆 Score: 85/100 (Excellent)                               │
+│                                                             │
+│ [➕ Add to Collection] [🏆 View Analysis] [🔗 Open Link]   │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## 🔧 Customization
+#### **2. Manage Your Collection**
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Property Manager                        │
+├─────────────────────────────────────────────────────────────┤
+│ 📊 Statistics: 12 properties | Avg Score: 72               │
+│                                                             │
+│ 🏆 Best Property: 85/100 - €1,200/month                    │
+│ 🔵 Good Options: 3 properties (70-79)                      │
+│ 🟡 Average: 5 properties (40-69)                           │
+│ 🔴 Below Average: 3 properties (0-39)                      │
+│                                                             │
+│ [📊 Export Data] [⚙️ Settings] [🗑️ Clear All]             │
+└─────────────────────────────────────────────────────────────┘
+```
 
-### **Modifying Scoring Criteria**
-Edit the `calculateScore` function in `background.js`:
+#### **3. Advanced Features**
 
-```javascript
-// Price scoring (30% weight)
-if (property.price) {
-    const priceScore = Math.max(0, 30 - (property.price - 600) / 5);
-    score += priceScore;
+##### **Property Analysis**
+- Click "🏆 View Analysis" to see detailed scoring breakdown
+- Compare properties side-by-side
+- Understand why a property scored high/low
+
+##### **Data Export**
+- Export to TSV format for Excel analysis
+- Include all extracted data points
+- Sort by score, price, or location
+
+##### **Settings Configuration**
+- Customize scoring weights
+- Set property type preferences
+- Configure export options
+
+### **Scoring System**
+
+#### **Algorithm Overview**
+```
+Score = Σ(Feature_Weight × Feature_Score) / Max_Possible_Score × 100
+
+Where:
+- Feature_Weight: 0 (Irrelevant), 1 (Valuable), 2 (Essential)
+- Feature_Score: 0-1 based on how well it matches preferences
+- Max_Possible_Score: Sum of all relevant feature weights
+```
+
+#### **Scoring Factors**
+
+| Factor | Weight | Description |
+|--------|--------|-------------|
+| **Price** | Essential (2) | Lower prices score higher within range |
+| **Size** | Essential (2) | Bigger properties score higher |
+| **Rooms** | Essential (2) | More rooms score higher |
+| **Bathrooms** | Essential (2) | More bathrooms score higher |
+| **Heating** | Essential (2) | Critical for comfort |
+| **Elevator** | Essential (2) | Important for accessibility |
+| **Furnished** | Valuable (1) | Adds convenience |
+| **Parking** | Valuable (1) | Important for cars |
+
+## 🔧 Development
+
+### **Project Structure**
+```
+idea-lista/
+├── src/                      # Source code
+│   ├── components/           # React components
+│   ├── services/             # Business logic
+│   ├── store/                # State management
+│   └── lib/                  # Utilities
+├── content.js                # Content script
+├── background.js             # Background script
+├── popup.html                # Popup interface
+├── manifest.json             # Extension manifest
+├── package.json              # Dependencies
+└── README.md                 # Documentation
+```
+
+### **Key Technologies**
+
+#### **Frontend**
+- **React 18**: Modern UI framework
+- **TypeScript**: Type-safe development
+- **Tailwind CSS**: Utility-first styling
+- **shadcn/ui**: High-quality components
+- **Zustand**: Lightweight state management
+
+#### **Extension**
+- **Manifest V3**: Latest Chrome extension API
+- **Content Scripts**: Page interaction
+- **Background Scripts**: Data processing
+- **Chrome Storage**: Persistent data
+
+### **Development Commands**
+
+```bash
+# Development
+npm run dev              # Start development server
+npm run dev:extension    # Build extension for development
+
+# Building
+npm run build            # Build for production
+npm run build:extension  # Build extension
+npm run verify:extension # Verify build
+
+# Quality
+npm run lint             # Run ESLint
+npm run type-check       # TypeScript checking
+```
+
+### **Code Style**
+
+#### **TypeScript**
+- Strict mode enabled
+- No `any` types
+- Proper interface definitions
+- Generic type usage
+
+#### **React**
+- Functional components
+- Hooks for state management
+- Proper prop typing
+- Component composition
+
+#### **CSS**
+- Tailwind utility classes
+- Component-scoped styles
+- Responsive design
+- Dark/light theme support
+
+## 📊 API Reference
+
+### **Store API**
+
+#### **Property Store**
+```typescript
+interface PropertyStore {
+  // Properties
+  properties: Property[]
+  currentConfigs: PropertyTypeConfigs
+  
+  // Actions
+  addProperty: (property: Property) => void
+  removeProperty: (id: string) => void
+  updateProperty: (id: string, updates: Partial<Property>) => void
+  clearProperties: () => void
+  importProperties: (properties: Property[]) => void
+  exportProperties: () => Property[]
 }
 ```
 
-### **Adding New Data Fields**
-Modify `extractPropertyInfo` in `content.js` and update the UI accordingly.
+#### **Property Interface**
+```typescript
+interface Property {
+  id: string
+  title: string
+  price: number
+  location: string
+  size?: number
+  squareMeters?: number
+  rooms?: number
+  bathrooms?: number
+  floor?: string
+  heating?: boolean
+  elevator?: boolean
+  furnished?: boolean
+  parking?: boolean
+  score?: number
+  url: string
+  imageUrl?: string
+  createdAt: Date
+  updatedAt: Date
+}
+```
 
-### **Adjusting Visual Design**
-Customize colors and layout in `styles.css` and `popup.css`.
+### **Scoring Service**
 
-## 🌐 Browser Compatibility
+#### **Scoring Algorithm**
+```typescript
+class ScoringService {
+  calculateScore(property: Property): number
+  updateConfig(type: PropertyType, config: ScoringConfig): void
+  getDefaultConfigs(): PropertyTypeConfigs
+}
+```
 
-- **Chrome 88+** (Manifest V3 support)
-- **Edge 88+** (Chromium-based)
-- **Other Chromium browsers**
+#### **Configuration**
+```typescript
+interface ScoringConfig {
+  weights: {
+    price: number
+    size: number
+    rooms: number
+    bathrooms: number
+    heating: number
+    elevator: number
+    // ... other factors
+  }
+  ranges: {
+    priceRange: { min: number, max: number }
+    sizeRange: { min: number, max: number }
+    roomRange: { min: number, max: number }
+    bathroomRange: { min: number, max: number }
+  }
+}
+```
 
-## 🔒 Privacy & Security
+### **Content Script API**
 
-- **Local Processing**: All analysis happens in your browser
-- **No Data Collection**: We don't collect or transmit personal data
-- **Secure Storage**: Properties saved locally in browser storage
-- **No External Requests**: Works completely offline
+#### **Data Extraction**
+```typescript
+interface PropertyInfo {
+  title: string
+  price: number
+  location: string
+  size?: number
+  rooms?: number
+  bathrooms?: number
+  // ... other extracted data
+}
 
-## 🐛 Troubleshooting
+function extractPropertyInfo(): PropertyInfo
+```
 
-### **Extension Not Loading**
-- Verify all files are present
-- Check icon files are correctly named
-- Ensure "Developer mode" is enabled
-- Try reinstalling the extension
-
-### **Properties Not Saving**
-- Check browser console for errors
-- Verify storage permissions
-- Use debug button for diagnostics
-- Clear browser cache if needed
-
-### **Analysis Not Working**
-- Refresh the Idealista page
-- Check you're on a valid property URL
-- Verify extension is enabled
-- Look for console error messages
-
-### **Popup Issues**
-- Right-click extension icon → "Inspect popup"
-- Check for JavaScript errors
-- Verify all popup files are present
-- Try reloading the extension
-
-## 📈 Performance Tips
-
-### **Optimal Usage**
-- **Add properties systematically** - Don't add everything
-- **Focus on high scores** - Prioritize 70+ properties
-- **Regular cleanup** - Remove properties you're no longer interested in
-- **Export backups** - Keep copies of your data
-
-### **System Requirements**
-- Modern browser with JavaScript enabled
-- Sufficient storage for property data
-- Stable internet connection for Idealista access
+#### **UI Injection**
+```typescript
+function injectPropertyAnalyzer(info: PropertyInfo): void
+function updateAnalyzerUI(score: number): void
+```
 
 ## 🤝 Contributing
 
-We welcome contributions to improve the Property Manager:
+### **Getting Started**
 
-1. **Report Issues**: Use GitHub issues for bugs
-2. **Feature Requests**: Suggest new functionality
-3. **Code Contributions**: Submit pull requests
-4. **Documentation**: Help improve guides
+1. **Fork the repository**
+2. **Create a feature branch**
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
+3. **Make your changes**
+4. **Run tests and linting**
+   ```bash
+   npm run lint
+   npm run type-check
+   ```
+5. **Commit your changes**
+   ```bash
+   git commit -m 'Add amazing feature'
+   ```
+6. **Push to the branch**
+   ```bash
+   git push origin feature/amazing-feature
+   ```
+7. **Open a Pull Request**
+
+### **Development Guidelines**
+
+#### **Code Style**
+- Follow TypeScript best practices
+- Use meaningful variable names
+- Add JSDoc comments for functions
+- Keep functions small and focused
+
+#### **Testing**
+- Write unit tests for new features
+- Test edge cases and error handling
+- Ensure cross-browser compatibility
+
+#### **Documentation**
+- Update README for new features
+- Add inline code comments
+- Document API changes
+
+### **Issue Reporting**
+
+When reporting issues, please include:
+- Browser version and OS
+- Steps to reproduce
+- Expected vs actual behavior
+- Console error messages
+- Screenshots if applicable
 
 ## 📄 License
 
-This project is open source and available under the MIT License.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## 🙏 Acknowledgments
 
-For help and support:
-1. Check the troubleshooting section
-2. Use the debug button in the popup
-3. Review browser console for errors
-4. Consult the installation guide
+- **Idealista.com** for providing the property data
+- **Chrome Extension API** for the platform
+- **React** and **TypeScript** communities
+- **shadcn/ui** for the beautiful components
 
 ---
 
-**Transform your property search with professional-grade analysis and management tools!** 🏠✨
+**Made with ❤️ for property hunters everywhere**
 
-*Idea-lista - Your smart companion for finding the perfect home.*
+*Transform your property search with professional-grade analysis and management tools!* 🏠✨

@@ -82,7 +82,36 @@
             deposit: null,
             desk: null,
             googleMapsUrl: null,
-            image: null
+            image: null,
+            
+            // Additional properties
+            parking: null,
+            terrace: null,
+            balcony: null,
+            airConditioning: null,
+            garden: null,
+            pool: null,
+            accessible: null,
+            cleaningIncluded: null,
+            lgbtFriendly: null,
+            ownerNotPresent: null,
+            privateBathroom: null,
+            window: null,
+            couplesAllowed: null,
+            minorsAllowed: null,
+            builtInWardrobes: null,
+            garage: null,
+            storage: null,
+            condition: null,
+            propertySubType: null,
+            hasFloorPlan: null,
+            hasVirtualTour: null,
+            bankAd: null,
+            gender: null,
+            smokers: null,
+            bed: null,
+            roommates: null,
+            maintenance: null
         };
 
         // Extract price
@@ -106,22 +135,127 @@
             console.log('Title extraction:', info.title);
         }
 
-        // Extract square meters
+        // Extract square meters with improved logic
         const featuresElement = document.querySelector('.info-features');
         if (featuresElement) {
             const featuresText = getTextContent(featuresElement);
-            const m2Match = featuresText.match(/(\d+)\s*m²/);
-            if (m2Match) {
-                info.squareMeters = parseInt(m2Match[1]);
+            console.log('Features text for square meters:', featuresText);
+            
+            // First, look for "number m²" in sentences that DON'T contain "habitacion" (with or without accent)
+            const sentences = featuresText.split(/[.!?]/);
+            let foundSquareMeters = false;
+            
+            for (const sentence of sentences) {
+                const m2Match = sentence.match(/(\d+)\s*m²/);
+                if (m2Match && !sentence.toLowerCase().includes('habitacion') && !sentence.toLowerCase().includes('habitación')) {
+                    info.squareMeters = parseInt(m2Match[1]);
+                    console.log('Found square meters (non-habitacion):', info.squareMeters);
+                    foundSquareMeters = true;
+                    break;
+                }
+            }
+            
+            // If not found, then look for "m²" in sentences that DO contain "habitacion" (with or without accent)
+            if (!foundSquareMeters) {
+                for (const sentence of sentences) {
+                    const m2Match = sentence.match(/(\d+)\s*m²/);
+                    if (m2Match && (sentence.toLowerCase().includes('habitacion') || sentence.toLowerCase().includes('habitación'))) {
+                        info.squareMeters = parseInt(m2Match[1]);
+                        console.log('Found square meters (habitacion):', info.squareMeters);
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Also try to extract square meters from other common selectors
+        if (!info.squareMeters) {
+            const alternativeSelectors = [
+                '.details-property-feature-one .details-property_features ul',
+                '.property-features',
+                '.features-list',
+                '.property-details'
+            ];
+            
+            for (const selector of alternativeSelectors) {
+                const element = document.querySelector(selector);
+                if (element) {
+                    const text = getTextContent(element);
+                    const m2Match = text.match(/(\d+)\s*m²/);
+                    if (m2Match) {
+                        info.squareMeters = parseInt(m2Match[1]);
+                        console.log('Found square meters in alternative selector:', selector, info.squareMeters);
+                        break;
+                    }
+                }
             }
         }
 
-        // Extract rooms and bathrooms
+        // Extract rooms with improved logic
         if (featuresElement) {
             const featuresText = getTextContent(featuresElement);
+            console.log('Features text for rooms:', featuresText);
+            
+            // Look for "X hab." pattern
             const roomsMatch = featuresText.match(/(\d+)\s*hab\./);
             if (roomsMatch) {
                 info.rooms = parseInt(roomsMatch[1]);
+                console.log('Found rooms (hab.):', info.rooms);
+            } else {
+                // Look for "X habitaciones" pattern
+                const habitacionesMatch = featuresText.match(/(\d+)\s*habitaciones?/i);
+                if (habitacionesMatch) {
+                    info.rooms = parseInt(habitacionesMatch[1]);
+                    console.log('Found rooms (habitaciones):', info.rooms);
+                } else {
+                    // Look for "X dormitorios" pattern
+                    const dormitoriosMatch = featuresText.match(/(\d+)\s*dormitorios?/i);
+                    if (dormitoriosMatch) {
+                        info.rooms = parseInt(dormitoriosMatch[1]);
+                        console.log('Found rooms (dormitorios):', info.rooms);
+                    }
+                }
+            }
+        }
+        
+        // Also try to extract rooms from other selectors if not found
+        if (!info.rooms) {
+            const alternativeSelectors = [
+                '.details-property-feature-one .details-property_features ul',
+                '.property-features',
+                '.features-list',
+                '.property-details',
+                '.main-info',
+                '.description'
+            ];
+            
+            for (const selector of alternativeSelectors) {
+                const element = document.querySelector(selector);
+                if (element) {
+                    const text = getTextContent(element);
+                    console.log('Searching for rooms in:', selector, text);
+                    
+                    const roomsMatch = text.match(/(\d+)\s*hab\./);
+                    if (roomsMatch) {
+                        info.rooms = parseInt(roomsMatch[1]);
+                        console.log('Found rooms in alternative selector:', selector, info.rooms);
+                        break;
+                    }
+                    
+                    const habitacionesMatch = text.match(/(\d+)\s*habitaciones?/i);
+                    if (habitacionesMatch) {
+                        info.rooms = parseInt(habitacionesMatch[1]);
+                        console.log('Found rooms (habitaciones) in alternative selector:', selector, info.rooms);
+                        break;
+                    }
+                    
+                    const dormitoriosMatch = text.match(/(\d+)\s*dormitorios?/i);
+                    if (dormitoriosMatch) {
+                        info.rooms = parseInt(dormitoriosMatch[1]);
+                        console.log('Found rooms (dormitorios) in alternative selector:', selector, info.rooms);
+                        break;
+                    }
+                }
             }
         }
 
@@ -149,12 +283,14 @@
             }
         }
 
-        // Extract basic characteristics
+        // Extract basic characteristics and bathrooms
         const basicFeatures = document.querySelector('.details-property-feature-one .details-property_features ul');
         if (basicFeatures) {
             const featuresList = basicFeatures.querySelectorAll('li');
             featuresList.forEach(feature => {
                 const featureText = getTextContent(feature);
+                console.log('Feature text:', featureText);
+                
                 if (featureText.includes('Orientación')) {
                     info.orientation = featureText.replace('Orientación', '').trim();
                 }
@@ -164,12 +300,72 @@
                 if (featureText.includes('Calefacción')) {
                     info.heating = featureText.includes('Calefacción');
                 }
-                // Extract bathrooms
-                const bathroomsMatch = featureText.match(/(\d+)\s*baños?/i);
-                if (bathroomsMatch) {
-                    info.bathrooms = parseInt(bathroomsMatch[1]);
-                }
             });
+        }
+        
+        // Extract bathrooms with comprehensive logic
+        if (featuresElement) {
+            const featuresText = getTextContent(featuresElement);
+            console.log('Features text for bathrooms:', featuresText);
+            
+            // Extract bathrooms with improved logic
+            const bathroomsMatch = featuresText.match(/(\d+)\s*baños?/i);
+            if (bathroomsMatch) {
+                info.bathrooms = parseInt(bathroomsMatch[1]);
+                console.log('Found bathrooms (number):', info.bathrooms);
+            } else if (featuresText.includes('sin baño') || featuresText.includes('no tiene baño')) {
+                // Explicitly no bathroom
+                info.bathrooms = 0;
+                console.log('Found bathrooms (none):', info.bathrooms);
+            } else if (featuresText.includes('baños')) {
+                // Plural form without number - assume 2 or more
+                info.bathrooms = 2;
+                console.log('Found bathrooms (plural):', info.bathrooms);
+            } else if (featuresText.includes('baño')) {
+                // Singular form without number - assume 1
+                info.bathrooms = 1;
+                console.log('Found bathrooms (singular):', info.bathrooms);
+            }
+        }
+        
+        // Also try to extract bathrooms from other common selectors if not found
+        if (info.bathrooms === null || info.bathrooms === undefined) {
+            const alternativeSelectors = [
+                '.info-features',
+                '.property-features',
+                '.features-list',
+                '.property-details',
+                '.main-info',
+                '.description'
+            ];
+            
+            for (const selector of alternativeSelectors) {
+                const element = document.querySelector(selector);
+                if (element) {
+                    const text = getTextContent(element);
+                    console.log('Searching for bathrooms in:', selector, text);
+                    
+                    // Extract bathrooms with improved logic
+                    const bathroomsMatch = text.match(/(\d+)\s*baños?/i);
+                    if (bathroomsMatch) {
+                        info.bathrooms = parseInt(bathroomsMatch[1]);
+                        console.log('Found bathrooms in alternative selector:', selector, info.bathrooms);
+                        break;
+                    } else if (text.includes('sin baño') || text.includes('no tiene baño')) {
+                        info.bathrooms = 0;
+                        console.log('Found no bathrooms in alternative selector:', selector);
+                        break;
+                    } else if (text.includes('baños')) {
+                        info.bathrooms = 2;
+                        console.log('Found bathrooms (plural) in alternative selector:', selector);
+                        break;
+                    } else if (text.includes('baño')) {
+                        info.bathrooms = 1;
+                        console.log('Found bathrooms (singular) in alternative selector:', selector);
+                        break;
+                    }
+                }
+            }
         }
 
         // Extract desk information from description
@@ -309,7 +505,253 @@
             }
         }
 
+        // Extract additional features from description and features
+        const descriptionText = descriptionElement ? getTextContent(descriptionElement).toLowerCase() : '';
+        const featuresText = featuresElement ? getTextContent(featuresElement).toLowerCase() : '';
 
+        // Extract parking information
+        if (descriptionText.includes('parking') || descriptionText.includes('garaje') || descriptionText.includes('plaza de parking') ||
+            featuresText.includes('parking') || featuresText.includes('garaje') || featuresText.includes('plaza de parking')) {
+            info.parking = true;
+        } else if (descriptionText.includes('sin parking') || descriptionText.includes('sin garaje') ||
+                   featuresText.includes('sin parking') || featuresText.includes('sin garaje')) {
+            info.parking = false;
+        }
+
+        // Extract terrace information
+        if (descriptionText.includes('terraza') || descriptionText.includes('terrace')) {
+            info.terrace = true;
+        } else if (descriptionText.includes('sin terraza')) {
+            info.terrace = false;
+        }
+
+        // Extract balcony information
+        if (descriptionText.includes('balcón') || descriptionText.includes('balcony')) {
+            info.balcony = true;
+        } else if (descriptionText.includes('sin balcón')) {
+            info.balcony = false;
+        }
+
+        // Extract air conditioning information
+        if (descriptionText.includes('aire acondicionado') || descriptionText.includes('air conditioning') || descriptionText.includes('a/c')) {
+            info.airConditioning = true;
+        } else if (descriptionText.includes('sin aire acondicionado')) {
+            info.airConditioning = false;
+        }
+
+        // Extract garden information
+        if (descriptionText.includes('jardín') || descriptionText.includes('garden')) {
+            info.garden = true;
+        } else if (descriptionText.includes('sin jardín')) {
+            info.garden = false;
+        }
+
+        // Extract pool information
+        if (descriptionText.includes('piscina') || descriptionText.includes('pool')) {
+            info.pool = true;
+        } else if (descriptionText.includes('sin piscina')) {
+            info.pool = false;
+        }
+
+        // Extract accessible information
+        if (descriptionText.includes('accesible') || descriptionText.includes('accessible') || descriptionText.includes('silla de ruedas')) {
+            info.accessible = true;
+        }
+
+        // Extract cleaning included information
+        if (descriptionText.includes('limpieza incluida') || descriptionText.includes('cleaning included')) {
+            info.cleaningIncluded = true;
+        }
+
+        // Extract LGBT friendly information
+        if (descriptionText.includes('lgbt') || descriptionText.includes('lgbtq') || descriptionText.includes('diversidad')) {
+            info.lgbtFriendly = true;
+        }
+
+        // Extract owner not present information
+        if (descriptionText.includes('propietario no presente') || descriptionText.includes('owner not present')) {
+            info.ownerNotPresent = true;
+        }
+
+        // Extract private bathroom information
+        if (descriptionText.includes('baño privado') || descriptionText.includes('private bathroom')) {
+            info.privateBathroom = true;
+        } else if (descriptionText.includes('baño compartido') || descriptionText.includes('shared bathroom')) {
+            info.privateBathroom = false;
+        }
+
+        // Extract window information
+        if (descriptionText.includes('ventana') || descriptionText.includes('window')) {
+            info.window = true;
+        } else if (descriptionText.includes('sin ventana')) {
+            info.window = false;
+        }
+
+        // Extract couples allowed information
+        if (descriptionText.includes('parejas permitidas') || descriptionText.includes('couples allowed')) {
+            info.couplesAllowed = true;
+        } else if (descriptionText.includes('no parejas') || descriptionText.includes('no couples')) {
+            info.couplesAllowed = false;
+        }
+
+        // Extract minors allowed information
+        if (descriptionText.includes('menores permitidos') || descriptionText.includes('minors allowed')) {
+            info.minorsAllowed = true;
+        } else if (descriptionText.includes('no menores') || descriptionText.includes('no minors')) {
+            info.minorsAllowed = false;
+        }
+
+        // Extract built-in wardrobes information
+        if (descriptionText.includes('armarios empotrados') || descriptionText.includes('built-in wardrobes')) {
+            info.builtInWardrobes = true;
+        } else if (descriptionText.includes('sin armarios empotrados')) {
+            info.builtInWardrobes = false;
+        }
+
+        // Extract garage information
+        if (descriptionText.includes('garaje') || descriptionText.includes('garage')) {
+            info.garage = true;
+        } else if (descriptionText.includes('sin garaje')) {
+            info.garage = false;
+        }
+
+        // Extract storage information
+        if (descriptionText.includes('trastero') || descriptionText.includes('storage')) {
+            info.storage = true;
+        } else if (descriptionText.includes('sin trastero')) {
+            info.storage = false;
+        }
+
+        // Extract property condition
+        if (descriptionText.includes('obra nueva')) {
+            info.condition = 'obra nueva';
+        } else if (descriptionText.includes('buen estado')) {
+            info.condition = 'buen estado';
+        } else if (descriptionText.includes('a reformar')) {
+            info.condition = 'a reformar';
+        }
+
+        // Extract property subtype
+        if (descriptionText.includes('ático') || descriptionText.includes('atico')) {
+            info.propertySubType = 'ático';
+        } else if (descriptionText.includes('dúplex') || descriptionText.includes('duplex')) {
+            info.propertySubType = 'dúplex';
+        } else if (descriptionText.includes('casa')) {
+            info.propertySubType = 'casa';
+        } else if (descriptionText.includes('chalet')) {
+            info.propertySubType = 'chalet';
+        } else if (descriptionText.includes('estudio')) {
+            info.propertySubType = 'estudio';
+        }
+
+        // Extract has floor plan information
+        if (descriptionText.includes('con plano') || descriptionText.includes('floor plan')) {
+            info.hasFloorPlan = true;
+        }
+
+        // Extract has virtual tour information
+        if (descriptionText.includes('visita virtual') || descriptionText.includes('virtual tour')) {
+            info.hasVirtualTour = true;
+        }
+
+        // Extract bank ad information
+        if (descriptionText.includes('banco') || descriptionText.includes('bank')) {
+            info.bankAd = true;
+        }
+
+        // Extract gender information (for rooms)
+        if (descriptionText.includes('chico') || descriptionText.includes('hombre')) {
+            info.gender = 'chico';
+        } else if (descriptionText.includes('chica') || descriptionText.includes('mujer')) {
+            info.gender = 'chica';
+        }
+
+        // Extract smokers information
+        if (descriptionText.includes('fumadores') || descriptionText.includes('smokers')) {
+            info.smokers = true;
+        } else if (descriptionText.includes('no fumadores') || descriptionText.includes('no smokers')) {
+            info.smokers = false;
+        }
+
+        // Extract bed information
+        if (descriptionText.includes('cama') || descriptionText.includes('bed')) {
+            info.bed = true;
+        } else if (descriptionText.includes('sin cama')) {
+            info.bed = false;
+        }
+
+        // Extract roommates information
+        const roommatesMatch = descriptionText.match(/(\d+)\s*(compañero|roommate|persona)/);
+        if (roommatesMatch) {
+            info.roommates = parseInt(roommatesMatch[1]);
+        }
+
+        // Extract maintenance information
+        const maintenanceMatch = descriptionText.match(/(\d+)\s*€\s*(comunidad|maintenance|gastos)/);
+        if (maintenanceMatch) {
+            info.maintenance = parseInt(maintenanceMatch[1]);
+        }
+
+
+
+        // Debug: Log all extracted properties
+        console.log('=== EXTRACTED PROPERTY INFO ===');
+        console.log('Core:', {
+            price: info.price,
+            squareMeters: info.squareMeters,
+            rooms: info.rooms,
+            bathrooms: info.bathrooms,
+            floor: info.floor,
+            orientation: info.orientation
+        });
+        console.log('Amenities:', {
+            heating: info.heating,
+            furnished: info.furnished,
+            elevator: info.elevator,
+            seasonal: info.seasonal,
+            desk: info.desk
+        });
+        console.log('Additional:', {
+            parking: info.parking,
+            terrace: info.terrace,
+            balcony: info.balcony,
+            airConditioning: info.airConditioning,
+            garden: info.garden,
+            pool: info.pool,
+            accessible: info.accessible,
+            cleaningIncluded: info.cleaningIncluded,
+            lgbtFriendly: info.lgbtFriendly,
+            ownerNotPresent: info.ownerNotPresent,
+            privateBathroom: info.privateBathroom,
+            window: info.window,
+            couplesAllowed: info.couplesAllowed,
+            minorsAllowed: info.minorsAllowed,
+            builtInWardrobes: info.builtInWardrobes,
+            garage: info.garage,
+            storage: info.storage,
+            condition: info.condition,
+            propertySubType: info.propertySubType,
+            hasFloorPlan: info.hasFloorPlan,
+            hasVirtualTour: info.hasVirtualTour,
+            bankAd: info.bankAd,
+            gender: info.gender,
+            smokers: info.smokers,
+            bed: info.bed,
+            roommates: info.roommates,
+            maintenance: info.maintenance
+        });
+        console.log('Financial:', {
+            pricePerM2: info.pricePerM2,
+            deposit: info.deposit,
+            energyCert: info.energyCert
+        });
+        console.log('Metadata:', {
+            professional: info.professional,
+            lastUpdated: info.lastUpdated,
+            monthsMentioned: info.monthsMentioned,
+            image: info.image ? 'Found' : 'Not found'
+        });
+        console.log('=== END EXTRACTED PROPERTY INFO ===');
 
         return info;
     }
@@ -341,7 +783,7 @@
         addChip(info.price != null ? formatPriceEUR(info.price) : null, 'price');
         addChip(info.squareMeters ? `${info.squareMeters}m²` : null, 'size');
         addChip(info.rooms ? `${info.rooms}hab` : null, 'rooms');
-        addChip(info.bathrooms ? `${info.bathrooms}baño` : null, 'bathrooms');
+        addChip(info.bathrooms != null ? `${info.bathrooms} ${info.bathrooms > 1 ? 'baños' : 'baño'}` : null, 'bathrooms');
         addChip(info.floor ? `P${info.floor}` : null, 'floor');
 
         if (info.heating) addChip('Calefacción', 'heating');
@@ -351,14 +793,43 @@
         if (info.orientation) addChip(info.orientation, 'orientation');
         if (info.desk) addChip(`${info.desk} escritorio${info.desk > 1 ? 's' : ''}`, 'desk');
 
+        // Additional amenities
+        if (info.parking) addChip('Parking', 'parking');
+        if (info.terrace) addChip('Terraza', 'terrace');
+        if (info.balcony) addChip('Balcón', 'balcony');
+        if (info.airConditioning) addChip('A/C', 'air-conditioning');
+        if (info.garden) addChip('Jardín', 'garden');
+        if (info.pool) addChip('Piscina', 'pool');
+        if (info.accessible) addChip('Accesible', 'accessible');
+        if (info.cleaningIncluded) addChip('Limpieza', 'cleaning');
+        if (info.lgbtFriendly) addChip('LGBT+', 'lgbt');
+        if (info.ownerNotPresent) addChip('Sin Propietario', 'owner-absent');
+        if (info.privateBathroom) addChip('Baño Privado', 'private-bathroom');
+        if (info.window) addChip('Ventana', 'window');
+        if (info.couplesAllowed) addChip('Parejas', 'couples');
+        if (info.minorsAllowed) addChip('Menores', 'minors');
+        if (info.builtInWardrobes) addChip('Armarios', 'wardrobes');
+        if (info.garage) addChip('Garaje', 'garage');
+        if (info.storage) addChip('Trastero', 'storage');
+        if (info.hasFloorPlan) addChip('Plano', 'floor-plan');
+        if (info.hasVirtualTour) addChip('Visita Virtual', 'virtual-tour');
+        if (info.bankAd) addChip('Banco', 'bank');
+        if (info.smokers) addChip('Fumadores', 'smokers');
+        if (info.bed) addChip('Cama', 'bed');
+        if (info.roommates) addChip(`${info.roommates} compañeros`, 'roommates');
+
+        // Property type and condition
+        if (info.propertySubType) addChip(info.propertySubType, 'property-type');
+        if (info.condition) addChip(info.condition, 'condition');
+        if (info.gender) addChip(info.gender, 'gender');
+
         if (info.professional) addChip(info.professional, 'pro');
 
-
-
-
+        // Financial information
         if (info.pricePerM2) addChip(`${info.pricePerM2}€/m²`, 'price-m2');
         if (info.deposit) addChip(info.deposit, 'deposit');
         if (info.energyCert) addChip(info.energyCert, 'energy');
+        if (info.maintenance) addChip(`${info.maintenance}€ comunidad`, 'maintenance');
 
         if (info.lastUpdated) addChip(info.lastUpdated, 'muted', info.lastUpdated);
         if (info.monthsMentioned && info.monthsMentioned.length > 0) {
@@ -383,15 +854,17 @@
         };
         aiPromptButton.title = 'Generar mensaje para el propietario';
 
-        // Add button
+        // Add/Delete button
         const addButton = document.createElement('button');
         addButton.className = 'analyzer-add-btn analyzer-add-btn--compact';
         
         if (isAlreadyAdded) {
-            addButton.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"></path><circle cx="12" cy="12" r="10"></circle></svg>';
-            addButton.style.backgroundColor = '#28a745';
-            addButton.disabled = true;
-            addButton.title = 'Esta propiedad ya está en tu gestor';
+            addButton.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>';
+            addButton.style.backgroundColor = '#dc3545';
+            addButton.disabled = false;
+            addButton.classList.add('delete-mode');
+            addButton.onclick = () => showDeleteConfirmation(info);
+            addButton.title = 'Eliminar del gestor de propiedades';
         } else {
             addButton.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
             addButton.style.backgroundColor = '#007bff';
@@ -414,16 +887,15 @@
             property: info
         }, (response) => {
             if (response && response.success) {
-                // Show success message and update button permanently
+                // Show success message and update button to delete mode
                 const button = document.querySelector('.analyzer-add-btn');
                 
-                button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"></path><circle cx="12" cy="12" r="10"></circle></svg>';
-                button.style.backgroundColor = '#28a745';
-                button.disabled = true;
-                button.title = 'Esta propiedad ya está en tu gestor';
-                
-                // Remove the onclick handler since it's now added
-                button.onclick = null;
+                button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>';
+                button.style.backgroundColor = '#dc3545';
+                button.disabled = false;
+                button.classList.add('delete-mode');
+                button.onclick = () => showDeleteConfirmation(info);
+                button.title = 'Eliminar del gestor de propiedades';
             } else {
                 // Show error message
                 const button = document.querySelector('.analyzer-add-btn');
@@ -441,6 +913,127 @@
         });
     }
 
+    // Function to show delete confirmation modal
+    function showDeleteConfirmation(info) {
+        // Create modal overlay
+        const modalOverlay = document.createElement('div');
+        modalOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        `;
+
+        // Create modal content
+        const modalContent = document.createElement('div');
+        modalContent.style.cssText = `
+            background-color: white;
+            padding: 24px;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        `;
+
+        modalContent.innerHTML = `
+            <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #333;">
+                Eliminar Propiedad
+            </h3>
+            <p style="margin: 0 0 24px 0; color: #666; line-height: 1.5;">
+                ¿Estás seguro de que quieres eliminar esta propiedad de tu gestor? Esta acción no se puede deshacer.
+            </p>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button id="cancel-delete" style="
+                    padding: 8px 16px;
+                    border: 1px solid #ddd;
+                    background-color: white;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 14px;
+                ">Cancelar</button>
+                <button id="confirm-delete" style="
+                    padding: 8px 16px;
+                    border: none;
+                    background-color: #dc3545;
+                    color: white;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 14px;
+                ">Eliminar</button>
+            </div>
+        `;
+
+        modalOverlay.appendChild(modalContent);
+        document.body.appendChild(modalOverlay);
+
+        // Add event listeners
+        document.getElementById('cancel-delete').onclick = () => {
+            document.body.removeChild(modalOverlay);
+        };
+
+        document.getElementById('confirm-delete').onclick = () => {
+            removeFromManager(info);
+            document.body.removeChild(modalOverlay);
+        };
+
+        // Close modal when clicking outside
+        modalOverlay.onclick = (e) => {
+            if (e.target === modalOverlay) {
+                document.body.removeChild(modalOverlay);
+            }
+        };
+    }
+
+    // Function to remove property from manager
+    function removeFromManager(info) {
+        // First, get the property ID by URL
+        chrome.runtime.sendMessage({
+            action: 'getProperties'
+        }, (response) => {
+            if (response && response.properties) {
+                const property = response.properties.find(p => p.url === info.url);
+                if (property) {
+                    // Send remove request
+                    chrome.runtime.sendMessage({
+                        action: 'removeProperty',
+                        propertyId: property.id
+                    }, (removeResponse) => {
+                        if (removeResponse && removeResponse.success) {
+                            // Update button to add mode
+                            const button = document.querySelector('.analyzer-add-btn');
+                            
+                            button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
+                            button.style.backgroundColor = '#007bff';
+                            button.disabled = false;
+                            button.classList.remove('delete-mode');
+                            button.onclick = () => addToManager(info);
+                            button.title = 'Agregar al gestor de propiedades';
+                        } else {
+                            // Show error message
+                            const button = document.querySelector('.analyzer-add-btn');
+                            const originalText = button.textContent;
+                            const originalBg = button.style.backgroundColor;
+                            
+                            button.textContent = '❌ Error';
+                            button.style.backgroundColor = '#dc3545';
+                            
+                            setTimeout(() => {
+                                button.textContent = originalText;
+                                button.style.backgroundColor = originalBg;
+                            }, 2000);
+                        }
+                    });
+                }
+            }
+        });
+    }
+
     // Function to generate AI prompt from property data
     function generateAIPrompt(info) {
         const prompt = `Genera un mensaje personalizado y profesional para contactar al propietario de esta propiedad. El mensaje debe ser cordial, específico sobre la propiedad y mostrar interés genuino.
@@ -453,13 +1046,45 @@
 - Planta: ${info.floor ? 'P' + info.floor : 'No especificado'}
 - Orientación: ${info.orientation ? info.orientation : 'No especificado'}
 - Precio por m²: ${info.pricePerM2 ? info.pricePerM2 + '€/m²' : 'No especificado'}
+- Fianza: ${info.deposit ? info.deposit : 'No especificado'}
+- Gastos comunidad: ${info.maintenance ? info.maintenance + '€' : 'No especificado'}
 
-**Características:**
+**Características Principales:**
 ${info.heating ? '- Calefacción' : ''}
 ${info.furnished ? '- Amueblado' : ''}
 ${info.elevator ? '- Ascensor' : ''}
 ${info.seasonal ? '- Alquiler temporal' : ''}
 ${info.desk ? `- ${info.desk} escritorio${info.desk > 1 ? 's' : ''}` : ''}
+
+**Amenidades Adicionales:**
+${info.parking ? '- Parking' : ''}
+${info.terrace ? '- Terraza' : ''}
+${info.balcony ? '- Balcón' : ''}
+${info.airConditioning ? '- Aire acondicionado' : ''}
+${info.garden ? '- Jardín' : ''}
+${info.pool ? '- Piscina' : ''}
+${info.accessible ? '- Accesible' : ''}
+${info.cleaningIncluded ? '- Limpieza incluida' : ''}
+${info.lgbtFriendly ? '- LGBT friendly' : ''}
+${info.ownerNotPresent ? '- Propietario no presente' : ''}
+${info.privateBathroom ? '- Baño privado' : ''}
+${info.window ? '- Ventana' : ''}
+${info.couplesAllowed ? '- Parejas permitidas' : ''}
+${info.minorsAllowed ? '- Menores permitidos' : ''}
+${info.builtInWardrobes ? '- Armarios empotrados' : ''}
+${info.garage ? '- Garaje' : ''}
+${info.storage ? '- Trastero' : ''}
+${info.hasFloorPlan ? '- Con plano' : ''}
+${info.hasVirtualTour ? '- Con visita virtual' : ''}
+${info.bankAd ? '- Anuncio de banco' : ''}
+${info.smokers ? '- Fumadores permitidos' : ''}
+${info.bed ? '- Cama incluida' : ''}
+${info.roommates ? `- ${info.roommates} compañeros de casa` : ''}
+
+**Tipo y Estado:**
+${info.propertySubType ? `- Tipo: ${info.propertySubType}` : ''}
+${info.condition ? `- Estado: ${info.condition}` : ''}
+${info.gender ? `- Género: ${info.gender}` : ''}
 
 **Ubicación:**
 ${info.title ? `- Dirección: ${info.title}` : ''}
@@ -569,15 +1194,19 @@ El mensaje debe ser natural, específico sobre esta propiedad y mostrar que has 
         
         if (button) {
             if (isAlreadyAdded) {
-                button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"></path><circle cx="12" cy="12" r="10"></circle></svg>';
-                button.style.backgroundColor = '#28a745';
-                button.disabled = true;
-                button.title = 'Esta propiedad ya está en tu gestor';
-                button.onclick = null;
+                button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>';
+                button.style.backgroundColor = '#dc3545';
+                button.disabled = false;
+                button.classList.add('delete-mode');
+                button.title = 'Eliminar del gestor de propiedades';
+                // Add delete functionality
+                const propertyInfo = extractPropertyInfo();
+                button.onclick = () => showDeleteConfirmation(propertyInfo);
             } else {
                 button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
                 button.style.backgroundColor = '#007bff';
                 button.disabled = false;
+                button.classList.remove('delete-mode');
                 button.title = 'Agregar al gestor de propiedades';
                 // Re-add the onclick handler
                 const propertyInfo = extractPropertyInfo();

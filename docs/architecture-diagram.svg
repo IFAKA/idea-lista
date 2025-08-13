@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .title { font-family: Arial, sans-serif; font-size: 24px; font-weight: bold; fill: #2c3e50; }
+      .subtitle { font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; fill: #34495e; }
+      .text { font-family: Arial, sans-serif; font-size: 12px; fill: #2c3e50; }
+      .box { fill: #ecf0f1; stroke: #bdc3c7; stroke-width: 2; }
+      .content-box { fill: #3498db; stroke: #2980b9; stroke-width: 2; }
+      .background-box { fill: #e74c3c; stroke: #c0392b; stroke-width: 2; }
+      .popup-box { fill: #2ecc71; stroke: #27ae60; stroke-width: 2; }
+      .store-box { fill: #f39c12; stroke: #e67e22; stroke-width: 2; }
+      .arrow { stroke: #7f8c8d; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7f8c8d" />
+    </marker>
+  </defs>
+  
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" class="title">Idea-lista Architecture</text>
+  
+  <!-- Content Script -->
+  <rect x="50" y="80" width="200" height="120" rx="10" class="content-box"/>
+  <text x="150" y="105" text-anchor="middle" class="subtitle" fill="white">Content Script</text>
+  <text x="60" y="125" class="text" fill="white">• Data Extraction</text>
+  <text x="60" y="140" class="text" fill="white">• UI Injection</text>
+  <text x="60" y="155" class="text" fill="white">• Property Analysis</text>
+  <text x="60" y="170" class="text" fill="white">• Real-time Scoring</text>
+  <text x="60" y="185" class="text" fill="white">• User Interaction</text>
+  
+  <!-- Background Script -->
+  <rect x="300" y="80" width="200" height="120" rx="10" class="background-box"/>
+  <text x="400" y="105" text-anchor="middle" class="subtitle" fill="white">Background Script</text>
+  <text x="310" y="125" class="text" fill="white">• Scoring Algorithm</text>
+  <text x="310" y="140" class="text" fill="white">• Data Storage</text>
+  <text x="310" y="155" class="text" fill="white">• Sync Management</text>
+  <text x="310" y="170" class="text" fill="white">• Export/Import</text>
+  <text x="310" y="185" class="text" fill="white">• Analytics</text>
+  
+  <!-- Popup Interface -->
+  <rect x="550" y="80" width="200" height="120" rx="10" class="popup-box"/>
+  <text x="650" y="105" text-anchor="middle" class="subtitle" fill="white">Popup Interface</text>
+  <text x="560" y="125" class="text" fill="white">• Property Management</text>
+  <text x="560" y="140" class="text" fill="white">• Settings Configuration</text>
+  <text x="560" y="155" class="text" fill="white">• Statistics View</text>
+  <text x="560" y="170" class="text" fill="white">• Data Export</text>
+  <text x="560" y="185" class="text" fill="white">• Visit Tracking</text>
+  
+  <!-- Store -->
+  <rect x="300" y="250" width="200" height="80" rx="10" class="store-box"/>
+  <text x="400" y="275" text-anchor="middle" class="subtitle" fill="white">State Store (Zustand)</text>
+  <text x="310" y="295" class="text" fill="white">• Property Collection</text>
+  <text x="310" y="310" class="text" fill="white">• Configuration Settings</text>
+  <text x="310" y="325" class="text" fill="white">• Persistent Storage</text>
+  
+  <!-- Services -->
+  <rect x="50" y="250" width="200" height="80" rx="10" class="box"/>
+  <text x="150" y="275" text-anchor="middle" class="subtitle">Services</text>
+  <text x="60" y="295" class="text">• Scoring Service</text>
+  <text x="60" y="310" class="text">• Validation Service</text>
+  <text x="60" y="325" class="text">• Export Service</text>
+  
+  <!-- Components -->
+  <rect x="550" y="250" width="200" height="80" rx="10" class="box"/>
+  <text x="650" y="275" text-anchor="middle" class="subtitle">Components</text>
+  <text x="560" y="295" class="text">• UI Components</text>
+  <text x="560" y="310" class="text">• Forms & Modals</text>
+  <text x="560" y="325" class="text">• Property Cards</text>
+  
+  <!-- Arrows -->
+  <line x1="250" y1="140" x2="300" y2="140" class="arrow"/>
+  <line x1="500" y1="140" x2="550" y2="140" class="arrow"/>
+  <line x1="150" y1="200" x2="150" y2="250" class="arrow"/>
+  <line x1="400" y1="200" x2="400" y2="250" class="arrow"/>
+  <line x1="650" y1="200" x2="650" y2="250" class="arrow"/>
+  <line x1="250" y1="290" x2="300" y2="290" class="arrow"/>
+  <line x1="500" y1="290" x2="550" y2="290" class="arrow"/>
+  
+  <!-- Data Flow Labels -->
+  <text x="275" y="135" text-anchor="middle" class="text">Data</text>
+  <text x="525" y="135" text-anchor="middle" class="text">UI Updates</text>
+  <text x="125" y="235" text-anchor="middle" class="text">Services</text>
+  <text x="375" y="235" text-anchor="middle" class="text">State</text>
+  <text x="625" y="235" text-anchor="middle" class="text">Components</text>
+  <text x="275" y="285" text-anchor="middle" class="text">Logic</text>
+  <text x="525" y="285" text-anchor="middle" class="text">Rendering</text>
+  
+  <!-- External Systems -->
+  <rect x="50" y="400" width="700" height="80" rx="10" class="box"/>
+  <text x="400" y="425" text-anchor="middle" class="subtitle">External Systems</text>
+  
+  <!-- Idealista -->
+  <rect x="80" y="430" width="120" height="40" rx="5" fill="#e74c3c" stroke="#c0392b" stroke-width="2"/>
+  <text x="140" y="450" text-anchor="middle" class="text" fill="white">Idealista.com</text>
+  <text x="140" y="465" text-anchor="middle" class="text" fill="white">Property Data</text>
+  
+  <!-- Chrome Storage -->
+  <rect x="220" y="430" width="120" height="40" rx="5" fill="#3498db" stroke="#2980b9" stroke-width="2"/>
+  <text x="280" y="450" text-anchor="middle" class="text" fill="white">Chrome Storage</text>
+  <text x="280" y="465" text-anchor="middle" class="text" fill="white">Persistent Data</text>
+  
+  <!-- Google Maps -->
+  <rect x="360" y="430" width="120" height="40" rx="5" fill="#2ecc71" stroke="#27ae60" stroke-width="2"/>
+  <text x="420" y="450" text-anchor="middle" class="text" fill="white">Google Maps</text>
+  <text x="420" y="465" text-anchor="middle" class="text" fill="white">Location Data</text>
+  
+  <!-- Export -->
+  <rect x="500" y="430" width="120" height="40" rx="5" fill="#f39c12" stroke="#e67e22" stroke-width="2"/>
+  <text x="560" y="450" text-anchor="middle" class="text" fill="white">File Export</text>
+  <text x="560" y="465" text-anchor="middle" class="text" fill="white">TSV/Excel</text>
+  
+  <!-- Analytics -->
+  <rect x="640" y="430" width="120" height="40" rx="5" fill="#9b59b6" stroke="#8e44ad" stroke-width="2"/>
+  <text x="700" y="450" text-anchor="middle" class="text" fill="white">Analytics</text>
+  <text x="700" y="465" text-anchor="middle" class="text" fill="white">Usage Stats</text>
+  
+  <!-- Connection to External -->
+  <line x1="150" y1="330" x2="150" y2="400" class="arrow"/>
+  <line x1="400" y1="330" x2="400" y2="400" class="arrow"/>
+  <line x1="650" y1="330" x2="650" y2="400" class="arrow"/>
+  
+  <text x="125" y="375" text-anchor="middle" class="text">Data Extraction</text>
+  <text x="375" y="375" text-anchor="middle" class="text">Storage</text>
+  <text x="625" y="375" text-anchor="middle" class="text">Integration</text>
+</svg>
