@@ -146,7 +146,11 @@
             let foundSquareMeters = false;
             
             for (const sentence of sentences) {
-                const m2Match = sentence.match(/(\d+)\s*m²/);
+                // Try multiple patterns for square meters
+                const m2Match = sentence.match(/(\d+)\s*m²/) || 
+                               sentence.match(/(\d+)\s*m2/) || 
+                               sentence.match(/(\d+)\s*metros?\s*cuadrados?/i) ||
+                               sentence.match(/(\d+)\s*metros?\s*²/i);
                 if (m2Match && !sentence.toLowerCase().includes('habitacion') && !sentence.toLowerCase().includes('habitación')) {
                     info.squareMeters = parseInt(m2Match[1]);
                     console.log('Found square meters (non-habitacion):', info.squareMeters);
@@ -158,7 +162,11 @@
             // If not found, then look for "m²" in sentences that DO contain "habitacion" (with or without accent)
             if (!foundSquareMeters) {
                 for (const sentence of sentences) {
-                    const m2Match = sentence.match(/(\d+)\s*m²/);
+                    // Try multiple patterns for square meters
+                    const m2Match = sentence.match(/(\d+)\s*m²/) || 
+                                   sentence.match(/(\d+)\s*m2/) || 
+                                   sentence.match(/(\d+)\s*metros?\s*cuadrados?/i) ||
+                                   sentence.match(/(\d+)\s*metros?\s*²/i);
                     if (m2Match && (sentence.toLowerCase().includes('habitacion') || sentence.toLowerCase().includes('habitación'))) {
                         info.squareMeters = parseInt(m2Match[1]);
                         console.log('Found square meters (habitacion):', info.squareMeters);
@@ -181,7 +189,11 @@
                 const element = document.querySelector(selector);
                 if (element) {
                     const text = getTextContent(element);
-                    const m2Match = text.match(/(\d+)\s*m²/);
+                    // Try multiple patterns for square meters
+                    const m2Match = text.match(/(\d+)\s*m²/) || 
+                                   text.match(/(\d+)\s*m2/) || 
+                                   text.match(/(\d+)\s*metros?\s*cuadrados?/i) ||
+                                   text.match(/(\d+)\s*metros?\s*²/i);
                     if (m2Match) {
                         info.squareMeters = parseInt(m2Match[1]);
                         console.log('Found square meters in alternative selector:', selector, info.squareMeters);
