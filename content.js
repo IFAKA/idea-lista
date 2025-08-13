@@ -56,88 +56,7 @@
         return detectedMonths;
     }
 
-    // Function to extract coordinates from Google Maps response
-    function extractCoordinates(info) {
-        try {
-            // Look for Google Maps API responses in the page
-            const scripts = document.querySelectorAll('script');
-            let coordinatesFound = false;
-            
-            scripts.forEach(script => {
-                if (script.textContent && !coordinatesFound) {
-                    // Look for coordinates pattern in the response
-                    const coordMatch = script.textContent.match(/\[\[null,null,([-\d.]+),([-\d.]+)\],\d+\]/);
-                    if (coordMatch) {
-                        const lat = parseFloat(coordMatch[1]);
-                        const lng = parseFloat(coordMatch[2]);
-                        
-                        if (lat && lng && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
-                            info.coordinates = { lat, lng };
-                            
-                            // Create Google Maps URL
-                            const latDeg = Math.abs(lat);
-                            const lngDeg = Math.abs(lng);
-                            const latMin = (latDeg - Math.floor(latDeg)) * 60;
-                            const lngMin = (lngDeg - Math.floor(lngDeg)) * 60;
-                            const latSec = (latMin - Math.floor(latMin)) * 60;
-                            const lngSec = (lngMin - Math.floor(lngMin)) * 60;
-                            
-                            const latDir = lat >= 0 ? 'N' : 'S';
-                            const lngDir = lng >= 0 ? 'E' : 'W';
-                            
-                            const latFormatted = `${Math.floor(latDeg)}°${Math.floor(latMin)}'${latSec.toFixed(1)}"${latDir}`;
-                            const lngFormatted = `${Math.floor(lngDeg)}°${Math.floor(lngMin)}'${lngSec.toFixed(1)}"${lngDir}`;
-                            
-                            info.googleMapsUrl = `https://www.google.com/maps/place/${latFormatted}+${lngFormatted}/`;
-                            
-                            coordinatesFound = true;
-                            console.log('Coordinates extracted:', info.coordinates);
-                            console.log('Google Maps URL:', info.googleMapsUrl);
-                        }
-                    }
-                }
-            });
-            
-            // Alternative: Look for coordinates in network requests
-            if (!coordinatesFound) {
-                // Try to find coordinates in any data attributes or hidden elements
-                const mapElements = document.querySelectorAll('[data-lat], [data-lng], [data-coordinates]');
-                mapElements.forEach(element => {
-                    if (!coordinatesFound) {
-                        const lat = parseFloat(element.getAttribute('data-lat') || element.getAttribute('data-coordinates')?.split(',')[0]);
-                        const lng = parseFloat(element.getAttribute('data-lng') || element.getAttribute('data-coordinates')?.split(',')[1]);
-                        
-                        if (lat && lng && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
-                            info.coordinates = { lat, lng };
-                            
-                            // Create Google Maps URL
-                            const latDeg = Math.abs(lat);
-                            const lngDeg = Math.abs(lng);
-                            const latMin = (latDeg - Math.floor(latDeg)) * 60;
-                            const lngMin = (lngDeg - Math.floor(lngDeg)) * 60;
-                            const latSec = (latMin - Math.floor(latMin)) * 60;
-                            const lngSec = (lngMin - Math.floor(lngMin)) * 60;
-                            
-                            const latDir = lat >= 0 ? 'N' : 'S';
-                            const lngDir = lng >= 0 ? 'E' : 'W';
-                            
-                            const latFormatted = `${Math.floor(latDeg)}°${Math.floor(latMin)}'${latSec.toFixed(1)}"${latDir}`;
-                            const lngFormatted = `${Math.floor(lngDeg)}°${Math.floor(lngMin)}'${lngSec.toFixed(1)}"${lngDir}`;
-                            
-                            info.googleMapsUrl = `https://www.google.com/maps/place/${latFormatted}+${lngFormatted}/`;
-                            
-                            coordinatesFound = true;
-                            console.log('Coordinates extracted from data attributes:', info.coordinates);
-                            console.log('Google Maps URL:', info.googleMapsUrl);
-                        }
-                    }
-                });
-            }
-            
-        } catch (error) {
-            console.log('Error extracting coordinates:', error);
-        }
-    }
+
 
     // Function to extract property information
     function extractPropertyInfo() {
@@ -162,8 +81,8 @@
             pricePerM2: null,
             deposit: null,
             desk: null,
-            coordinates: null,
-            googleMapsUrl: null
+            googleMapsUrl: null,
+            image: null
         };
 
         // Extract price
@@ -217,8 +136,17 @@
 
         // Extract elevator information
         if (featuresElement) {
-            const featuresText = getTextContent(featuresElement);
-            info.elevator = featuresText.toLowerCase().includes('ascensor');
+            const featuresText = getTextContent(featuresElement).toLowerCase();
+            // Check for "sin ascensor" first (explicitly no elevator)
+            if (featuresText.includes('sin ascensor')) {
+                info.elevator = false;
+            } else if (featuresText.includes('ascensor')) {
+                // Only set to true if it mentions ascensor but not "sin ascensor"
+                info.elevator = true;
+            } else {
+                // Default to false if no mention
+                info.elevator = false;
+            }
         }
 
         // Extract basic characteristics
@@ -277,6 +205,15 @@
             
             if (deskCount > 0) {
                 info.desk = deskCount;
+            }
+            
+            // Also check for elevator information in description as backup
+            if (info.elevator === null || info.elevator === undefined) {
+                if (descriptionText.includes('sin ascensor')) {
+                    info.elevator = false;
+                } else if (descriptionText.includes('ascensor')) {
+                    info.elevator = true;
+                }
             }
         }
 
@@ -362,8 +299,17 @@
             }
         }
 
-        // Extract coordinates from Google Maps response
-        extractCoordinates(info);
+        // Extract property image
+        const mainImageElement = document.querySelector('.main-image img, .main-image_first img');
+        if (mainImageElement) {
+            const imageSrc = mainImageElement.src;
+            if (imageSrc && imageSrc !== 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIxIDEwYzAgNy05IDEzLTkgMTNzLTktNi05LTEzYTkgOSAwIDAgMSAxOCAweiIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiIvPgo8Y2lyY2xlIGN4PSIxMiIgY3k9IjEwIiByPSIzIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIi8+Cjwvc3ZnPgo=') {
+                info.image = imageSrc;
+                console.log('Property image extracted:', info.image);
+            }
+        }
+
+
 
         return info;
     }
@@ -408,20 +354,7 @@
         if (info.professional) addChip(info.professional, 'pro');
 
 
-        // Add coordinates chip if available
-        if (info.coordinates) {
-            const coordChip = document.createElement('span');
-            coordChip.className = 'chip coordinates';
-            coordChip.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> ${info.coordinates.lat.toFixed(6)}, ${info.coordinates.lng.toFixed(6)}`;
-            coordChip.title = 'Haz clic para abrir en Google Maps';
-            coordChip.style.cursor = 'pointer';
-            coordChip.onclick = () => {
-                if (info.googleMapsUrl) {
-                    window.open(info.googleMapsUrl, '_blank');
-                }
-            };
-            inline.appendChild(coordChip);
-        }
+
 
         if (info.pricePerM2) addChip(`${info.pricePerM2}€/m²`, 'price-m2');
         if (info.deposit) addChip(info.deposit, 'deposit');
@@ -441,10 +374,13 @@
 
         // Add AI prompt button
         const aiPromptButton = document.createElement('button');
-        aiPromptButton.className = 'analyzer-ai-prompt-btn analyzer-ai-prompt-btn--compact';
+        aiPromptButton.className = 'analyzer-ai-prompt-btn analyzer-ai-prompt-btn--compact particle-burst';
         aiPromptButton.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><path d="M8 9h8"></path><path d="M8 13h6"></path></svg>';
         aiPromptButton.style.backgroundColor = '#6f42c1';
-        aiPromptButton.onclick = () => generateAIPrompt(info);
+        aiPromptButton.onclick = (event) => {
+            createParticleAnimation(event);
+            generateAIPrompt(info);
+        };
         aiPromptButton.title = 'Generar mensaje para el propietario';
 
         // Add button
@@ -488,9 +424,6 @@
                 
                 // Remove the onclick handler since it's now added
                 button.onclick = null;
-                
-                // Show a notification that the popup has been updated
-                showNotification('Propiedad agregada al gestor. Abre el popup para verla.');
             } else {
                 // Show error message
                 const button = document.querySelector('.analyzer-add-btn');
@@ -529,7 +462,6 @@ ${info.seasonal ? '- Alquiler temporal' : ''}
 ${info.desk ? `- ${info.desk} escritorio${info.desk > 1 ? 's' : ''}` : ''}
 
 **Ubicación:**
-${info.coordinates ? `- Coordenadas: ${info.coordinates.lat.toFixed(6)}, ${info.coordinates.lng.toFixed(6)}` : ''}
 ${info.title ? `- Dirección: ${info.title}` : ''}
 
 **URL:** ${info.url}
@@ -546,7 +478,7 @@ El mensaje debe ser natural, específico sobre esta propiedad y mostrar que has 
 
         // Copy to clipboard
         navigator.clipboard.writeText(prompt).then(() => {
-            showNotification('Mensaje para propietario copiado al portapapeles. ¡Pégalo en tu IA favorita!');
+            // Success - no notification needed, button state shows success
         }).catch(() => {
             // Fallback for older browsers
             const textArea = document.createElement('textarea');
@@ -555,62 +487,11 @@ El mensaje debe ser natural, específico sobre esta propiedad y mostrar que has 
             textArea.select();
             document.execCommand('copy');
             document.body.removeChild(textArea);
-            showNotification('Mensaje para propietario copiado al portapapeles. ¡Pégalo en tu IA favorita!');
+            // Success - no notification needed, button state shows success
         });
     }
 
-    // Function to show notification
-    function showNotification(message) {
-        // Remove existing notification if any
-        const existingNotification = document.getElementById('idealista-notification');
-        if (existingNotification) {
-            existingNotification.remove();
-        }
 
-        const notification = document.createElement('div');
-        notification.id = 'idealista-notification';
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(40, 167, 69, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            color: white;
-            padding: 16px 24px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            z-index: 10000;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            font-size: 14px;
-            font-weight: 500;
-            max-width: 320px;
-            animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        `;
-        notification.textContent = message;
-
-        // Add animation styles
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-        `;
-        document.head.appendChild(style);
-
-        document.body.appendChild(notification);
-
-        // Auto-remove after 3 seconds
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove();
-            }
-        }, 3000);
-    }
 
     // Function to initialize the analyzer
     async function initAnalyzer() {
@@ -676,11 +557,7 @@ El mensaje debe ser natural, específico sobre esta propiedad y mostrar que has 
             // Update button state based on current property
             updateButtonState(message.properties);
             
-            // Optionally show a notification that the popup has been updated
-            if (document.querySelector('.analyzer-add-btn') && 
-                document.querySelector('.analyzer-add-btn').textContent === '✅ Agregado') {
-                showNotification('El gestor de propiedades ha sido actualizado. Abre el popup para ver los cambios.');
-            }
+            // No notification needed - button state shows the current status
         }
     });
 
@@ -753,5 +630,78 @@ El mensaje debe ser natural, específico sobre esta propiedad y mostrar que has 
         childList: true,
         subtree: true
     });
+
+    // Apple Watch Particle Animation Function
+    function createParticleAnimation(event) {
+        // Check if user prefers reduced motion
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            return;
+        }
+
+        const button = event.currentTarget;
+        const rect = button.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        // Create particle container if it doesn't exist
+        let particleContainer = document.querySelector('.particle-container');
+        if (!particleContainer) {
+            particleContainer = document.createElement('div');
+            particleContainer.className = 'particle-container';
+            document.body.appendChild(particleContainer);
+        }
+
+        // Create particles with enhanced animation
+        const particleCount = 16; // Increased particle count
+        const animationTypes = ['particleFloat1', 'particleFloat2', 'particleFloat3', 'particleFloat4', 'particleFloat5'];
+        
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            
+            // Calculate random angle and distance for particle spread
+            const angle = (i / particleCount) * 2 * Math.PI + (Math.random() - 0.5) * 0.3;
+            const distance = 8 + Math.random() * 12; // Reduced spread area
+            const startX = centerX + Math.cos(angle) * distance;
+            const startY = centerY + Math.sin(angle) * distance;
+            
+            // Generate random movement variations for each particle
+            const randomDelay = Math.random() * 50; // 0-50ms delay for staggered effect
+            const randomDuration = 250 + Math.random() * 100; // 250-350ms duration (300ms average)
+            const animationType = animationTypes[i % animationTypes.length]; // Cycle through animation types
+            
+            // Set initial position
+            particle.style.left = startX + 'px';
+            particle.style.top = startY + 'px';
+            
+            // Apply enhanced animation with compliant easing
+            particle.style.animationDelay = `${randomDelay}ms`;
+            particle.style.animationDuration = `${randomDuration}ms`;
+            particle.style.animationName = animationType;
+            particle.style.animationTimingFunction = 'cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            particle.style.animationFillMode = 'forwards';
+            
+            // Add subtle rotation for more dynamic movement
+            const rotation = (Math.random() - 0.5) * 360;
+            particle.style.transform = `var(--transform-base) rotate(${rotation}deg)`;
+            
+            // Add to container
+            particleContainer.appendChild(particle);
+            
+            // Remove particle after animation completes
+            setTimeout(() => {
+                if (particle.parentNode) {
+                    particle.parentNode.removeChild(particle);
+                }
+            }, randomDuration + randomDelay + 100); // Extra buffer for cleanup
+        }
+
+        // Clean up particle container if empty
+        setTimeout(() => {
+            if (particleContainer && particleContainer.children.length === 0) {
+                particleContainer.remove();
+            }
+        }, 500); // Cleanup timeout for faster animations
+    }
 
 })();

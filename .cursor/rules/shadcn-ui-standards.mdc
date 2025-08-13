@@ -1,0 +1,77 @@
+---
+description: shadcn/ui component standards and dependency management
+globs: ["src/**/*.{ts,tsx}", "components/**/*.{ts,tsx}"]
+alwaysApply: true
+---
+
+# shadcn/ui Standards and Dependency Management
+
+## Core Principles
+- **NEVER install @radix-ui/* or framer-motion dependencies directly**
+- **ALWAYS use shadcn/ui components via `npx shadcn@latest add COMPONENT_NAME`**
+- **Use existing shadcn/ui components instead of reinventing the wheel**
+
+## Available shadcn/ui Components
+Use these components from https://ui.shadcn.com/docs/components:
+- Accordion, Alert, Alert Dialog, Aspect Ratio, Avatar, Badge, Breadcrumb
+- Button, Calendar, Card, Carousel, Chart, Checkbox, Collapsible
+- Combobox, Command, Context Menu, Data Table, Date Picker, Dialog
+- Drawer, Dropdown Menu, Hover Card, Input, Input OTP, Label
+- Menubar, Navigation Menu, Pagination, Popover, Progress
+- Radio Group, Resizable, Scroll-area, Select, Separator, Sheet
+- Sidebar, Skeleton, Slider, Sonner, Switch, Table, **Tabs**
+- Textarea, Toast, Toggle, Toggle Group, Tooltip, Typography
+
+## Component Usage Guidelines
+- **Tabs**: Use shadcn/ui Tabs component instead of custom tab implementations
+- **Cards**: Use shadcn/ui Card components for consistent styling
+- **Buttons**: Use shadcn/ui Button with appropriate variants
+- **Modals**: Use shadcn/ui Dialog or Sheet components
+- **Forms**: Use shadcn/ui Input, Label, and form components
+- **Navigation**: Use shadcn/ui Navigation Menu or Menubar
+
+## Installation Commands
+```bash
+# For tabs (which you should use instead of custom implementations)
+npx shadcn@latest add tabs
+
+# For other components as needed
+npx shadcn@latest add dialog
+npx shadcn@latest add sheet
+npx shadcn@latest add select
+npx shadcn@latest add input
+npx shadcn@latest add label
+```
+
+## Code Examples
+Instead of custom tab implementations like:
+```tsx
+<div className="flex space-x-1 bg-muted p-1 rounded-lg">
+  <Button variant={activeTab === 'vivienda' ? 'default' : 'ghost'}>
+    Vivienda
+  </Button>
+</div>
+```
+
+Use shadcn/ui Tabs:
+```tsx
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
+<Tabs defaultValue="vivienda">
+  <TabsList>
+    <TabsTrigger value="vivienda">Vivienda</TabsTrigger>
+    <TabsTrigger value="habitacion">Habitación</TabsTrigger>
+  </TabsList>
+  <TabsContent value="vivienda">
+    {/* Vivienda content */}
+  </TabsContent>
+  <TabsContent value="habitacion">
+    {/* Habitación content */}
+  </TabsContent>
+</Tabs>
+```
+
+## File Structure
+- All shadcn/ui components should be in `src/components/ui/`
+- Import from `@/components/ui/component-name`
+- Follow shadcn/ui naming conventions and patterns

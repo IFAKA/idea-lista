@@ -312,28 +312,7 @@ body {
     background: rgba(90, 200, 250, 0.15); 
     border-color: rgba(90, 200, 250, 0.3);
 }
-.chip.coordinates { 
-    color: var(--color-secondary); 
-    background: rgba(88, 86, 214, 0.15); 
-    border-color: rgba(88, 86, 214, 0.3);
-    cursor: pointer;
-    transition: all var(--animation-quick) var(--easing-spring);
-    transform: var(--transform-base);
-    backface-visibility: var(--backface-visibility);
-    will-change: transform, background-color;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
 
-.chip.coordinates svg {
-    flex-shrink: 0;
-}
-.chip.coordinates:hover { 
-    background: rgba(88, 86, 214, 0.25); 
-    transform: var(--transform-base) scale(1.05);
-    box-shadow: var(--shadow-md);
-}
 .chip.id, .chip.muted { 
     color: var(--text-tertiary); 
     background: var(--bg-tertiary); 
@@ -381,6 +360,247 @@ body {
 .analyzer-ai-prompt-btn--compact:active {
     transform: var(--transform-base) scale(0.98);
     transition: all var(--animation-fast) var(--easing-ease-in);
+}
+
+/* Apple Watch Particle Animation System for Content Script */
+.particle-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--color-primary);
+    border-radius: 50%;
+    pointer-events: none;
+    transform: var(--transform-base);
+    backface-visibility: var(--backface-visibility);
+    will-change: transform, opacity;
+    box-shadow: 0 0 3px rgba(0, 122, 255, 0.8);
+}
+
+.particle:nth-child(odd) {
+    background: var(--color-secondary);
+    box-shadow: 0 0 3px rgba(88, 86, 214, 0.8);
+}
+
+.particle:nth-child(3n) {
+    background: var(--color-success);
+    box-shadow: 0 0 3px rgba(52, 199, 89, 0.8);
+}
+
+.particle:nth-child(4n) {
+    background: var(--color-info);
+    box-shadow: 0 0 3px rgba(90, 200, 250, 0.8);
+}
+
+.particle:nth-child(5n) {
+    background: var(--color-warning);
+    box-shadow: 0 0 3px rgba(255, 149, 0, 0.8);
+}
+
+.particle:nth-child(6n) {
+    background: var(--color-pink);
+    box-shadow: 0 0 3px rgba(255, 45, 146, 0.8);
+}
+
+.particle:nth-child(7n) {
+    background: var(--color-teal);
+    box-shadow: 0 0 3px rgba(100, 210, 255, 0.8);
+}
+
+/* Enhanced particle animations with compliant bezier curves */
+@keyframes particleFloat1 {
+    0% {
+        opacity: 1;
+        transform: var(--transform-base) scale(0) translateY(0) translateX(0);
+    }
+    15% {
+        opacity: 1;
+        transform: var(--transform-base) scale(1.1) translateY(-8px) translateX(3px);
+    }
+    35% {
+        opacity: 0.9;
+        transform: var(--transform-base) scale(1) translateY(-18px) translateX(6px);
+    }
+    55% {
+        opacity: 0.7;
+        transform: var(--transform-base) scale(0.8) translateY(-28px) translateX(-2px);
+    }
+    75% {
+        opacity: 0.4;
+        transform: var(--transform-base) scale(0.5) translateY(-40px) translateX(8px);
+    }
+    100% {
+        opacity: 0;
+        transform: var(--transform-base) scale(0.2) translateY(-55px) translateX(12px);
+    }
+}
+
+@keyframes particleFloat2 {
+    0% {
+        opacity: 1;
+        transform: var(--transform-base) scale(0) translateY(0) translateX(0);
+    }
+    20% {
+        opacity: 1;
+        transform: var(--transform-base) scale(1.05) translateY(-6px) translateX(-2px);
+    }
+    40% {
+        opacity: 0.9;
+        transform: var(--transform-base) scale(1) translateY(-15px) translateX(4px);
+    }
+    60% {
+        opacity: 0.7;
+        transform: var(--transform-base) scale(0.8) translateY(-25px) translateX(-6px);
+    }
+    80% {
+        opacity: 0.4;
+        transform: var(--transform-base) scale(0.5) translateY(-35px) translateX(5px);
+    }
+    100% {
+        opacity: 0;
+        transform: var(--transform-base) scale(0.2) translateY(-45px) translateX(-8px);
+    }
+}
+
+@keyframes particleFloat3 {
+    0% {
+        opacity: 1;
+        transform: var(--transform-base) scale(0) translateY(0) translateX(0);
+    }
+    25% {
+        opacity: 1;
+        transform: var(--transform-base) scale(1.15) translateY(-4px) translateX(2px);
+    }
+    45% {
+        opacity: 0.9;
+        transform: var(--transform-base) scale(1) translateY(-12px) translateX(-3px);
+    }
+    65% {
+        opacity: 0.7;
+        transform: var(--transform-base) scale(0.8) translateY(-20px) translateX(6px);
+    }
+    85% {
+        opacity: 0.4;
+        transform: var(--transform-base) scale(0.5) translateY(-30px) translateX(-4px);
+    }
+    100% {
+        opacity: 0;
+        transform: var(--transform-base) scale(0.2) translateY(-40px) translateX(8px);
+    }
+}
+
+@keyframes particleFloat4 {
+    0% {
+        opacity: 1;
+        transform: var(--transform-base) scale(0) translateY(0) translateX(0);
+    }
+    18% {
+        opacity: 1;
+        transform: var(--transform-base) scale(1.08) translateY(-5px) translateX(-1px);
+    }
+    38% {
+        opacity: 0.9;
+        transform: var(--transform-base) scale(1) translateY(-14px) translateX(3px);
+    }
+    58% {
+        opacity: 0.7;
+        transform: var(--transform-base) scale(0.8) translateY(-22px) translateX(-4px);
+    }
+    78% {
+        opacity: 0.4;
+        transform: var(--transform-base) scale(0.5) translateY(-32px) translateX(5px);
+    }
+    100% {
+        opacity: 0;
+        transform: var(--transform-base) scale(0.2) translateY(-42px) translateX(-6px);
+    }
+}
+
+@keyframes particleFloat5 {
+    0% {
+        opacity: 1;
+        transform: var(--transform-base) scale(0) translateY(0) translateX(0);
+    }
+    22% {
+        opacity: 1;
+        transform: var(--transform-base) scale(1.12) translateY(-3px) translateX(2px);
+    }
+    42% {
+        opacity: 0.9;
+        transform: var(--transform-base) scale(1) translateY(-10px) translateX(-2px);
+    }
+    62% {
+        opacity: 0.7;
+        transform: var(--transform-base) scale(0.8) translateY(-18px) translateX(4px);
+    }
+    82% {
+        opacity: 0.4;
+        transform: var(--transform-base) scale(0.5) translateY(-26px) translateX(-3px);
+    }
+    100% {
+        opacity: 0;
+        transform: var(--transform-base) scale(0.2) translateY(-35px) translateX(6px);
+    }
+}
+
+/* Particle burst effect for button click */
+.particle-burst {
+    position: relative;
+    overflow: visible;
+}
+
+.particle-burst::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, var(--color-primary) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: var(--transform-base) translate(-50%, -50%);
+    opacity: 0;
+    pointer-events: none;
+    z-index: -1;
+    animation: burstExpand var(--animation-quick) var(--easing-spring) forwards;
+}
+
+@keyframes burstExpand {
+    0% {
+        width: 0;
+        height: 0;
+        opacity: 0.8;
+    }
+    100% {
+        width: 60px;
+        height: 60px;
+        opacity: 0;
+    }
+}
+
+/* Respect reduced motion preferences for particles */
+@media (prefers-reduced-motion: reduce) {
+    .particle {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transform: var(--transform-base) scale(0) !important;
+        opacity: 0 !important;
+    }
+    
+    .particle-burst::before {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
 }
 
 /* Add button */

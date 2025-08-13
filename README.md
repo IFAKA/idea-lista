@@ -79,57 +79,33 @@ Our scoring system is based on real estate industry standards:
 
 ![Scoring Algorithm](docs/scoring-algorithm.svg)
 
-*The scoring algorithm combines multiple factors with professional weights to provide objective property evaluation.*
+*The scoring algorithm uses a simple 3-state importance system to provide objective property evaluation.*
 
-### **Price Analysis (25% weight)**
-- Lower prices score higher
-- Optimal range: 600-750€
-- Penalties for overpriced properties
+### **3-State Importance System**
+- **Essential (2)**: Critical factors that significantly impact the decision
+- **Valuable (1)**: Important factors that add value but aren't critical
+- **Irrelevant (0)**: Factors that don't affect the decision
 
-### **Size Evaluation (20% weight)**
-- Bigger properties score higher
-- Minimum threshold: 60m²
-- Bonus for properties ≥70m²
+### **Core Property Factors**
+- **Price**: Essential - Lower prices score higher within your range
+- **Size**: Essential - Bigger properties score higher within your range
+- **Rooms**: Essential - More rooms score higher within your range
+- **Bathrooms**: Essential - More bathrooms score higher within your range
 
-### **Room Configuration (15% weight)**
-- More rooms = higher score
-- Optimal: 2-3 bedrooms
-- Bonus for additional bathrooms
+### **Essential Amenities**
+- **Heating**: Essential - Critical for comfort
+- **Elevator**: Essential - Important for accessibility
+- **Furnished**: Essential for rooms, Valuable for apartments
+- **Parking**: Essential for apartments, Valuable for rooms
 
-### **Feature Assessment (15% weight)**
-- Heating: +5 points
-- Furnished: +3 points
-- Long-term rental: +5 points
-- **Elevator logic**:
-  - Has elevator: +2 points
-  - No elevator (not ground floor): -3 points penalty
-  - No elevator (ground floor): 0 points (no penalty)
+### **Property-Specific Features**
+- **Vivienda (Apartments/Houses)**: Focus on size, rooms, parking, and essential amenities
+- **Habitación (Rooms)**: Focus on price, furnished status, roommates, and privacy features
 
-### **Value Analysis (10% weight)**
-- Price per m² evaluation
-- Optimal: ≤10€/m²
-- Market value assessment
-
-### **Bathroom Count (10% weight)**
-- More bathrooms = higher score
-- Modern standards consideration
-
-### **Desk Analysis (5% weight)**
-- **2+ desks**: +5 points - Ideal for remote work
-- **1 desk**: +2.5 points - Good for single remote worker
-- **No desks**: 0 points - No dedicated workspace
-
-### **Orientation Analysis (7% weight)**
-- **East (Este)**: +7 points - Best case (sunrise, morning light)
-- **South (Sur)**: +6 points - Good (full sun exposure)
-- **West (Oeste)**: +4 points - Moderate (afternoon sun)
-- **North (Norte)**: +3 points - Lower (limited sun exposure)
-- **Other orientations**: +2 points - Unknown orientation
-
-### **Desk Analysis (8% weight)**
-- **2+ desks**: +8 points - Ideal for remote work (multiple people)
-- **1 desk**: +4 points - Good for single remote worker
-- **No desks**: 0 points - No dedicated workspace
+### **Scoring Logic**
+- Properties are scored from 0-100 based on how well they match your preferences
+- Only relevant factors (importance > 0) are considered in scoring
+- Final score is calculated as a percentage of the maximum possible score
 
 ## 🚀 Installation
 

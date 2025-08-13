@@ -3,47 +3,146 @@ let properties = [];
 let isInitialized = false;
 let nextId = 1; // Counter for generating unique IDs
 
-// Default configuration
+// Default configuration for apartments/houses
+const defaultViviendaConfig = {
+    weights: {
+        // Core financial and size - Essential for vivienda
+        price: 2, // Essential
+        size: 2, // Essential
+        rooms: 2, // Essential
+        bathrooms: 2, // Essential
+        floor: 1, // Valuable
+        
+        // Essential amenities
+        heating: 2, // Essential
+        elevator: 2, // Essential
+        airConditioning: 1, // Valuable
+        
+        // Convenience features
+        furnished: 1, // Valuable
+        parking: 2, // Essential
+        terrace: 1, // Valuable
+        balcony: 1, // Valuable
+        
+        // Vivienda-specific features
+        seasonal: 1, // Valuable
+        builtInWardrobes: 1, // Valuable
+        garage: 1, // Valuable
+        storage: 1, // Valuable
+        condition: 1, // Valuable
+        propertySubType: 1, // Valuable
+        hasFloorPlan: 0, // Irrelevant
+        hasVirtualTour: 0, // Irrelevant
+        bankAd: 0, // Irrelevant
+        
+        // Habitación-specific features (not used in vivienda)
+        gender: 0, // Irrelevant
+        smokers: 0, // Irrelevant
+        bed: 0, // Irrelevant
+        roommates: 0, // Irrelevant
+        couplesAllowed: 0, // Irrelevant
+        minorsAllowed: 0, // Irrelevant
+        window: 0, // Irrelevant
+        privateBathroom: 0, // Irrelevant
+        cleaningIncluded: 0, // Irrelevant
+        lgbtFriendly: 0, // Irrelevant
+        ownerNotPresent: 0, // Irrelevant
+        
+        // Additional features (shared)
+        desk: 1, // Valuable
+        orientation: 1, // Valuable
+        
+        // Financial information
+        deposit: 1, // Valuable
+        maintenance: 1, // Valuable
+        energy: 1, // Valuable
+        
+        // Additional amenities (shared)
+        garden: 1, // Valuable
+        pool: 0, // Irrelevant
+        accessible: 0, // Irrelevant
+        
+        // Metadata
+        publicationDate: 0 // Irrelevant
+    },
+    priceRange: { min: 400, max: 1200 },
+    sizeRange: { min: 50, max: 150 },
+    roomRange: { min: 1, max: 4 },
+    bathroomRange: { min: 1, max: 3 }
+};
+
+// Default configuration for rooms
+const defaultHabitacionConfig = {
+    weights: {
+        // Core financial and size - Essential for habitacion
+        price: 2, // Essential
+        size: 2, // Essential
+        rooms: 0, // Irrelevant (always 1 for rooms)
+        bathrooms: 1, // Valuable
+        floor: 1, // Valuable
+        
+        // Essential amenities
+        heating: 2, // Essential
+        elevator: 2, // Essential
+        airConditioning: 1, // Valuable
+        
+        // Convenience features
+        furnished: 2, // Essential
+        parking: 1, // Valuable
+        terrace: 1, // Valuable
+        balcony: 1, // Valuable
+        
+        // Vivienda-specific features (not used in habitacion)
+        seasonal: 0, // Irrelevant
+        builtInWardrobes: 0, // Irrelevant
+        garage: 0, // Irrelevant
+        storage: 0, // Irrelevant
+        condition: 0, // Irrelevant
+        propertySubType: 0, // Irrelevant
+        hasFloorPlan: 0, // Irrelevant
+        hasVirtualTour: 0, // Irrelevant
+        bankAd: 0, // Irrelevant
+        
+        // Habitación-specific features (more important for habitacion)
+        gender: 1, // Valuable
+        smokers: 1, // Valuable
+        bed: 1, // Valuable
+        roommates: 2, // Essential
+        couplesAllowed: 2, // Essential
+        minorsAllowed: 1, // Valuable
+        window: 2, // Essential
+        privateBathroom: 2, // Essential
+        cleaningIncluded: 1, // Valuable
+        lgbtFriendly: 1, // Valuable
+        ownerNotPresent: 1, // Valuable
+        
+        // Additional features (shared)
+        desk: 1, // Valuable
+        orientation: 1, // Valuable
+        
+        // Financial information
+        deposit: 1, // Valuable
+        maintenance: 1, // Valuable
+        energy: 1, // Valuable
+        
+        // Additional amenities (shared)
+        garden: 1, // Valuable
+        pool: 0, // Irrelevant
+        accessible: 1, // Valuable
+        
+        // Metadata
+        publicationDate: 0 // Irrelevant
+    },
+    priceRange: { min: 300, max: 800 },
+    sizeRange: { min: 10, max: 40 },
+    roomRange: { min: 1, max: 1 },
+    bathroomRange: { min: 1, max: 2 }
+};
+
+// Default configuration structure
 const defaultConfig = {
-    // Price configuration
-    maxBudget: 750,
-    priceWeight: 25,
-    
-    // Size configuration
-    minSize: 50,
-    sizeWeight: 20,
-    
-    // Rooms configuration
-    minRooms: 1,
-    roomsWeight: 15,
-    
-    // Bathrooms configuration
-    minBathrooms: 1,
-    bathroomsWeight: 10,
-    
-    // Features configuration
-    featuresWeight: 15,
-    heatingBonus: 5,
-    furnishedBonus: 3,
-    seasonalPenalty: 5,
-    elevatorBonus: 2,
-    elevatorPenalty: 15,
-    
-    // Price per m² configuration
-    maxPricePerM2: 8,
-    pricePerM2Weight: 10,
-    
-    // Orientation configuration
-    orientationWeight: 7,
-    eastBonus: 7,
-    southBonus: 6,
-    westBonus: 4,
-    northBonus: 3,
-    defaultOrientationBonus: 2,
-    
-    // Desk configuration
-    deskWeight: 8,
-    deskBonus: 4
+    vivienda: defaultViviendaConfig,
+    habitacion: defaultHabitacionConfig
 };
 
 // Load properties from storage on startup
@@ -263,94 +362,168 @@ async function addProperty(propertyData) {
 
 // Professional property scoring algorithm
 async function calculateScore(property) {
-    let score = 0;
-    const maxScore = 100;
-
     // Load current configuration
-    const config = await getConfiguration();
-
-    // Price scoring - using configured weight and budget
-    if (property.price) {
-        const priceScore = Math.max(0, config.priceWeight - (property.price - config.maxBudget) / 6);
-        score += priceScore;
-    }
-
-    // Size scoring - using configured weight and minimum size
-    if (property.squareMeters) {
-        const sizeScore = Math.min(config.sizeWeight, (property.squareMeters - config.minSize) / 2);
-        score += Math.max(0, sizeScore);
-    }
-
-    // Rooms scoring - using configured weight
-    if (property.rooms) {
-        const roomScore = Math.min(config.roomsWeight, property.rooms * 5);
-        score += roomScore;
-    }
-
-    // Bathrooms scoring - using configured weight
-    if (property.bathrooms) {
-        const bathroomScore = Math.min(config.bathroomsWeight, property.bathrooms * 5);
-        score += bathroomScore;
-    }
-
-    // Features scoring - using configured bonuses and penalties
-    if (property.heating) score += config.heatingBonus;
-    if (property.furnished) score += config.furnishedBonus;
-    if (!property.seasonal) score += config.seasonalPenalty;
+    const fullConfig = await getConfiguration();
     
-    // Elevator logic - using configured bonuses and penalties
-    if (property.elevator) {
-        score += config.elevatorBonus;
+    // Determine property type based on URL or other indicators
+    const isRoom = property.url && property.url.includes('/habitacion/');
+    const config = isRoom ? fullConfig.habitacion : fullConfig.vivienda;
+
+    if (isRoom) {
+        // Room scoring algorithm
+        return calculateRoomScore(property, config);
     } else {
-        // Check if it's ground floor (acceptable without elevator)
-        const isGroundFloor = property.floor === '0' || 
-                            property.floor === 'Bajo' || 
-                            property.floor === 'bajo' ||
-                            property.floor === 'Planta baja' ||
-                            property.floor === 'planta baja';
-        
-        if (!isGroundFloor) {
-            score -= config.elevatorPenalty;
+        // Apartment/House scoring algorithm
+        return calculateViviendaScore(property, config);
+    }
+}
+
+// Room scoring algorithm - 3-state system
+function calculateRoomScore(property, config) {
+    const scores = {
+        price: calculatePriceScore(property.price, config),
+        size: calculateSizeScore(
+            property.squareMeters !== undefined
+                ? property.squareMeters
+                : property.size !== undefined
+                    ? property.size
+                    : 0,
+            config
+        ),
+        rooms: calculateRoomRangeScore(property.rooms ?? 0, config),
+        bathrooms: calculateBathroomScore(property.bathrooms ?? 0, config),
+        elevator: property.elevator ? 1 : 0,
+        parking: property.parking ? 1 : 0,
+        terrace: property.terrace ? 1 : 0,
+        balcony: property.balcony ? 1 : 0,
+        airConditioning: property.airConditioning ? 1 : 0,
+        heating: property.heating ? 1 : 0
+    }
+
+    // Calculate score based on 3-state importance (Essential = 2, Valuable = 1, Irrelevant = 0)
+    const totalScore = Object.entries(scores).reduce((total, [key, score]) => {
+        const importance = config.weights[key] || 0
+        // Only count scores for properties that are not irrelevant
+        if (importance > 0) {
+            const score100 = Math.round(score * 100)
+            return total + (score100 * importance)
         }
+        return total
+    }, 0)
+
+    const totalImportance = Object.values(config.weights).reduce((sum, importance) => sum + importance, 0)
+    
+    // Calculate final score as percentage of total possible score
+    const finalScore = totalImportance > 0 ? Math.round(totalScore / totalImportance) : 0
+    
+    return finalScore
+}
+
+// Helper functions for scoring calculations
+function calculatePriceScore(price, config) {
+    const { min, max } = config.priceRange
+    
+    if (max === min) return 1
+    
+    // If price is within the range, give good score
+    if (price >= min && price <= max) {
+        // Lower price = higher score (inverted within range)
+        const normalizedPrice = (price - min) / (max - min)
+        return Math.max(0, 1 - normalizedPrice)
+    }
+    
+    // If price is outside the range, give bad score
+    return 0
+}
+
+function calculateSizeScore(size, config) {
+    const { min, max } = config.sizeRange
+    if (max === min) return 1
+    
+    // If size is within the range, give good score
+    if (size >= min && size <= max) {
+        // Higher size = higher score
+        const normalizedSize = (size - min) / (max - min)
+        return Math.max(0, Math.min(1, normalizedSize))
+    }
+    
+    // If size is outside the range, give bad score
+    return 0
+}
+
+function calculateRoomRangeScore(rooms, config) {
+    const { min, max } = config.roomRange
+    if (max === min) return 1
+    
+    // If rooms is within the range, give good score
+    if (rooms >= min && rooms <= max) {
+        // Higher rooms = higher score (up to a point)
+        const normalizedRooms = (rooms - min) / (max - min)
+        return Math.max(0, Math.min(1, normalizedRooms))
+    }
+    
+    // If rooms is outside the range, give bad score
+    return 0
+}
+
+function calculateBathroomScore(bathrooms, config) {
+    const { min, max } = config.bathroomRange
+    if (max === min) return 1
+    
+    // If bathrooms is within the range, give good score
+    if (bathrooms >= min && bathrooms <= max) {
+        // Higher bathrooms = higher score (up to a point)
+        const normalizedBathrooms = (bathrooms - min) / (max - min)
+        return Math.max(0, Math.min(1, normalizedBathrooms))
+    }
+    
+    // If bathrooms is outside the range, give bad score
+    return 0
+}
+
+// Apartment/House scoring algorithm - 3-state system
+function calculateViviendaScore(property, config) {
+    const scores = {
+        price: calculatePriceScore(property.price, config),
+        size: calculateSizeScore(
+            property.squareMeters !== undefined
+                ? property.squareMeters
+                : property.size !== undefined
+                    ? property.size
+                    : 0,
+            config
+        ),
+        rooms: calculateRoomRangeScore(property.rooms ?? 0, config),
+        bathrooms: calculateBathroomScore(property.bathrooms ?? 0, config),
+        elevator: property.elevator ? 1 : 0,
+        parking: property.parking ? 1 : 0,
+        terrace: property.terrace ? 1 : 0,
+        balcony: property.balcony ? 1 : 0,
+        airConditioning: property.airConditioning ? 1 : 0,
+        heating: property.heating ? 1 : 0
     }
 
-    // Price per m² scoring - using configured weight and max price
-    if (property.pricePerM2) {
-        const pricePerM2Score = Math.max(0, config.pricePerM2Weight - (property.pricePerM2 - config.maxPricePerM2) / 0.5);
-        score += pricePerM2Score;
-    }
-
-    // Orientation scoring - using configured weights
-    if (property.orientation) {
-        const orientation = property.orientation.toLowerCase();
-        let orientationScore = 0;
-        
-        if (orientation.includes('este') || orientation.includes('east')) {
-            orientationScore = config.eastBonus;
-        } else if (orientation.includes('sur') || orientation.includes('south')) {
-            orientationScore = config.southBonus;
-        } else if (orientation.includes('oeste') || orientation.includes('west')) {
-            orientationScore = config.westBonus;
-        } else if (orientation.includes('norte') || orientation.includes('north')) {
-            orientationScore = config.northBonus;
-        } else {
-            orientationScore = config.defaultOrientationBonus;
+    // Calculate score based on 3-state importance (Essential = 2, Valuable = 1, Irrelevant = 0)
+    const totalScore = Object.entries(scores).reduce((total, [key, score]) => {
+        const importance = config.weights[key] || 0
+        // Only count scores for properties that are not irrelevant
+        if (importance > 0) {
+            const score100 = Math.round(score * 100)
+            return total + (score100 * importance)
         }
-        
-        score += orientationScore;
-    }
+        return total
+    }, 0)
 
-    // Desk scoring - using configured weight and bonus
-    if (property.desk) {
-        const deskScore = Math.min(config.deskWeight, property.desk * config.deskBonus);
-        score += deskScore;
-    }
-
-    return Math.round(Math.min(maxScore, Math.max(0, score)));
+    const totalImportance = Object.values(config.weights).reduce((sum, importance) => sum + importance, 0)
+    
+    // Calculate final score as percentage of total possible score
+    const finalScore = totalImportance > 0 ? Math.round(totalScore / totalImportance) : 0
+    
+    return finalScore
 }
 
 async function removeProperty(propertyId) {
-    properties = properties.filter(p => p.id !== propertyId);
+    properties = properties.filter(p => String(p.id) !== String(propertyId));
     await saveProperties();
     
     // Notify all components of the update
@@ -425,8 +598,8 @@ async function saveProperties() {
 async function getConfiguration() {
     try {
         console.log('Background: Loading configuration from storage');
-        const result = await chrome.storage.local.get(['configuration']);
-        const config = result.configuration || defaultConfig;
+        const result = await chrome.storage.local.get(['scoringConfig']);
+        const config = result.scoringConfig || defaultConfig;
         console.log('Background: Configuration loaded:', config);
         return config;
     } catch (error) {
@@ -438,7 +611,7 @@ async function getConfiguration() {
 async function saveConfiguration(newConfig) {
     try {
         console.log('Background: Saving configuration to storage');
-        await chrome.storage.local.set({ configuration: newConfig });
+        await chrome.storage.local.set({ scoringConfig: newConfig });
         console.log('Background: Configuration saved successfully');
         
         // Recalculate scores for all existing properties with new configuration
