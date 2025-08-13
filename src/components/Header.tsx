@@ -14,13 +14,15 @@ interface HeaderProps {
   onExport: () => void
   onClear: () => void
   onExportVisits?: () => void
+  propertiesCount: number
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onConfig,
   onExport,
   onClear,
-  onExportVisits
+  onExportVisits,
+  propertiesCount
 }) => {
   return (
     <header className="flex items-center justify-between p-4 border-b">
@@ -46,7 +48,8 @@ export const Header: React.FC<HeaderProps> = ({
           variant="ghost"
           size="icon"
           onClick={onExport}
-          title="Exportar propiedades"
+          disabled={propertiesCount === 0}
+          title={propertiesCount === 0 ? "No hay propiedades para exportar" : "Exportar propiedades"}
           className="h-8 w-8"
         >
           <Download className="w-4 h-4" />
@@ -57,7 +60,8 @@ export const Header: React.FC<HeaderProps> = ({
             variant="ghost"
             size="icon"
             onClick={onExportVisits}
-            title="Exportar datos de visitas"
+            disabled={propertiesCount === 0}
+            title={propertiesCount === 0 ? "No hay propiedades para exportar visitas" : "Exportar datos de visitas"}
             className="h-8 w-8"
           >
             <FileText className="w-4 h-4" />
@@ -68,7 +72,8 @@ export const Header: React.FC<HeaderProps> = ({
           variant="ghost"
           size="icon"
           onClick={onClear}
-          title="Limpiar todas las propiedades"
+          disabled={propertiesCount === 0}
+          title={propertiesCount === 0 ? "No hay propiedades para eliminar" : "Limpiar todas las propiedades"}
           className="h-8 w-8 text-destructive hover:text-destructive"
         >
           <Trash2 className="w-4 h-4" />

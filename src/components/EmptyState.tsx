@@ -33,7 +33,7 @@ export const EmptyState: React.FC = () => {
         transition={{ delay: 0.3 }}
         className="text-sm text-muted-foreground max-w-sm"
       >
-        Navega a una propiedad de Idealista y haz clic en "Agregar" para comenzar a usar Idea-lista
+        Navega a una propiedad en el portal inmobiliario y haz clic en "Agregar" para comenzar a usar Idea-lista
       </motion.p>
       
       <motion.div

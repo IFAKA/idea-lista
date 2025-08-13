@@ -24,7 +24,7 @@
     }
   ],
   "action": {
-    "default_title": "Idealista Property Manager",
+    "default_title": "Property Manager",
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icon16.png",

@@ -195,13 +195,33 @@ export const VisitManagementView: React.FC<VisitManagementViewProps> = ({
               <div className="space-y-2">
                 <Label>Notas de Visita</Label>
                 <div className="p-3 border rounded-md bg-muted min-h-[100px]">
-                  {property.visitNotes ? (
-                    <div className="whitespace-pre-wrap text-sm">{property.visitNotes}</div>
+                  {property.visits && property.visits.length > 0 ? (
+                    <div className="space-y-3">
+                      {property.visits
+                        .filter(visit => visit.notes && visit.notes.trim())
+                        .map((visit) => (
+                          <div key={visit.id} className="border-b border-border/50 pb-2 last:border-b-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs font-medium text-muted-foreground">
+                                {formatDate(visit.date)}
+                              </span>
+                              {visit.contactPerson && (
+                                <span className="text-xs text-muted-foreground">
+                                  • {visit.contactPerson}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-sm whitespace-pre-wrap">{visit.notes}</div>
+                          </div>
+                        ))}
+                      {property.visits.filter(visit => visit.notes && visit.notes.trim()).length === 0 && (
+                        <p className="text-muted-foreground text-sm">No hay notas de visita</p>
+                      )}
+                    </div>
                   ) : (
-                    <p className="text-muted-foreground text-sm">No hay notas de visita</p>
+                    <p className="text-muted-foreground text-sm">No hay visitas registradas</p>
                   )}
                 </div>
-
               </div>
             </TabsContent>
 

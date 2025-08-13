@@ -321,6 +321,42 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             });
         return true;
     }
+    
+    if (message.action === 'addVisit') {
+        addVisitToProperty(message.propertyId, message.visit)
+            .then(() => {
+                sendResponse({ success: true });
+            })
+            .catch((error) => {
+                console.error('Error adding visit:', error);
+                sendResponse({ success: false, error: error.message });
+            });
+        return true;
+    }
+    
+    if (message.action === 'updateVisit') {
+        updateVisitInProperty(message.propertyId, message.visitId, message.updates)
+            .then(() => {
+                sendResponse({ success: true });
+            })
+            .catch((error) => {
+                console.error('Error updating visit:', error);
+                sendResponse({ success: false, error: error.message });
+            });
+        return true;
+    }
+    
+    if (message.action === 'removeVisit') {
+        removeVisitFromProperty(message.propertyId, message.visitId)
+            .then(() => {
+                sendResponse({ success: true });
+            })
+            .catch((error) => {
+                console.error('Error removing visit:', error);
+                sendResponse({ success: false, error: error.message });
+            });
+        return true;
+    }
 });
 
 // Generate unique ID for properties
@@ -636,6 +672,125 @@ async function saveConfiguration(newConfig) {
         }
     } catch (error) {
         console.error('Background: Error saving configuration:', error);
+        throw error;
+    }
+}
+
+async function addVisitToProperty(propertyId, visitData) {
+    try {
+        console.log('Background: Adding visit to property:', propertyId, visitData);
+        
+        // Find the property
+        const propertyIndex = properties.findIndex(p => String(p.id) === String(propertyId));
+        if (propertyIndex === -1) {
+            throw new Error('Property not found');
+        }
+        
+        const property = properties[propertyIndex];
+        const visitId = generateUniqueId();
+        
+        const newVisit = {
+            ...visitData,
+            id: visitId,
+            date: new Date().toISOString(),
+            checklist: visitData.checklist || []
+        };
+        
+        // Add visit to property
+        if (!property.visits) {
+            property.visits = [];
+        }
+        property.visits.push(newVisit);
+        
+        // Update property metadata
+        property.updatedAt = new Date().toISOString();
+        property.lastContactDate = new Date().toISOString();
+        
+        // Save to storage
+        await saveProperties();
+        
+        // Notify all components
+        await notifyAllComponents();
+        
+        console.log('Background: Visit added successfully');
+    } catch (error) {
+        console.error('Background: Error adding visit:', error);
+        throw error;
+    }
+}
+
+async function updateVisitInProperty(propertyId, visitId, updates) {
+    try {
+        console.log('Background: Updating visit in property:', propertyId, visitId, updates);
+        
+        // Find the property
+        const propertyIndex = properties.findIndex(p => String(p.id) === String(propertyId));
+        if (propertyIndex === -1) {
+            throw new Error('Property not found');
+        }
+        
+        const property = properties[propertyIndex];
+        
+        // Find and update the visit
+        if (!property.visits) {
+            throw new Error('No visits found for property');
+        }
+        
+        const visitIndex = property.visits.findIndex(v => v.id === visitId);
+        if (visitIndex === -1) {
+            throw new Error('Visit not found');
+        }
+        
+        property.visits[visitIndex] = { ...property.visits[visitIndex], ...updates };
+        property.updatedAt = new Date().toISOString();
+        
+        // Save to storage
+        await saveProperties();
+        
+        // Notify all components
+        await notifyAllComponents();
+        
+        console.log('Background: Visit updated successfully');
+    } catch (error) {
+        console.error('Background: Error updating visit:', error);
+        throw error;
+    }
+}
+
+async function removeVisitFromProperty(propertyId, visitId) {
+    try {
+        console.log('Background: Removing visit from property:', propertyId, visitId);
+        
+        // Find the property
+        const propertyIndex = properties.findIndex(p => String(p.id) === String(propertyId));
+        if (propertyIndex === -1) {
+            throw new Error('Property not found');
+        }
+        
+        const property = properties[propertyIndex];
+        
+        // Remove the visit
+        if (!property.visits) {
+            throw new Error('No visits found for property');
+        }
+        
+        const visitIndex = property.visits.findIndex(v => v.id === visitId);
+        if (visitIndex === -1) {
+            throw new Error('Visit not found');
+        }
+        
+        property.visits.splice(visitIndex, 1);
+        property.updatedAt = new Date().toISOString();
+        
+        // Save to storage
+        await saveProperties();
+        
+        // Notify all components
+        await notifyAllComponents();
+        
+        console.log('Background: Visit removed successfully');
+    } catch (error) {
+        console.error('Background: Error removing visit:', error);
         throw error;
     }
 }

@@ -48,7 +48,7 @@ export interface VisitRecord {
 export interface ContactRecord {
   id: string
   date: Date | string
-  method: 'phone' | 'email' | 'whatsapp' | 'idealista' | 'other'
+  method: 'phone' | 'email' | 'whatsapp' | 'portal' | 'other'
   status: ContactStatus
   notes?: string
   contactPerson?: string
@@ -408,6 +408,15 @@ export const usePropertyStore = create<PropertyStore>()(
           properties: [],
           metrics: calculateMetrics([])
         })
+        
+        // Send to background script for Chrome storage sync
+        chrome.runtime.sendMessage({
+          action: 'clearProperties'
+        }, (response: { success: boolean; error?: string }) => {
+          if (response && !response.success) {
+            console.error('Error clearing properties in background:', response.error)
+          }
+        })
       },
 
       importProperties: (properties) => {
@@ -430,7 +439,7 @@ export const usePropertyStore = create<PropertyStore>()(
         // Load properties from Chrome storage and update the store
         chrome.storage.local.get(['properties'], (result) => {
           if (result.properties) {
-            const properties = result.properties.map((p: any) => ({
+            const properties = result.properties.map((p: Property) => ({
               ...p,
               createdAt: p.createdAt ? new Date(p.createdAt) : new Date(),
               updatedAt: p.updatedAt ? new Date(p.updatedAt) : new Date(),
@@ -481,6 +490,17 @@ export const usePropertyStore = create<PropertyStore>()(
             metrics: calculateMetrics(newProperties)
           }
         })
+        
+        // Send to background script for Chrome storage sync
+        chrome.runtime.sendMessage({
+          action: 'addVisit',
+          propertyId: propertyId,
+          visit: visit
+        }, (response: { success: boolean; error?: string }) => {
+          if (response && !response.success) {
+            console.error('Error adding visit to background:', response.error)
+          }
+        })
       },
 
       updateVisit: (propertyId, visitId, updates) => {
@@ -503,6 +523,18 @@ export const usePropertyStore = create<PropertyStore>()(
             metrics: calculateMetrics(newProperties)
           }
         })
+        
+        // Send to background script for Chrome storage sync
+        chrome.runtime.sendMessage({
+          action: 'updateVisit',
+          propertyId: propertyId,
+          visitId: visitId,
+          updates: updates
+        }, (response: { success: boolean; error?: string }) => {
+          if (response && !response.success) {
+            console.error('Error updating visit in background:', response.error)
+          }
+        })
       },
 
       removeVisit: (propertyId, visitId) => {
@@ -519,6 +551,17 @@ export const usePropertyStore = create<PropertyStore>()(
           return {
             properties: newProperties,
             metrics: calculateMetrics(newProperties)
+          }
+        })
+        
+        // Send to background script for Chrome storage sync
+        chrome.runtime.sendMessage({
+          action: 'removeVisit',
+          propertyId: propertyId,
+          visitId: visitId
+        }, (response: { success: boolean; error?: string }) => {
+          if (response && !response.success) {
+            console.error('Error removing visit from background:', response.error)
           }
         })
       },
@@ -679,3 +722,25 @@ export const usePropertyStore = create<PropertyStore>()(
     }
   )
 )
+
+// Listen for updates from background script
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.action === 'propertiesUpdated') {
+    console.log('Store: Received properties update from background script')
+    const store = usePropertyStore.getState()
+    
+    // Update the store with the new properties from background
+    const updatedProperties = message.properties.map((p: Property) => ({
+      ...p,
+      createdAt: p.createdAt ? new Date(p.createdAt) : new Date(),
+      updatedAt: p.updatedAt ? new Date(p.updatedAt) : new Date(),
+      contactStatus: p.contactStatus || 'pending',
+      propertyStatus: p.propertyStatus || 'available',
+      priority: p.priority || 'medium',
+      visits: p.visits || [],
+      contacts: p.contacts || []
+    }))
+    
+    store.importProperties(updatedProperties)
+  }
+})

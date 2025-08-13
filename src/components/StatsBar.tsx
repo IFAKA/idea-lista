@@ -32,9 +32,11 @@ export const StatsBar: React.FC<StatsBarProps> = ({ metrics }) => {
                 <span className="text-xs text-muted-foreground">
                   {metrics.visitMetrics.totalVisits} visita{metrics.visitMetrics.totalVisits > 1 ? 's' : ''}
                 </span>
-                <span className="text-xs text-muted-foreground">
-                  ({metrics.visitMetrics.visitSuccessRate}% éxito)
-                </span>
+                {metrics.visitMetrics.visitSuccessRate > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    ({metrics.visitMetrics.visitSuccessRate}% éxito)
+                  </span>
+                )}
               </div>
             )}
             {metrics.contactMetrics.totalContacts > 0 && (

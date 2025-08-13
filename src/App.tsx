@@ -10,7 +10,7 @@ import { VisitManagementView } from '@/components/VisitManagementView'
 
 import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { usePropertyStore } from '@/store/property-store'
-import { ScoringService, defaultPropertyTypeConfigs } from '@/services/scoring-service'
+import { ScoringService, defaultPropertyTypeConfigs, PropertyTypeConfigs } from '@/services/scoring-service'
 import { validateUniqueIds } from '@/lib/utils'
 import { PropertyType, Property } from '@/store/property-store'
 import { initializeTheme } from '@/lib/theme'
@@ -66,7 +66,7 @@ const App: React.FC = () => {
     chrome.storage.local.get(['properties', 'scoringConfig'], (result) => {
       if (result.properties) {
         // Migrate legacy scores if needed
-        const migratedProperties = result.properties.map((property: any) => {
+        const migratedProperties = result.properties.map((property: Property) => {
           let newScore = property.score
           
           // Handle different legacy score formats
@@ -106,7 +106,7 @@ const App: React.FC = () => {
       }
       setLoading(false)
     })
-  }, [])
+  }, [importProperties, scoringService, setLoading])
 
   const handleConfig = () => {
     setShowSettings(true)
@@ -235,7 +235,7 @@ const App: React.FC = () => {
 
 
 
-  const handleSaveSettings = (newConfigs: any) => {
+  const handleSaveSettings = (newConfigs: PropertyTypeConfigs) => {
     // Show loading state while saving
     setLoading(true)
     
@@ -247,7 +247,7 @@ const App: React.FC = () => {
     setCurrentConfigs(newConfigs)
     
     // Recalculate scores for all current properties with the new config
-    const recalculatedProperties = properties.map((property: any) => {
+    const recalculatedProperties = properties.map((property: Property) => {
       const newScore = scoringService.calculateScore(property)
       return { ...property, score: newScore }
     })
@@ -289,20 +289,15 @@ const App: React.FC = () => {
     })
   }
 
-  // Debug function to check current IDs
-  const debugIds = () => {
-    const ids = properties.map(p => p.id)
-    const validation = validateUniqueIds(ids as string[])
-    
-    if (!validation.isUnique) {
-      console.error('❌ DUPLICATE IDs FOUND:', validation.duplicates)
-    }
-  }
-
   // Debug IDs on component mount and when properties change
   useEffect(() => {
     if (properties.length > 0) {
-      debugIds()
+      const ids = properties.map(p => p.id)
+      const validation = validateUniqueIds(ids as string[])
+      
+      if (!validation.isUnique) {
+        console.error('❌ DUPLICATE IDs FOUND:', validation.duplicates)
+      }
     }
   }, [properties])
 
@@ -337,6 +332,7 @@ const App: React.FC = () => {
             onExport={handleExport}
             onClear={handleClear}
             onExportVisits={handleExportVisits}
+            propertiesCount={properties.length}
           />
           
           <div className="flex-1 overflow-hidden flex flex-col">
