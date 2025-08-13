@@ -13,7 +13,8 @@ import {
   ContactStatus, 
   PropertyStatus, 
   VisitStatus,
-  VisitRecord
+  VisitRecord,
+  usePropertyStore
 } from '@/store/property-store'
 import { 
   CheckCircle,
@@ -90,6 +91,9 @@ export const VisitManagementView: React.FC<VisitManagementViewProps> = ({
   onAddVisit,
   onUpdateVisit
 }) => {
+  // Get the updated property from the store to ensure we have the latest data
+  const { getPropertyById } = usePropertyStore()
+  const updatedProperty = getPropertyById(String(property.id)) || property
   const [activeTab, setActiveTab] = useState('overview')
   const [showAddModal, setShowAddModal] = useState(false)
   const [newRecord, setNewRecord] = useState({
@@ -137,8 +141,8 @@ export const VisitManagementView: React.FC<VisitManagementViewProps> = ({
   }
 
   const allRecords = [
-    ...(property.visits || []).map(visit => ({ ...visit, type: 'visit' as const })),
-    ...(property.contacts || []).map(contact => ({ ...contact, type: 'contact' as const }))
+    ...(updatedProperty.visits || []).map(visit => ({ ...visit, type: 'visit' as const })),
+    ...(updatedProperty.contacts || []).map(contact => ({ ...contact, type: 'contact' as const }))
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
   return (
@@ -161,9 +165,9 @@ export const VisitManagementView: React.FC<VisitManagementViewProps> = ({
         <div className="p-4 space-y-6">
           {/* Property Info */}
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold">{property.title}</h2>
-            {property.location && (
-              <p className="text-sm text-muted-foreground">{property.location}</p>
+            <h2 className="text-lg font-semibold">{updatedProperty.title}</h2>
+            {updatedProperty.location && (
+              <p className="text-sm text-muted-foreground">{updatedProperty.location}</p>
             )}
           </div>
 
@@ -177,15 +181,15 @@ export const VisitManagementView: React.FC<VisitManagementViewProps> = ({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Estado de Contacto</Label>
-                  <Badge className={getStatusColor(property.contactStatus || 'pending')}>
-                    {getStatusLabel(property.contactStatus || 'pending')}
+                  <Badge className={getStatusColor(updatedProperty.contactStatus || 'pending')}>
+                    {getStatusLabel(updatedProperty.contactStatus || 'pending')}
                   </Badge>
                 </div>
 
                 <div className="space-y-2">
                   <Label>Estado de Propiedad</Label>
-                  <Badge className={getStatusColor(property.propertyStatus || 'available')}>
-                    {getStatusLabel(property.propertyStatus || 'available')}
+                  <Badge className={getStatusColor(updatedProperty.propertyStatus || 'available')}>
+                    {getStatusLabel(updatedProperty.propertyStatus || 'available')}
                   </Badge>
                 </div>
               </div>
