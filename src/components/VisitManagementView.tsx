@@ -4,9 +4,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { 
   Property, 
@@ -16,7 +14,6 @@ import {
   VisitRecord
 } from '@/domain/entities/Property'
 import { 
-  CheckCircle,
   Plus,
   Clock,
   ArrowLeft
@@ -27,7 +24,6 @@ interface VisitManagementViewProps {
   onBack: () => void
   onUpdateProperty: (updates: Partial<Property>) => void
   onAddVisit: (visit: Omit<VisitRecord, 'id'>) => void
-  onUpdateVisit: (visitId: string, updates: Partial<VisitRecord>) => void
 }
 
 const getStatusColor = (status: ContactStatus | PropertyStatus | VisitStatus) => {
@@ -87,12 +83,10 @@ const getStatusLabel = (status: ContactStatus | PropertyStatus | VisitStatus) =>
 export const VisitManagementView: React.FC<VisitManagementViewProps> = ({
   property,
   onBack,
-  onAddVisit,
-  onUpdateVisit
+  onAddVisit
 }) => {
   // Use the property prop directly
   const updatedProperty = property
-  const [activeTab, setActiveTab] = useState('overview')
   const [showAddModal, setShowAddModal] = useState(false)
   const [newRecord, setNewRecord] = useState({
     status: 'requested' as VisitStatus,
@@ -141,8 +135,8 @@ export const VisitManagementView: React.FC<VisitManagementViewProps> = ({
       return // Don't submit if required fields are empty
     }
     
-    if (newRecord.status === 'scheduled' && !newRecord.scheduledTime) {
-      return // Require scheduled time for scheduled visits
+    if ((newRecord.status === 'scheduled' || newRecord.status === 'rescheduled') && !newRecord.scheduledTime) {
+      return // Require scheduled time for scheduled and rescheduled visits
     }
     
     onAddVisit({
@@ -179,18 +173,31 @@ export const VisitManagementView: React.FC<VisitManagementViewProps> = ({
   }
 
   const formatDate = (date: Date | string) => {
-    return new Date(date).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+    if (!date) return null
+    try {
+      const dateObj = new Date(date)
+      if (isNaN(dateObj.getTime())) return null
+      
+      const day = dateObj.getDate().toString().padStart(2, '0')
+      const month = (dateObj.getMonth() + 1).toString().padStart(2, '0')
+      const hours = dateObj.getHours().toString().padStart(2, '0')
+      const minutes = dateObj.getMinutes().toString().padStart(2, '0')
+      
+      return `${day}/${month} ${hours}:${minutes}`
+    } catch (error) {
+      return null
+    }
   }
 
   const allRecords = [
-    ...(updatedProperty.visits || []).map(visit => ({ ...visit, type: 'visit' as const })),
-    ...(updatedProperty.contacts || []).map(contact => ({ ...contact, type: 'contact' as const }))
+    ...(updatedProperty.visits || []).map(visit => ({ 
+      ...visit, 
+      type: 'visit' as const
+    })),
+    ...(updatedProperty.contacts || []).map(contact => ({ 
+      ...contact, 
+      type: 'contact' as const
+    }))
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
   // Check if property is in a cancelled or completed state
@@ -278,174 +285,97 @@ export const VisitManagementView: React.FC<VisitManagementViewProps> = ({
 
       {/* Body */}
       <div className="flex-1 overflow-y-auto">
-        <div className="p-4 space-y-6">
-          {/* Property Info */}
-          <div className="space-y-3">
-            <h2 className="text-lg font-semibold">{updatedProperty.title}</h2>
-            {updatedProperty.location && (
-              <p className="text-sm text-muted-foreground">{updatedProperty.location}</p>
-            )}
-          </div>
-
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="overview">Resumen</TabsTrigger>
-              <TabsTrigger value="historial">Historial</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="overview" className="space-y-8">
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <Label className="text-sm font-medium">Estado de Contacto</Label>
-                  <Badge className={getStatusColor(updatedProperty.contactStatus || 'pending')}>
-                    {getStatusLabel(updatedProperty.contactStatus || 'pending')}
-                  </Badge>
-                </div>
-
-                <div className="space-y-4">
-                  <Label className="text-sm font-medium">Estado de Propiedad</Label>
-                  <Badge className={getStatusColor(updatedProperty.propertyStatus || 'available')}>
-                    {getStatusLabel(updatedProperty.propertyStatus || 'available')}
-                  </Badge>
-                </div>
-              </div>
-
-              <Separator className="my-8" />
-
-              <div className="space-y-4">
-                <Label className="text-sm font-medium">Notas de Visita</Label>
-                <div className="p-5 border rounded-lg bg-muted min-h-[140px]">
-                  {property.visits && property.visits.length > 0 ? (
-                    <div className="space-y-5">
-                      {property.visits
-                        .filter(visit => visit.notes && visit.notes.trim())
-                        .map((visit) => (
-                          <div key={visit.id} className="border-b border-border/50 pb-4 last:border-b-0 last:pb-0">
-                            <div className="flex items-center gap-3 mb-3">
-                              <span className="text-xs font-medium text-muted-foreground">
-                                {formatDate(visit.date)}
-                              </span>
-                              {visit.contactPerson && (
-                                <span className="text-xs text-muted-foreground">
-                                  • {visit.contactPerson}
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-sm whitespace-pre-wrap leading-relaxed">{visit.notes}</div>
-                          </div>
-                        ))}
-                      {property.visits.filter(visit => visit.notes && visit.notes.trim()).length === 0 && (
-                        <p className="text-muted-foreground text-sm text-center py-10">No hay notas de visita</p>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground text-sm text-center py-10">No hay visitas registradas</p>
-                  )}
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="historial" className="space-y-8">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Historial de Registros</h3>
-                <Button 
-                  onClick={() => setShowAddModal(true)} 
-                  size="sm"
-                  disabled={availableStatusOptions.length === 0 || isPropertyCancelled}
-                  title={
-                    isPropertyCancelled 
-                      ? "No se pueden agregar registros cuando la propiedad está cancelada" 
-                      : updatedProperty.visits && updatedProperty.visits.some(visit => visit.status === 'completed' || visit.status === 'cancelled')
-                        ? "No se pueden agregar más registros porque ya existe un registro con estado 'Completado' o 'Cancelado'"
-                        : availableStatusOptions.length === 0
-                          ? "No se pueden agregar más registros"
-                          : ""
+        <div className="p-4 space-y-4">
+          {/* Historial Section */}
+          <h3 className="text-lg font-semibold">Historial de Registros</h3>
+            
+            {isPropertyCancelled && (
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800">
+                  {cancelledPropertyStatuses.includes(updatedProperty.propertyStatus || 'available') 
+                    ? `No se pueden agregar nuevos registros porque la propiedad está en estado "${getStatusLabel(updatedProperty.propertyStatus || 'available')}".`
+                    : `No se pueden agregar nuevos registros porque el contacto está en estado "${getStatusLabel(updatedProperty.contactStatus || 'pending')}".`
                   }
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Agregar
-                </Button>
+                </p>
               </div>
-              
-              {isPropertyCancelled && (
-                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-sm text-yellow-800">
-                    {cancelledPropertyStatuses.includes(updatedProperty.propertyStatus || 'available') 
-                      ? `No se pueden agregar nuevos registros porque la propiedad está en estado "${getStatusLabel(updatedProperty.propertyStatus || 'available')}".`
-                      : `No se pueden agregar nuevos registros porque el contacto está en estado "${getStatusLabel(updatedProperty.contactStatus || 'pending')}".`
-                    }
-                  </p>
-                </div>
-              )}
+            )}
 
-              {availableStatusOptions.length === 0 && !isPropertyCancelled && (
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-blue-800">
-                    {updatedProperty.visits && updatedProperty.visits.some(visit => visit.status === 'completed' || visit.status === 'cancelled')
-                      ? "No se pueden agregar más registros porque ya existe un registro con estado 'Completado' o 'Cancelado'."
-                      : "El proceso de visita ha sido completado. No se pueden agregar más registros."
-                    }
-                  </p>
-                </div>
-              )}
+            {availableStatusOptions.length === 0 && !isPropertyCancelled && (
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  {updatedProperty.visits && updatedProperty.visits.some(visit => visit.status === 'completed' || visit.status === 'cancelled')
+                    ? "No se pueden agregar más registros porque ya existe un registro con estado 'Completado' o 'Cancelado'."
+                    : "El proceso de visita ha sido completado. No se pueden agregar más registros."
+                  }
+                </p>
+              </div>
+            )}
 
-              {allRecords.length > 0 ? (
-                <div className="space-y-5">
-                  {allRecords.map((record) => (
-                    <div key={`${record.type}-${record.id}`} className="p-5 border rounded-lg space-y-5 hover:bg-muted/30 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <Badge className={getStatusColor(record.status)}>
-                            {getStatusLabel(record.status)}
-                          </Badge>
+            {allRecords.length > 0 ? (
+              <div className="space-y-5 flex flex-col">
+                {allRecords.map((record) => (
+                  <div key={`${record.type}-${record.id}`} className="p-5 border rounded-lg space-y-5 hover:bg-muted/30 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <Badge className={getStatusColor(record.status)}>
+                          {getStatusLabel(record.status)}
+                        </Badge>
+                        {formatDate(record.date) && (
                           <span className="font-medium">
                             {formatDate(record.date)}
                           </span>
-                          <Badge variant="outline" className="text-xs">
-                            {record.type === 'visit' ? 'Visita' : 'Contacto'}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          {record.contactPerson && (
-                            <span className="text-sm text-muted-foreground">
-                              {record.contactPerson}
-                            </span>
-                          )}
-                          {record.type === 'visit' && record.status === 'confirmed' && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => onUpdateVisit(record.id, { status: 'completed' })}
-                              className="h-8 w-8"
-                            >
-                              <CheckCircle className="w-4 h-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {record.notes && (
-                        <p className="text-sm text-muted-foreground leading-relaxed">{record.notes}</p>
-                      )}
+                        )}
 
-                      {record.type === 'visit' && 'scheduledTime' in record && record.scheduledTime && (
-                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                          <Clock className="w-4 h-4" />
-                          <span>Agendado para: {formatDate(record.scheduledTime)}</span>
-                        </div>
-                      )}
+                      </div>
+                      <div className="flex items-center gap-4">
+                        {record.contactPerson && (
+                          <span className="text-sm text-muted-foreground">
+                            {record.contactPerson}
+                          </span>
+                        )}
+
+                      </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center text-muted-foreground py-16">
-                  No hay registros de visitas o contactos
-                </p>
-              )}
-            </TabsContent>
-          </Tabs>
+                    
+                    {record.notes && (
+                      <p className="text-sm text-muted-foreground leading-relaxed">{record.notes}</p>
+                    )}
+
+                    {record.type === 'visit' && 'scheduledTime' in record && record.scheduledTime && (
+                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                        <Clock className="w-4 h-4" />
+                        <span>Agendado para: {formatDate(record.scheduledTime)}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-muted-foreground py-16">
+                No hay registros de visitas o contactos
+              </p>
+            )}
         </div>
       </div>
+
+      {/* Floating Add Button */}
+      <Button 
+        onClick={() => setShowAddModal(true)} 
+        size="lg"
+        className="fixed bottom-6 right-6 rounded-full px-0 w-10 h-10"
+        disabled={availableStatusOptions.length === 0 || isPropertyCancelled}
+        title={
+          isPropertyCancelled 
+            ? "No se pueden agregar registros cuando la propiedad está cancelada" 
+            : updatedProperty.visits && updatedProperty.visits.some(visit => visit.status === 'completed' || visit.status === 'cancelled')
+              ? "No se pueden agregar más registros porque ya existe un registro con estado 'Completado' o 'Cancelado'"
+              : availableStatusOptions.length === 0
+                ? "No se pueden agregar más registros"
+                : ""
+        }
+      >
+        <Plus className="w-6 h-6" />
+      </Button>
 
       {/* Add Record Modal */}
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
@@ -480,13 +410,14 @@ export const VisitManagementView: React.FC<VisitManagementViewProps> = ({
               </Select>
             </div>
 
-            {newRecord.status === 'scheduled' && (
+            {(newRecord.status === 'scheduled' || newRecord.status === 'rescheduled') && (
               <div className="space-y-3">
                 <Label>Fecha y Hora *</Label>
                 <Input
                   type="datetime-local"
                   value={newRecord.scheduledTime}
                   onChange={(e) => setNewRecord({ ...newRecord, scheduledTime: e.target.value })}
+                  min={new Date().toISOString().slice(0, 16)}
                 />
               </div>
             )}
@@ -520,7 +451,7 @@ export const VisitManagementView: React.FC<VisitManagementViewProps> = ({
                 disabled={
                   !newRecord.status || 
                   !newRecord.contactPerson.trim() || 
-                  (newRecord.status === 'scheduled' && !newRecord.scheduledTime)
+                  ((newRecord.status === 'scheduled' || newRecord.status === 'rescheduled') && !newRecord.scheduledTime)
                 }
               >
                 <Plus className="w-4 h-4 mr-2" />

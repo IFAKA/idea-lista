@@ -59,31 +59,55 @@ export class ExportPropertyData {
       'Fecha Creación',
       'Fecha Actualización'
     ]
+
+    // Add visit and contact columns if requested
+    if (options.includeVisits) {
+      headers.push('Visitas (IDs)', 'Total Visitas')
+    }
+    if (options.includeContacts) {
+      headers.push('Contactos (IDs)', 'Total Contactos')
+    }
     
     const tsvRows = [
       headers.join('\t'),
-      ...sortedProperties.map(property => [
-        property.id,
-        sanitizeText(property.title),
-        property.price ?? '',
-        sanitizeText(property.location),
-        property.squareMeters ?? '',
-        property.rooms ?? '',
-        property.bathrooms ?? '',
-        sanitizeText(property.floor),
-        property.elevator === 'has' ? 'Sí' : 'No',
-        property.parking === 'has' ? 'Sí' : 'No',
-        property.terrace === 'has' ? 'Sí' : 'No',
-        property.balcony === 'has' ? 'Sí' : 'No',
-        property.airConditioning === 'has' ? 'Sí' : 'No',
-        property.heating === 'has' ? 'Sí' : 'No',
-        sanitizeText(property.url),
-        sanitizeText(property.imageUrl || ''),
-        property.score ?? '',
-        sanitizeText(property.notes || ''),
-        formatDate(property.createdAt),
-        formatDate(property.updatedAt)
-      ].join('\t'))
+      ...sortedProperties.map(property => {
+        const baseRow = [
+          property.id,
+          sanitizeText(property.title),
+          property.price ?? '',
+          sanitizeText(property.location),
+          property.squareMeters ?? '',
+          property.rooms ?? '',
+          property.bathrooms ?? '',
+          sanitizeText(property.floor),
+          property.elevator === 'has' ? 'Sí' : 'No',
+          property.parking === 'has' ? 'Sí' : 'No',
+          property.terrace === 'has' ? 'Sí' : 'No',
+          property.balcony === 'has' ? 'Sí' : 'No',
+          property.airConditioning === 'has' ? 'Sí' : 'No',
+          property.heating === 'has' ? 'Sí' : 'No',
+          sanitizeText(property.url),
+          sanitizeText(property.imageUrl || ''),
+          property.score ?? '',
+          sanitizeText(property.notes || ''),
+          formatDate(property.createdAt),
+          formatDate(property.updatedAt)
+        ]
+
+        // Add visit data if requested
+        if (options.includeVisits) {
+          const visitIds = property.visits.map(v => v.id).join(', ')
+          baseRow.push(visitIds, property.visits.length.toString())
+        }
+
+        // Add contact data if requested
+        if (options.includeContacts) {
+          const contactIds = property.contacts.map(c => c.id).join(', ')
+          baseRow.push(contactIds, property.contacts.length.toString())
+        }
+
+        return baseRow.join('\t')
+      })
     ]
     
     return tsvRows.join('\n')

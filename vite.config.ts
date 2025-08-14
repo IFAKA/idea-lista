@@ -7,6 +7,17 @@ export default defineConfig({
   base: './',
   build: {
     outDir: 'dist',
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn']
+      },
+      mangle: {
+        toplevel: true
+      }
+    },
     rollupOptions: {
       input: {
         popup: resolve(__dirname, 'src/popup.html')

@@ -31,7 +31,7 @@ interface CleanPropertyStore {
   updatePropertyPriority: (propertyId: string, priority: StoreProperty['priority']) => Promise<void>
   
   // Export Actions
-  exportProperties: () => Promise<string>
+  exportProperties: (options?: any) => Promise<string>
   exportVisitData: () => Promise<string>
   
   // Configuration Actions
@@ -297,9 +297,9 @@ export const useCleanPropertyStore = create<CleanPropertyStore>((set, get) => {
       }
     },
 
-    exportProperties: async () => {
+    exportProperties: async (options?: any) => {
       try {
-        return await applicationService.exportProperties()
+        return await applicationService.exportProperties(options)
       } catch (error) {
         set({ error: error instanceof Error ? error.message : 'Unknown error' })
         throw error

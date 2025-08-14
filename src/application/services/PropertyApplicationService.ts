@@ -353,6 +353,7 @@ export class PropertyApplicationService {
 
     // Calculate visit metrics
     const allVisits = properties.flatMap(p => p.visits)
+    const scheduledVisits = allVisits.filter(v => v.status === 'scheduled' || v.status === 'rescheduled')
     const completedVisits = allVisits.filter(v => v.status === 'completed')
     const pendingVisits = allVisits.filter(v => v.status === 'requested' || v.status === 'confirmed')
     const responseTimes = allVisits
@@ -399,11 +400,11 @@ export class PropertyApplicationService {
         max: sizes.length > 0 ? Math.max(...sizes) : 0
       },
       visitMetrics: {
-        totalVisits: allVisits.length,
+        totalVisits: scheduledVisits.length,
         completedVisits: completedVisits.length,
         pendingVisits: pendingVisits.length,
         averageResponseTime: responseTimes.length > 0 ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length) : 0,
-        visitSuccessRate: allVisits.length > 0 ? Math.round((completedVisits.length / allVisits.length) * 100) : 0
+        visitSuccessRate: scheduledVisits.length > 0 ? Math.round((completedVisits.length / scheduledVisits.length) * 100) : 0
       },
       contactMetrics: {
         totalContacts: allContacts.length,

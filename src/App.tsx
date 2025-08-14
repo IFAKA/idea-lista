@@ -9,6 +9,7 @@ import { VisitManagementView } from '@/components/VisitManagementView'
 import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { useCleanPropertyStore } from '@/store/clean-property-store'
 import { Property } from '@/domain/entities/Property'
+import { PropertyAdapter } from '@/infrastructure/adapters/PropertyAdapter'
 import { initializeTheme } from '@/lib/theme'
 
 const App: React.FC = () => {
@@ -23,7 +24,6 @@ const App: React.FC = () => {
     exportVisitData,
     updateProperty,
     addVisit,
-    updateVisit,
     initialize
   } = useCleanPropertyStore()
 
@@ -60,7 +60,13 @@ const App: React.FC = () => {
 
   const handleExport = async () => {
     try {
-      const tsvContent = await exportProperties()
+      const tsvContent = await exportProperties({
+        format: 'tsv',
+        sortBy: 'score',
+        sortOrder: 'desc',
+        includeVisits: true,
+        includeContacts: true
+      })
       const blob = new Blob([tsvContent], { type: 'text/tab-separated-values' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -182,9 +188,15 @@ const App: React.FC = () => {
           }}
           onAddVisit={async (visit) => {
             await addVisit(String(visitManagementView.property!.id), visit)
-          }}
-          onUpdateVisit={async (visitId, updates) => {
-            await updateVisit(String(visitManagementView.property!.id), visitId, updates)
+            // Refresh the property data in the visit management view
+            const updatedProperties = await useCleanPropertyStore.getState().applicationService.getAllProperties()
+            const updatedProperty = updatedProperties.find(p => String(p.id) === String(visitManagementView.property!.id))
+            if (updatedProperty) {
+              setVisitManagementView(prev => ({
+                ...prev,
+                property: PropertyAdapter.toStore(updatedProperty)
+              }))
+            }
           }}
         />
       ) : (

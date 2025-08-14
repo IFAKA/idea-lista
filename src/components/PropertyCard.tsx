@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Property, PropertyFeatureState, ContactStatus, PropertyStatus } from "@/domain/entities/Property";
+import { Property, PropertyFeatureState, ContactStatus, PropertyStatus, VisitStatus } from "@/domain/entities/Property";
 import { ScoringConfig } from "@/domain/entities/PropertyType";
 import { defaultViviendaConfig } from "@/domain/use-cases/default-configs";
 import { motion } from "motion/react";
@@ -416,49 +416,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     return "bg-red-500";
   };
 
-  const getStatusColor = (status: ContactStatus | PropertyStatus) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'available':
-        return 'bg-green-100 text-green-800'
-      case 'contacted':
-      case 'under_contract':
-        return 'bg-blue-100 text-blue-800'
-      case 'responded':
-      case 'visited':
-        return 'bg-green-100 text-green-800'
-      case 'scheduled':
-        return 'bg-purple-100 text-purple-800'
-      case 'no_response':
-      case 'sold':
-        return 'bg-red-100 text-red-800'
-      case 'not_interested':
-      case 'off_market':
-        return 'bg-gray-100 text-gray-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
-    }
-  }
 
-
-
-  const getStatusLabel = (status: ContactStatus | PropertyStatus) => {
-    const labels: Record<string, string> = {
-      pending: 'Pendiente',
-      contacted: 'Contactado',
-      responded: 'Respondido',
-      scheduled: 'Agendado',
-      visited: 'Visitado',
-      no_response: 'Sin Respuesta',
-      not_interested: 'No Interesado',
-      available: 'Disponible',
-      under_contract: 'Reservado',
-      sold: 'No Disponible',
-      off_market: 'Fuera de Mercado'
-    }
-    return labels[status] || status
-  }
 
   // Check if property has an image
   const hasImage = !!(property.imageUrl);
@@ -589,21 +547,104 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
             {/* Visit tracking status badges */}
             <div className="flex flex-wrap gap-2 mt-3">
-              {/* Always show availability status */}
-              <Badge className={`text-xs ${getStatusColor(property.propertyStatus || 'available')}`}>
-                {getStatusLabel(property.propertyStatus || 'available')}
-              </Badge>
-              {property.contactStatus && (
-                <Badge className={`text-xs ${getStatusColor(property.contactStatus)}`}>
-                  {getStatusLabel(property.contactStatus)}
-                </Badge>
-              )}
-              {property.visits && property.visits.length > 0 && (
-                <Badge className="text-xs bg-purple-100 text-purple-800">
-                  <Calendar className="w-3 h-3 mr-1" />
-                  {property.visits.length} visita{property.visits.length > 1 ? 's' : ''}
-                </Badge>
-              )}
+              {/* Contact status based on latest added record */}
+              {(() => {
+                const allRecords = [
+                  ...(property.visits || []),
+                  ...(property.contacts || [])
+                ]
+                
+                // Sort by creation date (most recent first)
+                const sortedRecords = allRecords.sort((a, b) => {
+                  const dateA = new Date(a.date).getTime()
+                  const dateB = new Date(b.date).getTime()
+                  return dateB - dateA // Descending order (newest first)
+                })
+                
+                const latestAddedRecord = sortedRecords[0]
+                // Use the latest record status, but fallback to property contactStatus if no records exist
+                const contactStatus = latestAddedRecord ? latestAddedRecord.status : property.contactStatus
+                
+                // Helper function to get status color for any status type
+                const getStatusColorForAnyStatus = (status: ContactStatus | PropertyStatus | VisitStatus) => {
+                  switch (status) {
+                    case 'pending':
+                    case 'requested':
+                      return 'bg-yellow-100 text-yellow-800'
+                    case 'contacted':
+                    case 'confirmed':
+                      return 'bg-blue-100 text-blue-800'
+                    case 'responded':
+                    case 'completed':
+                      return 'bg-green-100 text-green-800'
+                    case 'scheduled':
+                    case 'visited':
+                      return 'bg-purple-100 text-purple-800'
+                    case 'no_response':
+                    case 'cancelled':
+                      return 'bg-red-100 text-red-800'
+                    case 'not_interested':
+                      return 'bg-gray-100 text-gray-800'
+                    case 'available':
+                      return 'bg-green-100 text-green-800'
+                    case 'under_contract':
+                      return 'bg-orange-100 text-orange-800'
+                    case 'sold':
+                      return 'bg-red-100 text-red-800'
+                    case 'off_market':
+                      return 'bg-gray-100 text-gray-800'
+                    case 'rescheduled':
+                      return 'bg-purple-100 text-purple-800'
+                    default:
+                      return 'bg-gray-100 text-gray-800'
+                  }
+                }
+                
+                // Helper function to get status label for any status type
+                const getStatusLabelForAnyStatus = (status: ContactStatus | PropertyStatus | VisitStatus) => {
+                  const labels: Record<string, string> = {
+                    pending: 'Pendiente',
+                    contacted: 'Contactado',
+                    responded: 'Respondido',
+                    scheduled: 'Agendado',
+                    visited: 'Visitado',
+                    no_response: 'Sin Respuesta',
+                    not_interested: 'No Interesado',
+                    requested: 'Solicitado',
+                    confirmed: 'Confirmado',
+                    completed: 'Completado',
+                    cancelled: 'Cancelado',
+                    rescheduled: 'Reprogramado',
+                    available: 'Disponible',
+                    under_contract: 'En Contrato',
+                    sold: 'Vendido',
+                    off_market: 'Fuera de Mercado'
+                  }
+                  return labels[status] || status
+                }
+                
+                return contactStatus && (
+                  <Badge className={`text-xs ${getStatusColorForAnyStatus(contactStatus)}`}>
+                    {getStatusLabelForAnyStatus(contactStatus)}
+                  </Badge>
+                )
+              })()}
+              
+              {/* Visit count based on scheduled/rescheduled records */}
+              {(() => {
+                const visitCount = (property.visits || []).filter(visit => 
+                  visit.status === 'scheduled' || visit.status === 'rescheduled'
+                ).length
+                
+                return visitCount > 0 && (
+                  <Badge className="text-xs bg-purple-100 text-purple-800">
+                    <Calendar className="w-3 h-3 mr-1" />
+                    {visitCount} visita{visitCount > 1 ? 's' : ''}
+                  </Badge>
+                )
+              })()}
+              
+              {/* Contact count */}
               {property.contacts && property.contacts.length > 0 && (
                 <Badge className="text-xs bg-blue-100 text-blue-800">
                   <Phone className="w-3 h-3 mr-1" />

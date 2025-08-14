@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { PropertyMetrics } from '@/application/services/PropertyApplicationService'
-import { Euro, Ruler, TrendingUp, Home, BarChart3 } from 'lucide-react'
+import { Euro, Ruler, TrendingUp, Home, BarChart3, Calendar, Phone } from 'lucide-react'
 
 interface StatisticsModalProps {
   isOpen: boolean
@@ -48,20 +48,13 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({
             <BarChart3 className="w-4 h-4" />
             Estadísticas Generales
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3">
             <div className="p-3 bg-muted/50 rounded-lg">
               <div className="flex items-center gap-2 mb-1">
                 <Home className="w-4 h-4 text-muted-foreground" />
                 <div className="font-medium">{metrics.totalProperties}</div>
               </div>
               <div className="text-xs text-muted-foreground">Propiedades</div>
-            </div>
-            <div className="p-3 bg-muted/50 rounded-lg">
-              <div className="flex items-center gap-2 mb-1">
-                <TrendingUp className="w-4 h-4 text-muted-foreground" />
-                <div className="font-medium">{Math.round(metrics.averageScore)}%</div>
-              </div>
-              <div className="text-xs text-muted-foreground">Score Promedio</div>
             </div>
           </div>
         </div>
@@ -98,6 +91,60 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Visit Metrics */}
+        {metrics.visitMetrics.totalVisits > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Calendar className="w-4 h-4" />
+              Métricas de Visitas
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-2 mb-1">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <div className="font-medium">{metrics.visitMetrics.totalVisits}</div>
+                </div>
+                <div className="text-xs text-muted-foreground">Total visitas</div>
+              </div>
+              
+              <div className="p-3 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-2 mb-1">
+                  <TrendingUp className="w-4 h-4 text-muted-foreground" />
+                  <div className="font-medium">{metrics.visitMetrics.visitSuccessRate}%</div>
+                </div>
+                <div className="text-xs text-muted-foreground">Tasa de éxito</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Contact Metrics */}
+        {metrics.contactMetrics.totalContacts > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Phone className="w-4 h-4" />
+              Métricas de Contactos
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-2 mb-1">
+                  <Phone className="w-4 h-4 text-muted-foreground" />
+                  <div className="font-medium">{metrics.contactMetrics.totalContacts}</div>
+                </div>
+                <div className="text-xs text-muted-foreground">Total contactos</div>
+              </div>
+              
+              <div className="p-3 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-2 mb-1">
+                  <TrendingUp className="w-4 h-4 text-muted-foreground" />
+                  <div className="font-medium">{metrics.contactMetrics.respondedContacts}</div>
+                </div>
+                <div className="text-xs text-muted-foreground">Contactos respondidos</div>
+              </div>
+            </div>
+          </div>
+        )}
         </div>
       </DialogContent>
     </Dialog>

@@ -8,7 +8,17 @@ export class ChromePropertyRepository implements PropertyRepository {
       chrome.storage.local.get(['properties'], (result) => {
         if (result.properties) {
           const properties = result.properties.map((p: any) => Property.fromRawData(p))
-          resolve(properties)
+          
+          // Check if any properties have incremental IDs and migrate them
+          const needsMigration = properties.some((p: Property) => /^\d+$/.test(p.id))
+          if (needsMigration) {
+            console.log('🔄 Migrating properties with incremental IDs to hash-based IDs...')
+            this.migrateIncrementalIds(properties).then(() => {
+              resolve(properties)
+            })
+          } else {
+            resolve(properties)
+          }
         } else {
           resolve([])
         }
@@ -16,16 +26,102 @@ export class ChromePropertyRepository implements PropertyRepository {
     })
   }
 
+  private async migrateIncrementalIds(properties: Property[]): Promise<void> {
+    const existingIds = properties.map(p => p.id)
+    const migratedProperties = properties.map(property => {
+      // If the property has an incremental ID, generate a new hash-based ID
+      if (/^\d+$/.test(property.id)) {
+        const newId = generateUniqueId(existingIds.filter(id => id !== property.id))
+        console.log(`🔄 Migrating property "${property.title}" from ID "${property.id}" to "${newId}"`)
+        
+        return new Property(
+          newId,
+          property.title,
+          property.price,
+          property.location,
+          property.rooms,
+          property.bathrooms,
+          property.floor,
+          property.url,
+          property.propertyType,
+          property.squareMeters,
+          property.elevator,
+          property.parking,
+          property.terrace,
+          property.balcony,
+          property.airConditioning,
+          property.heating,
+          property.imageUrl,
+          property.score,
+          property.notes,
+          property.createdAt,
+          property.updatedAt,
+          property.contactStatus,
+          property.propertyStatus,
+          property.priority,
+          property.visits,
+          property.contacts,
+          property.visitNotes,
+          property.lastContactDate,
+          property.nextFollowUpDate,
+          property.phone,
+          property.professional,
+          property.contactPerson,
+          property.energyCert,
+          property.furnished,
+          property.seasonal,
+          property.desk,
+          property.orientation,
+          property.pricePerM2,
+          property.deposit,
+          property.energy,
+          property.maintenance,
+          property.garden,
+          property.pool,
+          property.accessible,
+          property.cleaningIncluded,
+          property.lgbtFriendly,
+          property.ownerNotPresent,
+          property.privateBathroom,
+          property.window,
+          property.couplesAllowed,
+          property.minorsAllowed,
+          property.publicationDate,
+          property.builtInWardrobes,
+          property.garage,
+          property.storage,
+          property.condition,
+          property.propertySubType,
+          property.hasFloorPlan,
+          property.hasVirtualTour,
+          property.bankAd,
+          property.gender,
+          property.smokers,
+          property.bed,
+          property.roommates
+        )
+      }
+      return property
+    })
+    
+    // Save the migrated properties
+    await this.saveAll(migratedProperties)
+    console.log('✅ Migration completed!')
+  }
+
   async getById(id: string): Promise<Property | null> {
     const properties = await this.getAll()
-    return properties.find(p => p.id === id) || null
+    return properties.find(p => String(p.id) === String(id)) || null
   }
 
   async save(property: Property): Promise<void> {
     const properties = await this.getAll()
     const existingIds = properties.map(p => String(p.id))
     
-    if (!property.id) {
+    // Always generate a hash-based ID for new properties or properties with incremental IDs
+    const shouldGenerateNewId = !property.id || /^\d+$/.test(property.id)
+    
+    if (shouldGenerateNewId) {
       const newProperty = new Property(
         generateUniqueId(existingIds),
         property.title,
@@ -103,14 +199,14 @@ export class ChromePropertyRepository implements PropertyRepository {
   async update(property: Property): Promise<void> {
     const properties = await this.getAll()
     const updatedProperties = properties.map(p => 
-      p.id === property.id ? property : p
+      String(p.id) === String(property.id) ? property : p
     )
     await this.saveAll(updatedProperties)
   }
 
   async delete(id: string): Promise<void> {
     const properties = await this.getAll()
-    const filteredProperties = properties.filter(p => p.id !== id)
+    const filteredProperties = properties.filter(p => String(p.id) !== String(id))
     await this.saveAll(filteredProperties)
     
     // Notify background script of the deletion

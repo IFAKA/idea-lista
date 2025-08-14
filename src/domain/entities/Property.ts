@@ -136,7 +136,7 @@ export class Property {
   }
 
   public getVisitCount(): number {
-    return this.visits.length
+    return this.visits.filter(visit => visit.status === 'scheduled' || visit.status === 'rescheduled').length
   }
 
   public getContactCount(): number {
@@ -148,8 +148,9 @@ export class Property {
   }
 
   public getVisitSuccessRate(): number {
-    if (this.visits.length === 0) return 0
-    return Math.round((this.getCompletedVisits() / this.visits.length) * 100)
+    const scheduledVisits = this.visits.filter(visit => visit.status === 'scheduled' || visit.status === 'rescheduled')
+    if (scheduledVisits.length === 0) return 0
+    return Math.round((this.getCompletedVisits() / scheduledVisits.length) * 100)
   }
 
   public updateScore(newScore: number): Property {
@@ -585,19 +586,21 @@ export class Property {
   private generateVisitId(): string {
     const timestamp = Date.now().toString(36)
     const random = Math.random().toString(36).substring(2, 8)
-    return `visit-${timestamp}-${random}`
+    const hash = `${timestamp}-${random}`.padEnd(16, '0')
+    return `visit-${hash.substring(0, 16)}`
   }
 
   private generateContactId(): string {
     const timestamp = Date.now().toString(36)
     const random = Math.random().toString(36).substring(2, 8)
-    return `contact-${timestamp}-${random}`
+    const hash = `${timestamp}-${random}`.padEnd(16, '0')
+    return `contact-${hash.substring(0, 16)}`
   }
 
   // Factory method to create from raw data
   static fromRawData(data: any): Property {
     return new Property(
-      data.id,
+      String(data.id),
       data.title || '',
       data.price,
       data.location || '',
@@ -621,8 +624,16 @@ export class Property {
       data.contactStatus || 'pending',
       data.propertyStatus || 'available',
       data.priority || 'medium',
-      (data.visits || []).map((v: any) => ({ ...v, date: new Date(v.date) })),
-      (data.contacts || []).map((c: any) => ({ ...c, date: new Date(c.date) })),
+      (data.visits || []).map((v: any) => ({ 
+        ...v, 
+        date: new Date(v.date),
+        followUpDate: v.followUpDate ? new Date(v.followUpDate) : undefined
+      })),
+      (data.contacts || []).map((c: any) => ({ 
+        ...c, 
+        date: new Date(c.date),
+        nextActionDate: c.nextActionDate ? new Date(c.nextActionDate) : undefined
+      })),
       data.visitNotes,
       data.lastContactDate ? new Date(data.lastContactDate) : undefined,
       data.nextFollowUpDate ? new Date(data.nextFollowUpDate) : undefined,
@@ -686,16 +697,24 @@ export class Property {
       imageUrl: this.imageUrl,
       score: this.score,
       notes: this.notes,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
+      createdAt: this.createdAt.toISOString(),
+      updatedAt: this.updatedAt.toISOString(),
       contactStatus: this.contactStatus,
       propertyStatus: this.propertyStatus,
       priority: this.priority,
-      visits: this.visits,
-      contacts: this.contacts,
+      visits: this.visits.map(v => ({
+        ...v,
+        date: v.date.toISOString(),
+        followUpDate: v.followUpDate?.toISOString()
+      })),
+      contacts: this.contacts.map(c => ({
+        ...c,
+        date: c.date.toISOString(),
+        nextActionDate: c.nextActionDate?.toISOString()
+      })),
       visitNotes: this.visitNotes,
-      lastContactDate: this.lastContactDate,
-      nextFollowUpDate: this.nextFollowUpDate,
+      lastContactDate: this.lastContactDate?.toISOString(),
+      nextFollowUpDate: this.nextFollowUpDate?.toISOString(),
       phone: this.phone,
       professional: this.professional,
       energyCert: this.energyCert,
