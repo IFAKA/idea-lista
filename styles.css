@@ -1,6 +1,33 @@
-/* Apple Design System - Official Color Palette */
+/* shadcn/ui Design System - For Content Scripts */
 :root {
-    /* Apple System Colors - Official Palette */
+    /* shadcn/ui Color System */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --radius: 0.5rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+
+    /* Apple System Colors - Official Palette (Legacy) */
     --color-primary: #007AFF;           /* Apple Blue */
     --color-secondary: #5856D6;         /* Apple Purple */
     --color-success: #34C759;           /* Apple Green */
@@ -99,6 +126,36 @@
     /* Hardware Accelerated Properties */
     --transform-base: translateZ(0);
     --backface-visibility: hidden;
+}
+
+/* Dark mode support for content scripts */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background: 0 0% 3.9%;
+        --foreground: 0 0% 98%;
+        --card: 0 0% 3.9%;
+        --card-foreground: 0 0% 98%;
+        --popover: 0 0% 3.9%;
+        --popover-foreground: 0 0% 98%;
+        --primary: 0 0% 98%;
+        --primary-foreground: 0 0% 9%;
+        --secondary: 0 0% 14.9%;
+        --secondary-foreground: 0 0% 98%;
+        --muted: 0 0% 14.9%;
+        --muted-foreground: 0 0% 63.9%;
+        --accent: 0 0% 14.9%;
+        --accent-foreground: 0 0% 98%;
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 0 0% 14.9%;
+        --input: 0 0% 14.9%;
+        --ring: 0 0% 83.1%;
+        --chart-1: 220 70% 50%;
+        --chart-2: 160 60% 45%;
+        --chart-3: 30 80% 55%;
+        --chart-4: 280 65% 60%;
+        --chart-5: 340 75% 55%;
+    }
 }
 
 /* Respect reduced motion preferences */
@@ -201,14 +258,15 @@ body {
 /* Idea-lista Styles */
 
 #idea-lista-analyzer-table {
-    margin: var(--space-2) 0;
-    padding: var(--space-2) var(--space-3);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    margin: 8px 0;
+    padding: 12px 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
     max-width: 100%;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border-light);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    color: hsl(var(--card-foreground));
 }
 
 
@@ -217,265 +275,265 @@ body {
 .analyzer-row {
     display: flex;
     align-items: center;
-    gap: var(--space-2);
+    gap: 8px;
 }
 
 .analyzer-inline {
     display: flex;
     align-items: center;
-    gap: var(--space-1);
+    gap: 4px;
     flex-wrap: wrap;
     flex: 1 1 auto;
 }
 
-/* Chips - Apple Watch Style */
+/* Chips - shadcn/ui Style */
 .chip {
     display: inline-flex;
     align-items: center;
     line-height: 1;
-    padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
-    color: var(--text-primary);
-    background: var(--bg-elevated);
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-light);
-    transition: all var(--animation-quick) var(--easing-spring);
-    transform: var(--transform-base);
-    backface-visibility: var(--backface-visibility);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+    background: hsl(var(--muted));
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid hsl(var(--border));
+    transition: all 150ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transform: translateZ(0);
+    backface-visibility: hidden;
     will-change: transform, box-shadow;
 }
 
 .chip:hover {
-    transform: var(--transform-base) scale(1.02);
-    box-shadow: var(--shadow-md);
+    transform: translateZ(0) scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .chip.price { 
-    color: var(--color-primary); 
-    background: rgba(0, 122, 255, 0.15); 
-    border-color: rgba(0, 122, 255, 0.3);
+    color: hsl(var(--primary)); 
+    background: hsl(var(--primary) / 0.1); 
+    border-color: hsl(var(--primary) / 0.2);
 }
 .chip.size, .chip.rooms, .chip.bathrooms, .chip.floor { 
-    background: var(--bg-tertiary); 
-    color: var(--text-secondary);
+    background: hsl(var(--secondary)); 
+    color: hsl(var(--secondary-foreground));
 }
 .chip.heating { 
-    color: var(--color-success); 
-    background: rgba(52, 199, 89, 0.15); 
-    border-color: rgba(52, 199, 89, 0.3);
+    color: hsl(142 76% 36%); 
+    background: hsl(142 76% 36% / 0.1); 
+    border-color: hsl(142 76% 36% / 0.2);
 }
 .chip.furnished { 
-    color: var(--color-warning); 
-    background: rgba(255, 149, 0, 0.15); 
-    border-color: rgba(255, 149, 0, 0.3);
+    color: hsl(38 92% 50%); 
+    background: hsl(38 92% 50% / 0.1); 
+    border-color: hsl(38 92% 50% / 0.2);
 }
 .chip.elevator { 
-    color: var(--color-info); 
-    background: rgba(90, 200, 250, 0.15); 
-    border-color: rgba(90, 200, 250, 0.3);
+    color: hsl(199 89% 48%); 
+    background: hsl(199 89% 48% / 0.1); 
+    border-color: hsl(199 89% 48% / 0.2);
 }
 .chip.seasonal { 
-    color: var(--color-secondary); 
-    background: rgba(88, 86, 214, 0.15); 
-    border-color: rgba(88, 86, 214, 0.3);
+    color: hsl(262 83% 58%); 
+    background: hsl(262 83% 58% / 0.1); 
+    border-color: hsl(262 83% 58% / 0.2);
 }
 .chip.orientation { 
-    color: var(--text-secondary); 
-    background: var(--bg-tertiary); 
-    border-color: var(--border-light);
+    color: hsl(var(--muted-foreground)); 
+    background: hsl(var(--muted)); 
+    border-color: hsl(var(--border));
 }
 .chip.pro { 
-    color: var(--text-secondary); 
-    background: var(--bg-tertiary); 
-    border-color: var(--border-light);
+    color: hsl(var(--muted-foreground)); 
+    background: hsl(var(--muted)); 
+    border-color: hsl(var(--border));
 }
 
 .chip.price-m2 { 
-    color: var(--color-primary); 
-    background: rgba(0, 122, 255, 0.15); 
-    border-color: rgba(0, 122, 255, 0.3);
+    color: hsl(var(--primary)); 
+    background: hsl(var(--primary) / 0.1); 
+    border-color: hsl(var(--primary) / 0.2);
 }
 .chip.deposit { 
-    color: var(--color-success); 
-    background: rgba(52, 199, 89, 0.15); 
-    border-color: rgba(52, 199, 89, 0.3);
+    color: hsl(142 76% 36%); 
+    background: hsl(142 76% 36% / 0.1); 
+    border-color: hsl(142 76% 36% / 0.2);
 }
 .chip.energy { 
-    color: var(--color-warning); 
-    background: rgba(255, 149, 0, 0.15); 
-    border-color: rgba(255, 149, 0, 0.3);
+    color: hsl(38 92% 50%); 
+    background: hsl(38 92% 50% / 0.1); 
+    border-color: hsl(38 92% 50% / 0.2);
 }
 .chip.desk { 
-    color: var(--color-info); 
-    background: rgba(90, 200, 250, 0.15); 
-    border-color: rgba(90, 200, 250, 0.3);
+    color: hsl(199 89% 48%); 
+    background: hsl(199 89% 48% / 0.1); 
+    border-color: hsl(199 89% 48% / 0.2);
 }
 
 /* Additional amenities */
 .chip.parking { 
-    color: var(--color-success); 
-    background: rgba(52, 199, 89, 0.15); 
-    border-color: rgba(52, 199, 89, 0.3);
+    color: hsl(142 76% 36%); 
+    background: hsl(142 76% 36% / 0.1); 
+    border-color: hsl(142 76% 36% / 0.2);
 }
 .chip.terrace { 
-    color: var(--color-warning); 
-    background: rgba(255, 149, 0, 0.15); 
-    border-color: rgba(255, 149, 0, 0.3);
+    color: hsl(38 92% 50%); 
+    background: hsl(38 92% 50% / 0.1); 
+    border-color: hsl(38 92% 50% / 0.2);
 }
 .chip.balcony { 
-    color: var(--color-warning); 
-    background: rgba(255, 149, 0, 0.15); 
-    border-color: rgba(255, 149, 0, 0.3);
+    color: hsl(38 92% 50%); 
+    background: hsl(38 92% 50% / 0.1); 
+    border-color: hsl(38 92% 50% / 0.2);
 }
 .chip.air-conditioning { 
-    color: var(--color-info); 
-    background: rgba(90, 200, 250, 0.15); 
-    border-color: rgba(90, 200, 250, 0.3);
+    color: hsl(199 89% 48%); 
+    background: hsl(199 89% 48% / 0.1); 
+    border-color: hsl(199 89% 48% / 0.2);
 }
 .chip.garden { 
-    color: var(--color-success); 
-    background: rgba(52, 199, 89, 0.15); 
-    border-color: rgba(52, 199, 89, 0.3);
+    color: hsl(142 76% 36%); 
+    background: hsl(142 76% 36% / 0.1); 
+    border-color: hsl(142 76% 36% / 0.2);
 }
 .chip.pool { 
-    color: var(--color-info); 
-    background: rgba(90, 200, 250, 0.15); 
-    border-color: rgba(90, 200, 250, 0.3);
+    color: hsl(199 89% 48%); 
+    background: hsl(199 89% 48% / 0.1); 
+    border-color: hsl(199 89% 48% / 0.2);
 }
 .chip.accessible { 
-    color: var(--color-success); 
-    background: rgba(52, 199, 89, 0.15); 
-    border-color: rgba(52, 199, 89, 0.3);
+    color: hsl(142 76% 36%); 
+    background: hsl(142 76% 36% / 0.1); 
+    border-color: hsl(142 76% 36% / 0.2);
 }
 .chip.cleaning { 
-    color: var(--color-success); 
-    background: rgba(52, 199, 89, 0.15); 
-    border-color: rgba(52, 199, 89, 0.3);
+    color: hsl(142 76% 36%); 
+    background: hsl(142 76% 36% / 0.1); 
+    border-color: hsl(142 76% 36% / 0.2);
 }
 .chip.lgbt { 
-    color: var(--color-primary); 
-    background: rgba(0, 122, 255, 0.15); 
-    border-color: rgba(0, 122, 255, 0.3);
+    color: hsl(var(--primary)); 
+    background: hsl(var(--primary) / 0.1); 
+    border-color: hsl(var(--primary) / 0.2);
 }
 .chip.owner-absent { 
-    color: var(--color-warning); 
-    background: rgba(255, 149, 0, 0.15); 
-    border-color: rgba(255, 149, 0, 0.3);
+    color: hsl(38 92% 50%); 
+    background: hsl(38 92% 50% / 0.1); 
+    border-color: hsl(38 92% 50% / 0.2);
 }
 .chip.private-bathroom { 
-    color: var(--color-success); 
-    background: rgba(52, 199, 89, 0.15); 
-    border-color: rgba(52, 199, 89, 0.3);
+    color: hsl(142 76% 36%); 
+    background: hsl(142 76% 36% / 0.1); 
+    border-color: hsl(142 76% 36% / 0.2);
 }
 .chip.window { 
-    color: var(--color-info); 
-    background: rgba(90, 200, 250, 0.15); 
-    border-color: rgba(90, 200, 250, 0.3);
+    color: hsl(199 89% 48%); 
+    background: hsl(199 89% 48% / 0.1); 
+    border-color: hsl(199 89% 48% / 0.2);
 }
 .chip.couples { 
-    color: var(--color-success); 
-    background: rgba(52, 199, 89, 0.15); 
-    border-color: rgba(52, 199, 89, 0.3);
+    color: hsl(142 76% 36%); 
+    background: hsl(142 76% 36% / 0.1); 
+    border-color: hsl(142 76% 36% / 0.2);
 }
 .chip.minors { 
-    color: var(--color-success); 
-    background: rgba(52, 199, 89, 0.15); 
-    border-color: rgba(52, 199, 89, 0.3);
+    color: hsl(142 76% 36%); 
+    background: hsl(142 76% 36% / 0.1); 
+    border-color: hsl(142 76% 36% / 0.2);
 }
 .chip.wardrobes { 
-    color: var(--color-info); 
-    background: rgba(90, 200, 250, 0.15); 
-    border-color: rgba(90, 200, 250, 0.3);
+    color: hsl(199 89% 48%); 
+    background: hsl(199 89% 48% / 0.1); 
+    border-color: hsl(199 89% 48% / 0.2);
 }
 .chip.garage { 
-    color: var(--color-success); 
-    background: rgba(52, 199, 89, 0.15); 
-    border-color: rgba(52, 199, 89, 0.3);
+    color: hsl(142 76% 36%); 
+    background: hsl(142 76% 36% / 0.1); 
+    border-color: hsl(142 76% 36% / 0.2);
 }
 .chip.storage { 
-    color: var(--color-info); 
-    background: rgba(90, 200, 250, 0.15); 
-    border-color: rgba(90, 200, 250, 0.3);
+    color: hsl(199 89% 48%); 
+    background: hsl(199 89% 48% / 0.1); 
+    border-color: hsl(199 89% 48% / 0.2);
 }
 .chip.floor-plan { 
-    color: var(--color-info); 
-    background: rgba(90, 200, 250, 0.15); 
-    border-color: rgba(90, 200, 250, 0.3);
+    color: hsl(199 89% 48%); 
+    background: hsl(199 89% 48% / 0.1); 
+    border-color: hsl(199 89% 48% / 0.2);
 }
 .chip.virtual-tour { 
-    color: var(--color-primary); 
-    background: rgba(0, 122, 255, 0.15); 
-    border-color: rgba(0, 122, 255, 0.3);
+    color: hsl(var(--primary)); 
+    background: hsl(var(--primary) / 0.1); 
+    border-color: hsl(var(--primary) / 0.2);
 }
 .chip.bank { 
-    color: var(--color-warning); 
-    background: rgba(255, 149, 0, 0.15); 
-    border-color: rgba(255, 149, 0, 0.3);
+    color: hsl(38 92% 50%); 
+    background: hsl(38 92% 50% / 0.1); 
+    border-color: hsl(38 92% 50% / 0.2);
 }
 .chip.smokers { 
-    color: var(--color-warning); 
-    background: rgba(255, 149, 0, 0.15); 
-    border-color: rgba(255, 149, 0, 0.3);
+    color: hsl(38 92% 50%); 
+    background: hsl(38 92% 50% / 0.1); 
+    border-color: hsl(38 92% 50% / 0.2);
 }
 .chip.bed { 
-    color: var(--color-success); 
-    background: rgba(52, 199, 89, 0.15); 
-    border-color: rgba(52, 199, 89, 0.3);
+    color: hsl(142 76% 36%); 
+    background: hsl(142 76% 36% / 0.1); 
+    border-color: hsl(142 76% 36% / 0.2);
 }
 .chip.roommates { 
-    color: var(--color-info); 
-    background: rgba(90, 200, 250, 0.15); 
-    border-color: rgba(90, 200, 250, 0.3);
+    color: hsl(199 89% 48%); 
+    background: hsl(199 89% 48% / 0.1); 
+    border-color: hsl(199 89% 48% / 0.2);
 }
 
 /* Property type and condition */
 .chip.property-type { 
-    color: var(--color-primary); 
-    background: rgba(0, 122, 255, 0.15); 
-    border-color: rgba(0, 122, 255, 0.3);
+    color: hsl(var(--primary)); 
+    background: hsl(var(--primary) / 0.1); 
+    border-color: hsl(var(--primary) / 0.2);
 }
 .chip.condition { 
-    color: var(--color-warning); 
-    background: rgba(255, 149, 0, 0.15); 
-    border-color: rgba(255, 149, 0, 0.3);
+    color: hsl(38 92% 50%); 
+    background: hsl(38 92% 50% / 0.1); 
+    border-color: hsl(38 92% 50% / 0.2);
 }
 .chip.gender { 
-    color: var(--color-primary); 
-    background: rgba(0, 122, 255, 0.15); 
-    border-color: rgba(0, 122, 255, 0.3);
+    color: hsl(var(--primary)); 
+    background: hsl(var(--primary) / 0.1); 
+    border-color: hsl(var(--primary) / 0.2);
 }
 .chip.maintenance { 
-    color: var(--color-warning); 
-    background: rgba(255, 149, 0, 0.15); 
-    border-color: rgba(255, 149, 0, 0.3);
+    color: hsl(38 92% 50%); 
+    background: hsl(38 92% 50% / 0.1); 
+    border-color: hsl(38 92% 50% / 0.2);
 }
 
 .chip.id, .chip.muted { 
-    color: var(--text-tertiary); 
-    background: var(--bg-tertiary); 
-    font-weight: var(--font-weight-medium);
-    border-color: var(--border-light);
+    color: hsl(var(--muted-foreground)); 
+    background: hsl(var(--muted)); 
+    font-weight: 500;
+    border-color: hsl(var(--border));
 }
 
 /* AI Prompt button */
 .analyzer-ai-prompt-btn--compact {
-    background-color: #6f42c1;
-    color: var(--text-inverse);
+    background-color: hsl(262 83% 58%);
+    color: hsl(0 0% 98%);
     border: none;
-    padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-sm);
+    padding: 4px 8px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
-    transition: all var(--animation-quick) var(--easing-spring);
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 150ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
     align-self: center;
     white-space: nowrap;
-    transform: var(--transform-base);
-    backface-visibility: var(--backface-visibility);
+    transform: translateZ(0);
+    backface-visibility: hidden;
     will-change: transform, background-color;
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -491,14 +549,14 @@ body {
 }
 
 .analyzer-ai-prompt-btn--compact:hover { 
-    background-color: #5a32a3; 
-    transform: var(--transform-base) scale(1.02);
-    box-shadow: var(--shadow-md);
+    background-color: hsl(262 83% 50%); 
+    transform: translateZ(0) scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .analyzer-ai-prompt-btn--compact:active {
-    transform: var(--transform-base) scale(0.98);
-    transition: all var(--animation-fast) var(--easing-ease-in);
+    transform: translateZ(0) scale(0.98);
+    transition: all 100ms cubic-bezier(0.4, 0.0, 1, 1);
 }
 
 /* Apple Watch Particle Animation System for Content Script */
@@ -744,21 +802,21 @@ body {
 
 /* Add button */
 .analyzer-add-btn--compact {
-    background-color: var(--color-primary);
-    color: var(--text-inverse);
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
     border: none;
-    padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-sm);
+    padding: 4px 8px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
-    transition: all var(--animation-quick) var(--easing-spring);
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 150ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
     align-self: center;
     white-space: nowrap;
-    transform: var(--transform-base);
-    backface-visibility: var(--backface-visibility);
+    transform: translateZ(0);
+    backface-visibility: hidden;
     will-change: transform, background-color;
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -793,9 +851,9 @@ body {
 }
 
 .analyzer-add-btn--compact:hover { 
-    background-color: #0056CC; 
-    transform: var(--transform-base) scale(1.02);
-    box-shadow: var(--shadow-md);
+    background-color: hsl(var(--primary) / 0.9); 
+    transform: translateZ(0) scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .analyzer-add-btn--compact:active {

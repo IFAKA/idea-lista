@@ -169,31 +169,36 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 });
 
 async function notifyAllComponents() {
+    console.log('Background: Notifying all components, properties count:', properties.length);
+    
     // Notify popup if it's open
     try {
         await chrome.runtime.sendMessage({
             action: 'propertiesUpdated',
             properties: properties
         });
+        console.log('Background: Popup notified');
     } catch (error) {
-        // Popup not open, that's okay
+        console.log('Background: Popup not open or error:', error.message);
     }
     
-    // Notify content scripts
+    // Notify content scripts on all Idealista tabs
     try {
-        const tabs = await chrome.tabs.query({ url: 'https://www.idealista.com/inmueble/*' });
+        const tabs = await chrome.tabs.query({ url: 'https://www.idealista.com/*' });
+        console.log('Background: Found', tabs.length, 'Idealista tabs');
         for (const tab of tabs) {
             try {
                 await chrome.tabs.sendMessage(tab.id, {
                     action: 'propertiesUpdated',
                     properties: properties
                 });
+                console.log('Background: Content script notified on tab', tab.id);
             } catch (error) {
-                // Tab might not have content script loaded, that's okay
+                console.log('Background: Error notifying tab', tab.id, ':', error.message);
             }
         }
     } catch (error) {
-        // No tabs found or other error, that's okay
+        console.log('Background: Error querying tabs:', error.message);
     }
 }
 
@@ -248,6 +253,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             })
             .catch((error) => {
                 console.error('Error removing property:', error);
+                sendResponse({ success: false, error: error.message });
+            });
+        return true;
+    }
+    
+    if (message.action === 'propertiesUpdated') {
+        // Update the background script's properties list and notify all components
+        properties = message.properties || [];
+        notifyAllComponents()
+            .then(() => {
+                sendResponse({ success: true });
+            })
+            .catch((error) => {
+                console.error('Error notifying components:', error);
                 sendResponse({ success: false, error: error.message });
             });
         return true;

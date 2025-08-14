@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { PropertyMetrics } from '@/store/property-store'
+import { PropertyMetrics } from '@/application/services/PropertyApplicationService'
 import { Euro, Ruler, TrendingUp, Home, BarChart3 } from 'lucide-react'
 
 interface StatisticsModalProps {

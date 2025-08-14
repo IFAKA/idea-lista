@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { motion } from "motion/react"
 import { Badge } from '@/components/ui/badge'
 import { Home, BarChart3 } from 'lucide-react'
-import { PropertyMetrics } from '@/store/property-store'
+import { PropertyMetrics } from '@/application/services/PropertyApplicationService'
 import { StatisticsModal } from './StatisticsModal'
 
 interface StatsBarProps {

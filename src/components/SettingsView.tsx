@@ -13,8 +13,8 @@ import {
   ScoringImportance,
   getDefaultLevels,
   convertLevelsToImportance
-} from '@/services/scoring-service'
-import { PropertyType } from '@/store/property-store'
+} from '@/domain/entities/PropertyType'
+import { PropertyType } from '@/domain/entities/PropertyType'
 
 type ImportanceLevel = 'irrelevante' | 'valorable' | 'esencial'
 
@@ -174,14 +174,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     ]
 
     return (
-      <div>
-        <h3 className="text-lg font-semibold mb-4">Importancia de Propiedades</h3>
-        <div className="grid grid-cols-1 gap-3">
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Importancia de Propiedades</h3>
+        <div className="grid grid-cols-1 gap-4">
           {propertyOrder.map((key) => {
             return (
             <div
               key={key}
-              className="flex items-center w-full gap-3 border border-muted rounded-lg pl-2"
+              className="flex items-center w-full gap-4 border border-muted rounded-lg p-3 hover:bg-muted/50 transition-colors"
             >
               <label
                 className="text-sm font-medium capitalize flex-1 min-w-0 truncate"
@@ -283,10 +283,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       minValue: number = 0,
       maxValue: number = 9999
     ) => (
-      <div className="space-y-2">
+      <div className="space-y-3">
         <h4 className="font-medium text-sm">{title}</h4>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-1">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Mín</Label>
             <Input
               type="number"
@@ -297,11 +297,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 const value = e.target.value
                 handleRangeChange(propertyType, rangeKey, 'min', value === '' ? null : parseInt(value) || null)
               }}
-              className="w-full h-8 text-sm"
+              className="w-full h-9 text-sm"
               placeholder="Sin límite"
             />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Máx</Label>
             <Input
               type="number"
@@ -312,7 +312,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 const value = e.target.value
                 handleRangeChange(propertyType, rangeKey, 'max', value === '' ? null : parseInt(value) || null)
               }}
-              className="w-full h-8 text-sm"
+              className="w-full h-9 text-sm"
               placeholder="Sin límite"
             />
           </div>
@@ -321,9 +321,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     )
 
     return (
-      <div>
-        <h3 className="text-lg font-semibold mb-3">Rangos de Búsqueda</h3>
-        <div className="grid gap-3">
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Rangos de Búsqueda</h3>
+        <div className="grid gap-4">
           {renderRangeField('priceRange', 'Precio (€)')}
           {renderRangeField('sizeRange', 'Tamaño (m²)')}
           {renderRangeField('roomRange', 'Habitaciones', 1, 10)}

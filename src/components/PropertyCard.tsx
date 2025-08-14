@@ -1,8 +1,9 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Property, PropertyFeatureState, ContactStatus, PropertyStatus } from "@/store/property-store";
-import { defaultScoringConfig, ScoringConfig } from "@/services/scoring-service";
+import { Property, PropertyFeatureState, ContactStatus, PropertyStatus } from "@/domain/entities/Property";
+import { ScoringConfig } from "@/domain/entities/PropertyType";
+import { defaultViviendaConfig } from "@/domain/use-cases/default-configs";
 import { motion } from "motion/react";
 import {
   Accessibility,
@@ -81,8 +82,8 @@ const getSizeValue = (property: Property): string | number => {
   if (property.squareMeters !== undefined && property.squareMeters !== null) {
     return property.squareMeters;
   }
-  if (property.size !== undefined && property.size !== null) {
-    return property.size;
+  if (property.squareMeters !== undefined && property.squareMeters !== null) {
+    return property.squareMeters;
   }
   return 'N/A';
 };
@@ -91,11 +92,27 @@ const formatPropertyTitle = (title: string): string => {
   return title
     .replace(/^Avenida de\s+la\s+/i, '')
     .replace(/^Avenida de\s+/i, '')
-    .replace(/^Calle\s+/i, '');
+    .replace(/^Avenida\s+/i, '')
+    .replace(/^Calle del\s+/i, '')
+    .replace(/^Calle de\s+la\s+/i, '')
+    .replace(/^Calle de\s+/i, '')
+    .replace(/^Calle\s+/i, '')
+    .replace(/^Plaza de\s+la\s+/i, '')
+    .replace(/^Plaza de\s+/i, '')
+    .replace(/^Plaza\s+/i, '')
+    .replace(/^Paseo de\s+la\s+/i, '')
+    .replace(/^Paseo de\s+/i, '')
+    .replace(/^Paseo\s+/i, '')
+    .replace(/^Carrera de\s+/i, '')
+    .replace(/^Carrera\s+/i, '')
+    .replace(/^Camino de\s+/i, '')
+    .replace(/^Camino\s+/i, '')
+    .replace(/^Ronda de\s+/i, '')
+    .replace(/^Ronda\s+/i, '');
 };
 
 const getPropertyDetails = (property: Property, formatPrice: (price: number) => string, currentConfig?: ScoringConfig): PropertyDetail[] => {
-  const config = currentConfig || defaultScoringConfig;
+  const config = currentConfig || defaultViviendaConfig;
   const details: PropertyDetail[] = [
     // Core property info (always shown)
     {
@@ -444,10 +461,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   }
 
   // Check if property has an image
-  const hasImage = !!(property.imageUrl || property.image);
+  const hasImage = !!(property.imageUrl);
   
   // Get the image URL from either field
-  const imageUrl = property.imageUrl || property.image;
+  const imageUrl = property.imageUrl;
 
 
 
