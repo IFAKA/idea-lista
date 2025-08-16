@@ -922,7 +922,7 @@
   }
 
   // Function to create the analysis table (compact chip layout)
-  function createAnalysisTable(info, isAlreadyAdded = false) {
+  function createAnalysisTable(info, isAlreadyAdded = false, needsUpdate = false) {
     const container = document.createElement("div");
     container.id = "idea-lista-analyzer-table";
     container.className = "analyzer-container analyzer-compact";
@@ -1016,6 +1016,21 @@
       if (propertyId) addChip(`ID: ${propertyId}`, "id muted");
     } catch (e) {}
 
+    // Add Update button (only if property needs update)
+    let updateButton = null;
+    if (needsUpdate) {
+      updateButton = document.createElement("button");
+      updateButton.className = "analyzer-update-btn analyzer-update-btn--compact particle-burst";
+      updateButton.innerHTML =
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>';
+      updateButton.style.backgroundColor = "hsl(48 96% 53%)"; // Yellow/amber color
+      updateButton.onclick = (event) => {
+        createParticleAnimation(event);
+        updatePropertyData(info);
+      };
+      updateButton.title = "Actualizar datos de la propiedad";
+    }
+
     // Add AI prompt button
     const aiPromptButton = document.createElement("button");
     aiPromptButton.className =
@@ -1050,6 +1065,9 @@
     }
 
     row.appendChild(inline);
+    if (updateButton) {
+      row.appendChild(updateButton);
+    }
     row.appendChild(aiPromptButton);
     row.appendChild(addButton);
     container.appendChild(row);
@@ -1066,29 +1084,50 @@
       },
       (response) => {
         if (response && response.success) {
-          // Show success message and update button to delete mode
-          const button = document.querySelector(".analyzer-add-btn");
+          // Find the button that was clicked (event target)
+          const buttons = document.querySelectorAll(".analyzer-add-btn");
+          let targetButton = null;
+          
+          // Find the button that corresponds to this property
+          for (const button of buttons) {
+            const card = button.closest('article.item');
+            if (card) {
+              const cardInfo = extractPropertyInfoFromCard(card);
+              if (cardInfo.url === info.url) {
+                targetButton = button;
+                break;
+              }
+            } else {
+              // Individual property page
+              targetButton = button;
+              break;
+            }
+          }
 
-          button.innerHTML =
-            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>';
-          button.style.backgroundColor = "hsl(var(--destructive))";
-          button.disabled = false;
-          button.classList.add("delete-mode");
-          button.onclick = () => showDeleteConfirmation(info);
-          button.title = "Eliminar del gestor de propiedades";
+          if (targetButton) {
+            targetButton.innerHTML =
+              '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>';
+            targetButton.style.backgroundColor = "hsl(var(--destructive))";
+            targetButton.disabled = false;
+            targetButton.classList.add("delete-mode");
+            targetButton.onclick = () => showDeleteConfirmation(info);
+            targetButton.title = "Eliminar del gestor de propiedades";
+          }
         } else {
           // Show error message
           const button = document.querySelector(".analyzer-add-btn");
-          const originalText = button.textContent;
-          const originalBg = button.style.backgroundColor;
+          if (button) {
+            const originalText = button.textContent;
+            const originalBg = button.style.backgroundColor;
 
-          button.textContent = "❌ Error";
-          button.style.backgroundColor = "hsl(var(--destructive))";
+            button.textContent = "❌ Error";
+            button.style.backgroundColor = "hsl(var(--destructive))";
 
-          setTimeout(() => {
-            button.textContent = originalText;
-            button.style.backgroundColor = originalBg;
-          }, 2000);
+            setTimeout(() => {
+              button.textContent = originalText;
+              button.style.backgroundColor = originalBg;
+            }, 2000);
+          }
         }
       }
     );
@@ -1183,6 +1222,81 @@
         document.body.removeChild(modalOverlay);
       }
     };
+  }
+
+  // Function to update property data with complete information
+  function updatePropertyData(info) {
+    console.log('Content: updatePropertyData called for URL:', info.url);
+    
+    // Get the property ID by URL first
+    chrome.runtime.sendMessage(
+      {
+        action: "getProperties",
+      },
+      (response) => {
+        console.log('Content: getProperties response:', response);
+        if (response && response.properties) {
+          const property = response.properties.find((p) => p.url === info.url);
+          console.log('Content: Found property:', property);
+          if (property) {
+            console.log('Content: Sending updateProperty for ID:', property.id);
+            // Send update request
+            chrome.runtime.sendMessage(
+              {
+                action: "updateProperty",
+                propertyId: property.id,
+                updatedProperty: info,
+              },
+              (updateResponse) => {
+                console.log('Content: updateProperty response:', updateResponse);
+                if (updateResponse && updateResponse.success) {
+                  console.log('Content: Property updated successfully');
+                  
+                  // Show success message
+                  const updateButton = document.querySelector(".analyzer-update-btn");
+                  if (updateButton) {
+                    const originalHTML = updateButton.innerHTML;
+                    const originalBg = updateButton.style.backgroundColor;
+                    const originalTitle = updateButton.title;
+
+                    updateButton.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+                    updateButton.style.backgroundColor = "hsl(var(--success))";
+                    updateButton.title = "Datos actualizados correctamente";
+
+                    // Remove the button after showing success
+                    setTimeout(() => {
+                      if (updateButton.parentNode) {
+                        updateButton.parentNode.removeChild(updateButton);
+                      }
+                    }, 2000);
+                  }
+                } else {
+                  console.log('Content: Property update failed');
+                  // Show error message
+                  const updateButton = document.querySelector(".analyzer-update-btn");
+                  if (updateButton) {
+                    const originalHTML = updateButton.innerHTML;
+                    const originalBg = updateButton.style.backgroundColor;
+
+                    updateButton.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"></path></svg>';
+                    updateButton.style.backgroundColor = "hsl(var(--destructive))";
+
+                    setTimeout(() => {
+                      updateButton.innerHTML = originalHTML;
+                      updateButton.style.backgroundColor = originalBg;
+                    }, 2000);
+                  }
+                }
+              }
+            );
+          } else {
+            console.log('Content: Property not found in list');
+          }
+        } else {
+          console.log('Content: No properties response');
+        }
+      }
+    );
   }
 
   // Function to remove property from manager
@@ -1349,6 +1463,342 @@ El mensaje debe ser natural, específico sobre esta propiedad y mostrar que has 
 
   // Function to initialize the analyzer
   async function initAnalyzer() {
+    const currentUrl = window.location.href;
+    
+    // Check if we're on an areas page (property list)
+    if (currentUrl.includes('/areas/')) {
+      await initAreasPageAnalyzer();
+    } else {
+      // Individual property page
+      await initPropertyPageAnalyzer();
+    }
+  }
+
+  // Function to initialize analyzer for areas pages (property lists)
+  async function initAreasPageAnalyzer() {
+    console.log('Initializing analyzer for areas page');
+    
+    // Remove any existing analyzer buttons
+    const existingButtons = document.querySelectorAll('.analyzer-add-btn');
+    existingButtons.forEach(btn => btn.remove());
+
+    // Find all property cards
+    const propertyCards = document.querySelectorAll('article.item');
+    console.log('Found property cards:', propertyCards.length);
+    
+    for (const card of propertyCards) {
+      await addAnalyzerButtonToCard(card);
+    }
+
+    // Set up observer for dynamically loaded cards
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === 1) { // Element node
+            // Check if the added node is a property card
+            if (node.classList && node.classList.contains('item')) {
+              addAnalyzerButtonToCard(node);
+            }
+            // Check if the added node contains property cards
+            const cards = node.querySelectorAll ? node.querySelectorAll('article.item') : [];
+            cards.forEach(card => addAnalyzerButtonToCard(card));
+          }
+        });
+      });
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  // Function to add analyzer button to a property card
+  async function addAnalyzerButtonToCard(card) {
+    // Skip if button already exists
+    if (card.querySelector('.analyzer-add-btn')) {
+      return;
+    }
+
+    // Extract property info from the card
+    const propertyInfo = extractPropertyInfoFromCard(card);
+    
+    if (!propertyInfo.url) {
+      console.log('Skipping card - no URL found');
+      return; // Skip if no URL found
+    }
+
+    console.log('Adding analyzer button to card:', propertyInfo.url);
+
+    // Check if property is already in the manager
+    const isAlreadyAdded = await checkIfPropertyExists(propertyInfo.url);
+
+    // Find the favorite button container
+    const favoriteBtn = card.querySelector('.favorite-btn');
+    if (!favoriteBtn) {
+      return;
+    }
+
+    // Create analyzer button
+    const analyzerBtn = document.createElement('button');
+    analyzerBtn.className = 'analyzer-add-btn analyzer-add-btn--compact';
+    analyzerBtn.style.cssText = `
+      margin-right: 16px;
+      margin-left: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 150ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      transform: translateZ(0);
+      backface-visibility: hidden;
+    `;
+
+    if (isAlreadyAdded) {
+      analyzerBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>';
+      analyzerBtn.style.backgroundColor = 'hsl(var(--destructive))';
+      analyzerBtn.classList.add('delete-mode');
+      analyzerBtn.onclick = () => showDeleteConfirmation(propertyInfo);
+      analyzerBtn.title = 'Eliminar del gestor de propiedades';
+    } else {
+      analyzerBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
+      analyzerBtn.style.backgroundColor = 'hsl(var(--primary))';
+      analyzerBtn.onclick = () => addToManager(propertyInfo);
+      analyzerBtn.title = 'Agregar al gestor de propiedades';
+    }
+
+    // Insert after the favorite button
+    favoriteBtn.parentNode.insertBefore(analyzerBtn, favoriteBtn.nextSibling);
+  }
+
+  // Function to extract property info from a card
+  function extractPropertyInfoFromCard(card) {
+    const info = {
+      url: null,
+      title: null,
+      price: null,
+      squareMeters: null,
+      rooms: null,
+      bathrooms: null,
+      floor: null,
+      orientation: null,
+      furnished: null,
+      heating: null,
+      elevator: null,
+      professional: null,
+      contactPerson: null,
+      lastUpdated: null,
+      monthsMentioned: [],
+      seasonal: null,
+      energyCert: null,
+      pricePerM2: null,
+      deposit: null,
+      desk: null,
+      googleMapsUrl: null,
+      image: null,
+      parking: null,
+      terrace: null,
+      balcony: null,
+      airConditioning: null,
+      garden: null,
+      pool: null,
+      accessible: null,
+      cleaningIncluded: null,
+      lgbtFriendly: null,
+      ownerNotPresent: null,
+      privateBathroom: null,
+      window: null,
+      couplesAllowed: null,
+      minorsAllowed: null,
+      builtInWardrobes: null,
+      garage: null,
+      storage: null,
+      condition: null,
+      propertySubType: null,
+      hasFloorPlan: null,
+      hasVirtualTour: null,
+      bankAd: null,
+      smokers: null,
+      bed: null,
+      roommates: null,
+      maintenance: null,
+      gender: null
+    };
+
+    // Extract URL from the card
+    const linkElement = card.querySelector('.item-link');
+    if (linkElement && linkElement.href) {
+      info.url = linkElement.href;
+    }
+
+    // Extract title from link element (prioritize link text over URL)
+    if (linkElement) {
+      let title = getTextContent(linkElement);
+      
+      // Clean up the title to make it more concise
+      // Remove "Piso en" prefix and keep only the address part
+      if (title.startsWith('Piso en ')) {
+        title = title.replace('Piso en ', '');
+      } else if (title.startsWith('Casa en ')) {
+        title = title.replace('Casa en ', '');
+      } else if (title.startsWith('Habitación en ')) {
+        title = title.replace('Habitación en ', '');
+      } else if (title.startsWith('Local en ')) {
+        title = title.replace('Local en ', '');
+      } else if (title.startsWith('Oficina en ')) {
+        title = title.replace('Oficina en ', '');
+      }
+      
+      // Remove the city name at the end if it's separated by comma
+      const commaIndex = title.lastIndexOf(',');
+      if (commaIndex !== -1) {
+        const beforeComma = title.substring(0, commaIndex).trim();
+        const afterComma = title.substring(commaIndex + 1).trim();
+        
+        // If what comes after the comma looks like a city name (no numbers), remove it
+        if (!/\d/.test(afterComma) && afterComma.length > 0) {
+          title = beforeComma;
+        }
+      }
+      
+      // Ensure the first letter is capitalized
+      info.title = title.charAt(0).toUpperCase() + title.slice(1);
+    }
+
+    // Extract price
+    const priceElement = card.querySelector('.item-price');
+    if (priceElement) {
+      const priceText = getTextContent(priceElement);
+      info.price = extractNumber(priceText);
+    }
+
+    // Extract basic details
+    const detailElements = card.querySelectorAll('.item-detail');
+    detailElements.forEach(detail => {
+      const text = getTextContent(detail);
+      
+      // Extract rooms
+      if (text.includes('hab.')) {
+        const roomsMatch = text.match(/(\d+)\s*hab\./);
+        if (roomsMatch) {
+          info.rooms = parseInt(roomsMatch[1]);
+        }
+      }
+      
+      // Extract square meters
+      if (text.includes('m²')) {
+        const m2Match = text.match(/(\d+)\s*m²/);
+        if (m2Match) {
+          info.squareMeters = parseInt(m2Match[1]);
+        }
+      }
+      
+      // Extract floor
+      if (text.includes('Planta')) {
+        const floorMatch = text.match(/Planta\s*(\d+)/);
+        if (floorMatch) {
+          info.floor = parseInt(floorMatch[1]);
+        }
+      }
+    });
+
+    // Extract first image from the gallery (skip map slides)
+    const imageGallery = card.querySelector('.item-gallery');
+    if (imageGallery) {
+      let imageUrl = null;
+      
+      // Try the simple structure first: .gallery-fallback picture
+      const galleryFallback = imageGallery.querySelector('.gallery-fallback picture');
+      if (galleryFallback) {
+        const imgElement = galleryFallback.querySelector('img');
+        if (imgElement && imgElement.src && !imgElement.src.includes('static-map-placeholder')) {
+          // Use the src property directly, just like individual property pages
+          imageUrl = imgElement.src;
+        }
+      }
+      
+      // If no image found, try the complex structure: .image-gallery-slides
+      if (!imageUrl) {
+        const imageGallerySlides = imageGallery.querySelector('.image-gallery-slides');
+        if (imageGallerySlides) {
+          const slides = imageGallerySlides.querySelectorAll('.image-gallery-slide');
+          for (const slide of slides) {
+            const imgElement = slide.querySelector('img');
+            if (imgElement && imgElement.src && !imgElement.src.includes('static-map-placeholder')) {
+              imageUrl = imgElement.src;
+              break; // Use the first non-map image
+            }
+          }
+        }
+      }
+      
+      // Process the image URL if found
+      if (imageUrl) {
+        console.log('Content: Raw image URL from areas page:', imageUrl);
+        
+        // Decode any HTML entities in the URL
+        let decodedImageUrl = imageUrl;
+        if (imageUrl.includes('&quot;')) {
+          decodedImageUrl = imageUrl.replace(/&quot;/g, '"');
+          console.log('Content: Decoded HTML entities:', decodedImageUrl);
+        }
+        
+        // Use the URL as-is, just like individual property pages do
+        info.image = decodedImageUrl;
+        console.log('Content: Final image URL stored:', info.image);
+      }
+    }
+
+    // Extract description for additional features
+    const descriptionElement = card.querySelector('.item-description');
+    if (descriptionElement) {
+      const descriptionText = getTextContent(descriptionElement).toLowerCase();
+      
+      // Extract features from description
+      if (descriptionText.includes('calefacción')) info.heating = true;
+      if (descriptionText.includes('amueblado')) info.furnished = true;
+      if (descriptionText.includes('ascensor')) info.elevator = true;
+      if (descriptionText.includes('temporada')) info.seasonal = true;
+      if (descriptionText.includes('parking')) info.parking = true;
+      if (descriptionText.includes('terraza')) info.terrace = true;
+      if (descriptionText.includes('balcón')) info.balcony = true;
+      if (descriptionText.includes('aire acondicionado')) info.airConditioning = true;
+      if (descriptionText.includes('jardín')) info.garden = true;
+      if (descriptionText.includes('piscina')) info.pool = true;
+      if (descriptionText.includes('garaje')) info.garage = true;
+      if (descriptionText.includes('trastero')) info.storage = true;
+      if (descriptionText.includes('armarios')) info.builtInWardrobes = true;
+      if (descriptionText.includes('baño privado')) info.privateBathroom = true;
+      if (descriptionText.includes('ventana')) info.window = true;
+      if (descriptionText.includes('cama')) info.bed = true;
+      if (descriptionText.includes('fumadores')) info.smokers = true;
+      if (descriptionText.includes('chico')) info.gender = 'chico';
+      if (descriptionText.includes('chica')) info.gender = 'chica';
+      if (descriptionText.includes('parejas')) info.couplesAllowed = true;
+      if (descriptionText.includes('menores')) info.minorsAllowed = true;
+      if (descriptionText.includes('lgbt')) info.lgbtFriendly = true;
+      if (descriptionText.includes('accesible')) info.accessible = true;
+      if (descriptionText.includes('limpieza incluida')) info.cleaningIncluded = true;
+      if (descriptionText.includes('sin propietario')) info.ownerNotPresent = true;
+      if (descriptionText.includes('banco')) info.bankAd = true;
+      if (descriptionText.includes('visita virtual')) info.hasVirtualTour = true;
+      if (descriptionText.includes('plano')) info.hasFloorPlan = true;
+    }
+
+    // Calculate price per m² if both price and square meters are available
+    if (info.price && info.squareMeters) {
+      info.pricePerM2 = Math.round(info.price / info.squareMeters);
+    }
+
+    return info;
+  }
+
+  // Function to initialize analyzer for individual property pages
+  async function initPropertyPageAnalyzer() {
     // Remove existing table if present
     const existingTable = document.getElementById("idea-lista-analyzer-table");
     if (existingTable) {
@@ -1366,17 +1816,81 @@ El mensaje debe ser natural, específico sobre esta propiedad y mostrar que has 
       heating: propertyInfo.heating,
     });
 
-    // Check if property is already in the manager
-    const isAlreadyAdded = await checkIfPropertyExists(propertyInfo.url);
+    // Check if property is already in the manager and get its data
+    const existingProperty = await getExistingProperty(propertyInfo.url);
+    const isAlreadyAdded = !!existingProperty;
+
+    // Check if property was added from areas page (has incomplete data)
+    const needsUpdate = existingProperty && isPropertyFromAreasPage(existingProperty);
 
     // Create and insert the analysis table
-    const table = createAnalysisTable(propertyInfo, isAlreadyAdded);
+    const table = createAnalysisTable(propertyInfo, isAlreadyAdded, needsUpdate);
 
     // Insert before the detail-container
     const detailContainer = document.querySelector(".detail-container");
     if (detailContainer) {
       detailContainer.parentNode.insertBefore(table, detailContainer);
     }
+  }
+
+  // Function to get existing property data
+  async function getExistingProperty(propertyUrl) {
+    try {
+      const response = await chrome.runtime.sendMessage({
+        action: "getProperties",
+      });
+      const properties = response.properties || [];
+      return properties.find((property) => property.url === propertyUrl);
+    } catch (error) {
+      console.error("Error getting existing property:", error);
+      return null;
+    }
+  }
+
+  // Function to check if property was added from areas page (has incomplete data)
+  function isPropertyFromAreasPage(property) {
+    // Properties from areas page typically have missing or incomplete data
+    // Check for indicators that suggest it was added from areas page
+    const hasIncompleteData = (
+      !property.imageUrl ||
+      !property.bathrooms ||
+      !property.floor ||
+      !property.orientation ||
+      !property.furnished ||
+      !property.heating ||
+      !property.elevator ||
+      !property.energyCert ||
+      !property.deposit ||
+      !property.maintenance ||
+      !property.parking ||
+      !property.terrace ||
+      !property.balcony ||
+      !property.airConditioning ||
+      !property.garden ||
+      !property.pool ||
+      !property.accessible ||
+      !property.cleaningIncluded ||
+      !property.lgbtFriendly ||
+      !property.ownerNotPresent ||
+      !property.privateBathroom ||
+      !property.window ||
+      !property.couplesAllowed ||
+      !property.minorsAllowed ||
+      !property.builtInWardrobes ||
+      !property.garage ||
+      !property.storage ||
+      !property.condition ||
+      !property.propertySubType ||
+      !property.hasFloorPlan ||
+      !property.hasVirtualTour ||
+      !property.bankAd ||
+      !property.smokers ||
+      !property.bed ||
+      !property.roommates ||
+      !property.gender
+    );
+
+    return hasIncompleteData;
   }
 
   // Function to check if property already exists in manager
@@ -1409,39 +1923,92 @@ El mensaje debe ser natural, específico sobre esta propiedad y mostrar que has 
 
       // No notification needed - button state shows the current status
     }
+    
+    if (message.action === "propertyDeleted") {
+      console.log('Content: Received propertyDeleted for URL:', message.propertyUrl);
+      // Force refresh of button states for the specific property
+      const currentUrl = window.location.href;
+      
+      if (currentUrl.includes('/areas/')) {
+        // Update all buttons and check if any match the deleted property
+        const buttons = document.querySelectorAll(".analyzer-add-btn");
+        buttons.forEach(button => {
+          const card = button.closest('article.item');
+          if (card) {
+            const propertyInfo = extractPropertyInfoFromCard(card);
+            if (propertyInfo.url === message.propertyUrl) {
+              // This button belongs to the deleted property, update it to add state
+              updateSingleButtonState(button, false, propertyInfo);
+              console.log('Content: Updated button for deleted property:', propertyInfo.url);
+            }
+          }
+        });
+      } else {
+        // Individual property page
+        if (currentUrl === message.propertyUrl) {
+          const button = document.querySelector(".analyzer-add-btn");
+          if (button) {
+            const propertyInfo = extractPropertyInfo();
+            updateSingleButtonState(button, false, propertyInfo);
+            console.log('Content: Updated button for deleted property on individual page');
+          }
+        }
+      }
+    }
   });
 
   // Function to update button state based on current property
   function updateButtonState(properties) {
     const currentUrl = window.location.href;
-    const isAlreadyAdded = properties.some(
-      (property) => property.url === currentUrl
-    );
     
-    const button = document.querySelector(".analyzer-add-btn");
-
-    if (button) {
-      if (isAlreadyAdded) {
-        button.innerHTML =
-          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>';
-        button.style.backgroundColor = "hsl(var(--destructive))";
-        button.disabled = false;
-        button.classList.add("delete-mode");
-        button.title = "Eliminar del gestor de propiedades";
-        // Add delete functionality
+    // Check if we're on an areas page or individual property page
+    if (currentUrl.includes('/areas/')) {
+      // Update all analyzer buttons on the page
+      const buttons = document.querySelectorAll(".analyzer-add-btn");
+      buttons.forEach(button => {
+        // Find the property card this button belongs to
+        const card = button.closest('article.item');
+        if (card) {
+          const propertyInfo = extractPropertyInfoFromCard(card);
+          const isAlreadyAdded = properties.some(
+            (property) => property.url === propertyInfo.url
+          );
+          
+          updateSingleButtonState(button, isAlreadyAdded, propertyInfo);
+        }
+      });
+    } else {
+      // Individual property page - single button
+      const isAlreadyAdded = properties.some(
+        (property) => property.url === currentUrl
+      );
+      
+      const button = document.querySelector(".analyzer-add-btn");
+      if (button) {
         const propertyInfo = extractPropertyInfo();
-        button.onclick = () => showDeleteConfirmation(propertyInfo);
-      } else {
-        button.innerHTML =
-          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
-        button.style.backgroundColor = "hsl(var(--primary))";
-        button.disabled = false;
-        button.classList.remove("delete-mode");
-        button.title = "Agregar al gestor de propiedades";
-        // Re-add the onclick handler
-        const propertyInfo = extractPropertyInfo();
-        button.onclick = () => addToManager(propertyInfo);
+        updateSingleButtonState(button, isAlreadyAdded, propertyInfo);
       }
+    }
+  }
+
+  // Function to update a single button state
+  function updateSingleButtonState(button, isAlreadyAdded, propertyInfo) {
+    if (isAlreadyAdded) {
+      button.innerHTML =
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>';
+      button.style.backgroundColor = "hsl(var(--destructive))";
+      button.disabled = false;
+      button.classList.add("delete-mode");
+      button.title = "Eliminar del gestor de propiedades";
+      button.onclick = () => showDeleteConfirmation(propertyInfo);
+    } else {
+      button.innerHTML =
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
+      button.style.backgroundColor = "hsl(var(--primary))";
+      button.disabled = false;
+      button.classList.remove("delete-mode");
+      button.title = "Agregar al gestor de propiedades";
+      button.onclick = () => addToManager(propertyInfo);
     }
   }
 
@@ -1462,16 +2029,40 @@ El mensaje debe ser natural, específico sobre esta propiedad y mostrar que has 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
-        // Check if detail-container was added
-        const hasDetailContainer = Array.from(mutation.addedNodes).some(
-          (node) =>
-            node.nodeType === 1 &&
-            (node.classList?.contains("detail-container") ||
-              node.querySelector?.(".detail-container"))
-        );
+        const currentUrl = window.location.href;
+        
+        if (currentUrl.includes('/areas/')) {
+          // For areas pages, check for new property cards
+          const hasNewCards = Array.from(mutation.addedNodes).some(
+            (node) =>
+              node.nodeType === 1 &&
+              (node.classList?.contains("item") ||
+                node.querySelector?.("article.item"))
+          );
 
-        if (hasDetailContainer) {
-          setTimeout(initAnalyzer, 1000); // Small delay to ensure content is loaded
+          if (hasNewCards) {
+            setTimeout(() => {
+              // Add buttons to new cards
+              const allCards = document.querySelectorAll('article.item');
+              allCards.forEach(card => {
+                if (!card.querySelector('.analyzer-add-btn')) {
+                  addAnalyzerButtonToCard(card);
+                }
+              });
+            }, 500);
+          }
+        } else {
+          // For individual property pages, check if detail-container was added
+          const hasDetailContainer = Array.from(mutation.addedNodes).some(
+            (node) =>
+              node.nodeType === 1 &&
+              (node.classList?.contains("detail-container") ||
+                node.querySelector?.(".detail-container"))
+          );
+
+          if (hasDetailContainer) {
+            setTimeout(initAnalyzer, 1000); // Small delay to ensure content is loaded
+          }
         }
       }
     });

@@ -421,8 +421,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   // Check if property has an image
   const hasImage = !!(property.imageUrl);
   
-  // Get the image URL from either field
-  const imageUrl = property.imageUrl;
+  // Get the image URL and decode any HTML entities
+  const imageUrl = property.imageUrl ? property.imageUrl.replace(/&quot;/g, '"') : null;
 
 
 

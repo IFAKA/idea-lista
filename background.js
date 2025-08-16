@@ -202,6 +202,29 @@ async function notifyAllComponents() {
     }
 }
 
+async function notifyPropertyDeleted(propertyUrl) {
+    console.log('Background: Notifying property deleted for URL:', propertyUrl);
+    
+    // Notify content scripts on all Idealista tabs
+    try {
+        const tabs = await chrome.tabs.query({ url: 'https://www.idealista.com/*' });
+        console.log('Background: Found', tabs.length, 'Idealista tabs for property deletion notification');
+        for (const tab of tabs) {
+            try {
+                await chrome.tabs.sendMessage(tab.id, {
+                    action: 'propertyDeleted',
+                    propertyUrl: propertyUrl
+                });
+                console.log('Background: Property deletion notified on tab', tab.id);
+            } catch (error) {
+                console.log('Background: Error notifying property deletion on tab', tab.id, ':', error.message);
+            }
+        }
+    } catch (error) {
+        console.log('Background: Error querying tabs for property deletion:', error.message);
+    }
+}
+
 async function loadProperties() {
     try {
         console.log('Background: Loading properties from storage...');
@@ -253,6 +276,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             })
             .catch((error) => {
                 console.error('Error removing property:', error);
+                sendResponse({ success: false, error: error.message });
+            });
+        return true;
+    }
+    
+    if (message.action === 'updateProperty') {
+        updateProperty(message.propertyId, message.updatedProperty)
+            .then(() => {
+                sendResponse({ success: true });
+            })
+            .catch((error) => {
+                console.error('Error updating property:', error);
                 sendResponse({ success: false, error: error.message });
             });
         return true;
@@ -578,11 +613,57 @@ function calculateViviendaScore(property, config) {
 }
 
 async function removeProperty(propertyId) {
+    // Find the property before removing it to get its URL
+    const propertyToRemove = properties.find(p => String(p.id) === String(propertyId));
+    const propertyUrl = propertyToRemove ? propertyToRemove.url : null;
+    
     properties = properties.filter(p => String(p.id) !== String(propertyId));
     await saveProperties();
     
     // Notify all components of the update
     await notifyAllComponents();
+    
+    // Also send a specific message for property deletion
+    if (propertyUrl) {
+        await notifyPropertyDeleted(propertyUrl);
+    }
+}
+
+async function updateProperty(propertyId, updatedProperty) {
+    try {
+        console.log('Background: Updating property:', propertyId, updatedProperty);
+        
+        // Find the property
+        const propertyIndex = properties.findIndex(p => String(p.id) === String(propertyId));
+        if (propertyIndex === -1) {
+            throw new Error('Property not found');
+        }
+        
+        // Update the property with new data
+        const existingProperty = properties[propertyIndex];
+        const mergedProperty = { ...existingProperty, ...updatedProperty };
+        
+        // Recalculate score with updated data
+        mergedProperty.score = await calculateScore(mergedProperty);
+        mergedProperty.updatedAt = new Date().toISOString();
+        
+        // Replace the property
+        properties[propertyIndex] = mergedProperty;
+        
+        // Re-sort properties by score
+        properties.sort((a, b) => (b.score || 0) - (a.score || 0));
+        
+        // Save to storage
+        await saveProperties();
+        
+        // Notify all components of the update
+        await notifyAllComponents();
+        
+        console.log('Background: Property updated successfully');
+    } catch (error) {
+        console.error('Background: Error updating property:', error);
+        throw error;
+    }
 }
 
 async function importProperties(importedProperties) {
