@@ -104,7 +104,7 @@ export class ManagePropertyVisits {
       throw new Error(`Property with id ${request.propertyId} not found`)
     }
 
-    const updatedProperty = property.updateVisit(request.contactId, request.updates as any)
+    const updatedProperty = property.updateContact(request.contactId, request.updates)
     await this.propertyRepository.update(updatedProperty)
     
     return updatedProperty

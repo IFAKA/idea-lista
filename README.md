@@ -56,6 +56,9 @@
 │ 🟡 Average (40-59)    │ Decent properties - Consider      │
 │ 🔴 Poor (0-39)        │ Below average - Skip              │
 └─────────────────────────────────────────────────────────────┘
+
+**Price Priority**: When price is marked as "Essential", it receives a 50% weight premium
+to better reflect its critical role in property comparison decisions.
 ```
 
 #### **Property Management**
@@ -214,7 +217,13 @@ npm run lint
 └─────────────────────────────────────────────────────────────┘
 ```
 
-#### **3. Advanced Features**
+#### **3. Smart Navigation Features**
+- **Auto-Scroll to Current Property**: When you open the popup while on a property page, it automatically scrolls to and highlights that property in your collection
+- **Smooth Scrolling**: Seamless navigation with smooth scroll animations
+- **Visual Highlighting**: The current property gets a subtle highlight effect for easy identification
+- **Quick Access**: Instantly find the property you're currently viewing in your saved collection
+
+#### **4. Advanced Features**
 
 ##### **Property Analysis**
 - Click "🏆 View Analysis" to see detailed scoring breakdown
@@ -239,15 +248,16 @@ Score = Σ(Feature_Weight × Feature_Score) / Max_Possible_Score × 100
 
 Where:
 - Feature_Weight: 0 (Irrelevant), 1 (Valuable), 2 (Essential)
+- Price_Weight: 3 when Essential (50% premium) to reflect decision-making priority
 - Feature_Score: 0-1 based on how well it matches preferences
-- Max_Possible_Score: Sum of all relevant feature weights
+- Max_Possible_Score: Sum of all relevant feature weights (including price premium)
 ```
 
 #### **Scoring Factors**
 
 | Factor | Weight | Description |
 |--------|--------|-------------|
-| **Price** | Essential (2) | Lower prices score higher within range |
+| **Price** | Essential (3)* | Lower prices score higher within range |
 | **Size** | Essential (2) | Bigger properties score higher |
 | **Rooms** | Essential (2) | More rooms score higher |
 | **Bathrooms** | Essential (2) | More bathrooms score higher |
@@ -255,6 +265,8 @@ Where:
 | **Elevator** | Essential (2) | Important for accessibility |
 | **Furnished** | Valuable (1) | Adds convenience |
 | **Parking** | Valuable (1) | Important for cars |
+
+*Price gets a 50% premium when marked as essential (2 × 1.5 = 3) to reflect its critical role in decision-making
 
 ## 🔧 Development
 

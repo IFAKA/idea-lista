@@ -68,6 +68,8 @@
 
   // Function to extract property information
   function extractPropertyInfo() {
+    console.log('🏠 Starting property extraction from:', window.location.href);
+    
     const info = {
       url: window.location.href,
       title: null,
@@ -876,68 +878,36 @@
       info.maintenance = parseInt(maintenanceMatch[1]);
     }
 
-    // Debug: Log all extracted properties
-    console.log("Basic Info:", {
+    // Log the extracted property data
+    console.log('📊 Extracted property data:', {
+      url: info.url,
+      title: info.title,
       price: info.price,
       squareMeters: info.squareMeters,
       rooms: info.rooms,
       bathrooms: info.bathrooms,
       floor: info.floor,
-      orientation: info.orientation,
-    });
-    console.log("Features:", {
       heating: info.heating,
-      furnished: info.furnished,
       elevator: info.elevator,
-      seasonal: info.seasonal,
-      desk: info.desk,
-    });
-    console.log("Amenities:", {
+      furnished: info.furnished,
       parking: info.parking,
       terrace: info.terrace,
       balcony: info.balcony,
       airConditioning: info.airConditioning,
-      garden: info.garden,
-      pool: info.pool,
-      accessible: info.accessible,
-      cleaningIncluded: info.cleaningIncluded,
-      lgbtFriendly: info.lgbtFriendly,
-      ownerNotPresent: info.ownerNotPresent,
-      privateBathroom: info.privateBathroom,
-      window: info.window,
-      couplesAllowed: info.couplesAllowed,
-      minorsAllowed: info.minorsAllowed,
-      builtInWardrobes: info.builtInWardrobes,
-      garage: info.garage,
-      storage: info.storage,
-      condition: info.condition,
-      propertySubType: info.propertySubType,
-      hasFloorPlan: info.hasFloorPlan,
-      hasVirtualTour: info.hasVirtualTour,
-      bankAd: info.bankAd,
-      gender: info.gender,
-      smokers: info.smokers,
-      bed: info.bed,
-      roommates: info.roommates,
-      maintenance: info.maintenance,
-    });
-    console.log("Financial:", {
+      energyCert: info.energyCert,
       pricePerM2: info.pricePerM2,
       deposit: info.deposit,
-      energyCert: info.energyCert,
-    });
-    console.log("Additional:", {
+      maintenance: info.maintenance,
       professional: info.professional,
-      lastUpdated: info.lastUpdated,
-      monthsMentioned: info.monthsMentioned,
-      image: info.image ? "Found" : "Not found",
+      contactPerson: info.contactPerson,
+      image: info.image
     });
 
     return info;
   }
 
   // Function to create the analysis table (compact chip layout)
-  function createAnalysisTable(info, isAlreadyAdded = false, needsUpdate = false) {
+  function createAnalysisTable(info, isAlreadyAdded = false, isLoading = false) {
     const container = document.createElement("div");
     container.id = "idea-lista-analyzer-table";
     container.className = "analyzer-container analyzer-compact";
@@ -948,153 +918,205 @@
     const inline = document.createElement("div");
     inline.className = "analyzer-inline";
 
-    // helpers
-    const formatPriceEUR = (n) =>
-      n != null ? n.toLocaleString("es-ES") + "€" : "N/A";
-    function addChip(text, className, title) {
-      if (!text) return;
-      const span = document.createElement("span");
-      span.className = `chip ${className || ""}`.trim();
-      span.textContent = text;
-      if (title) span.title = title;
-      inline.appendChild(span);
-    }
-
-    // main chips
-    addChip(info.price != null ? formatPriceEUR(info.price) : null, "price");
-    addChip(info.squareMeters ? `${info.squareMeters}m²` : null, "size");
-    addChip(info.rooms ? `${info.rooms}hab` : null, "rooms");
-    addChip(
-      info.bathrooms != null
-        ? `${info.bathrooms} ${info.bathrooms > 1 ? "baños" : "baño"}`
-        : null,
-      "bathrooms"
-    );
-    addChip(info.floor ? `P${info.floor}` : null, "floor");
-
-    if (info.heating) addChip("Calefacción", "heating");
-    if (info.furnished) addChip("Amueblado", "furnished");
-    if (info.elevator) addChip("Ascensor", "elevator");
-    if (info.seasonal) addChip("Temporada", "seasonal");
-    if (info.orientation) addChip(info.orientation, "orientation");
-    if (info.desk)
-      addChip(`${info.desk} escritorio${info.desk > 1 ? "s" : ""}`, "desk");
-
-    // Additional amenities
-    if (info.parking) addChip("Parking", "parking");
-    if (info.terrace) addChip("Terraza", "terrace");
-    if (info.balcony) addChip("Balcón", "balcony");
-    if (info.airConditioning) addChip("A/C", "air-conditioning");
-    if (info.garden) addChip("Jardín", "garden");
-    if (info.pool) addChip("Piscina", "pool");
-    if (info.accessible) addChip("Accesible", "accessible");
-    if (info.cleaningIncluded) addChip("Limpieza", "cleaning");
-    if (info.lgbtFriendly) addChip("LGBT+", "lgbt");
-    if (info.ownerNotPresent) addChip("Sin Propietario", "owner-absent");
-    if (info.privateBathroom) addChip("Baño Privado", "private-bathroom");
-    if (info.window) addChip("Ventana", "window");
-    if (info.couplesAllowed) addChip("Parejas", "couples");
-    if (info.minorsAllowed) addChip("Menores", "minors");
-    if (info.builtInWardrobes) addChip("Armarios", "wardrobes");
-    if (info.garage) addChip("Garaje", "garage");
-    if (info.storage) addChip("Trastero", "storage");
-    if (info.hasFloorPlan) addChip("Plano", "floor-plan");
-    if (info.hasVirtualTour) addChip("Visita Virtual", "virtual-tour");
-    if (info.bankAd) addChip("Banco", "bank");
-    if (info.smokers) addChip("Fumadores", "smokers");
-    if (info.bed) addChip("Cama", "bed");
-    if (info.roommates) addChip(`${info.roommates} compañeros`, "roommates");
-
-    // Property type and condition
-    if (info.propertySubType) addChip(info.propertySubType, "property-type");
-    if (info.condition) addChip(info.condition, "condition");
-    if (info.gender) addChip(info.gender, "gender");
-
-    if (info.professional) addChip(info.professional, "pro");
-
-    // Financial information
-    if (info.pricePerM2) addChip(`${info.pricePerM2}€/m²`, "price-m2");
-    if (info.deposit) addChip(info.deposit, "deposit");
-    if (info.energyCert) addChip(info.energyCert, "energy");
-    if (info.maintenance)
-      addChip(`${info.maintenance}€ comunidad`, "maintenance");
-
-    if (info.lastUpdated) addChip(info.lastUpdated, "muted", info.lastUpdated);
-    if (info.monthsMentioned && info.monthsMentioned.length > 0) {
-      addChip(`Meses: ${info.monthsMentioned.join(", ")}`, "muted");
-    }
-
-    // property id
-    try {
-      const urlParts = info.url.split("/");
-      const propertyId = urlParts[urlParts.length - 2] || "";
-      if (propertyId) addChip(`ID: ${propertyId}`, "id muted");
-    } catch (e) {}
-
-    // Add Update button (only if property needs update)
-    let updateButton = null;
-    if (needsUpdate) {
-      updateButton = document.createElement("button");
-      updateButton.className = "analyzer-update-btn analyzer-update-btn--compact particle-burst";
-      updateButton.innerHTML =
-        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>';
-      updateButton.style.backgroundColor = "hsl(48 96% 53%)"; // Yellow/amber color
-      updateButton.onclick = (event) => {
-        createParticleAnimation(event);
-        updatePropertyData(info);
-      };
-      updateButton.title = "Actualizar datos de la propiedad";
-    }
-
-    // Add AI prompt button
-    const aiPromptButton = document.createElement("button");
-    aiPromptButton.className =
-      "analyzer-ai-prompt-btn analyzer-ai-prompt-btn--compact particle-burst";
-    aiPromptButton.innerHTML =
-      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><path d="M8 9h8"></path><path d="M8 13h6"></path></svg>';
-    aiPromptButton.style.backgroundColor = "hsl(262 83% 58%)";
-    aiPromptButton.onclick = (event) => {
-      createParticleAnimation(event);
-      generateAIPrompt(info);
-    };
-    aiPromptButton.title = "Generar mensaje para el propietario";
-
-    // Add/Delete button
-    const addButton = document.createElement("button");
-    addButton.className = "analyzer-add-btn analyzer-add-btn--compact";
-
-    if (isAlreadyAdded) {
-      addButton.innerHTML =
-        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>';
-      addButton.style.backgroundColor = "hsl(var(--destructive))";
-      addButton.disabled = false;
-      addButton.classList.add("delete-mode");
-      addButton.onclick = () => showDeleteConfirmation(info);
-      addButton.title = "Eliminar del gestor de propiedades";
+    // Handle loading state or no info
+    if (isLoading) {
+      const loadingPlaceholder = document.createElement("div");
+      loadingPlaceholder.className = "analyzer-loading";
+      loadingPlaceholder.innerHTML = `
+        <div style="text-align: center; padding: 20px; color: hsl(var(--muted-foreground));">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <div style="width: 16px; height: 16px; border: 2px solid hsl(var(--border)); border-top: 2px solid hsl(var(--primary)); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            <p>Cargando datos de la propiedad...</p>
+          </div>
+        </div>
+      `;
+      inline.appendChild(loadingPlaceholder);
+    } else if (!info) {
+      const placeholder = document.createElement("div");
+      placeholder.className = "analyzer-placeholder";
+      placeholder.innerHTML = `
+        <div style="text-align: center; padding: 20px; color: hsl(var(--muted-foreground));">
+          <p>Haz clic en "Agregar" para extraer y analizar los datos de la propiedad</p>
+        </div>
+      `;
+      inline.appendChild(placeholder);
     } else {
-      addButton.innerHTML =
-        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
-      addButton.style.backgroundColor = "hsl(var(--primary))";
-      addButton.onclick = () => addToManager(info);
-      addButton.title = "Agregar al gestor de propiedades";
+      // helpers
+      const formatPriceEUR = (n) =>
+        n != null ? n.toLocaleString("es-ES") + "€" : "N/A";
+      const addChip = (text, className, title) => {
+        if (!text) return;
+        const span = document.createElement("span");
+        span.className = `chip ${className || ""}`.trim();
+        span.textContent = text;
+        if (title) span.title = title;
+        inline.appendChild(span);
+      };
+
+      // main chips
+      addChip(info.price != null ? formatPriceEUR(info.price) : null, "price");
+      addChip(info.squareMeters ? `${info.squareMeters}m²` : null, "size");
+      addChip(info.rooms ? `${info.rooms}hab` : null, "rooms");
+      addChip(
+        info.bathrooms != null
+          ? `${info.bathrooms} ${info.bathrooms > 1 ? "baños" : "baño"}`
+          : null,
+        "bathrooms"
+      );
+      addChip(info.floor ? `P${info.floor}` : null, "floor");
+
+      if (info.heating) addChip("Calefacción", "heating");
+      if (info.furnished) addChip("Amueblado", "furnished");
+      if (info.elevator) addChip("Ascensor", "elevator");
+      if (info.seasonal) addChip("Temporada", "seasonal");
+      if (info.orientation) addChip(info.orientation, "orientation");
+      if (info.desk)
+        addChip(`${info.desk} escritorio${info.desk > 1 ? "s" : ""}`, "desk");
+
+      // Additional amenities
+      if (info.parking) addChip("Parking", "parking");
+      if (info.terrace) addChip("Terraza", "terrace");
+      if (info.balcony) addChip("Balcón", "balcony");
+      if (info.airConditioning) addChip("A/C", "air-conditioning");
+      if (info.garden) addChip("Jardín", "garden");
+      if (info.pool) addChip("Piscina", "pool");
+      if (info.accessible) addChip("Accesible", "accessible");
+      if (info.cleaningIncluded) addChip("Limpieza", "cleaning");
+      if (info.lgbtFriendly) addChip("LGBT+", "lgbt");
+      if (info.ownerNotPresent) addChip("Sin Propietario", "owner-absent");
+      if (info.privateBathroom) addChip("Baño Privado", "private-bathroom");
+      if (info.window) addChip("Ventana", "window");
+      if (info.couplesAllowed) addChip("Parejas", "couples");
+      if (info.minorsAllowed) addChip("Menores", "minors");
+      if (info.builtInWardrobes) addChip("Armarios", "wardrobes");
+      if (info.garage) addChip("Garaje", "garage");
+      if (info.storage) addChip("Trastero", "storage");
+      if (info.hasFloorPlan) addChip("Plano", "floor-plan");
+      if (info.hasVirtualTour) addChip("Visita Virtual", "virtual-tour");
+      if (info.bankAd) addChip("Banco", "bank");
+      if (info.smokers) addChip("Fumadores", "smokers");
+      if (info.bed) addChip("Cama", "bed");
+      if (info.roommates) addChip(`${info.roommates} compañeros`, "roommates");
+
+      // Property type and condition
+      if (info.propertySubType) addChip(info.propertySubType, "property-type");
+      if (info.condition) addChip(info.condition, "condition");
+      if (info.gender) addChip(info.gender, "gender");
+
+      if (info.professional) addChip(info.professional, "pro");
+
+      // Financial information
+      if (info.pricePerM2) addChip(`${info.pricePerM2}€/m²`, "price-m2");
+      if (info.deposit) addChip(info.deposit, "deposit");
+      if (info.energyCert) addChip(info.energyCert, "energy");
+      if (info.maintenance)
+        addChip(`${info.maintenance}€ comunidad`, "maintenance");
+
+      if (info.lastUpdated) addChip(info.lastUpdated, "muted", info.lastUpdated);
+      if (info.monthsMentioned && info.monthsMentioned.length > 0) {
+        addChip(`Meses: ${info.monthsMentioned.join(", ")}`, "muted");
+      }
+
+      // property id
+      try {
+        const urlParts = info.url.split("/");
+        const propertyId = urlParts[urlParts.length - 2] || "";
+        if (propertyId) addChip(`ID: ${propertyId}`, "id muted");
+      } catch (e) {
+        // Ignore errors when extracting property ID
+      }
     }
 
     row.appendChild(inline);
-    if (updateButton) {
-      row.appendChild(updateButton);
+
+    // Only create buttons if we have property info
+    if (info) {
+      // Add AI prompt button
+      const aiPromptButton = document.createElement("button");
+      aiPromptButton.className =
+        "analyzer-ai-prompt-btn analyzer-ai-prompt-btn--compact particle-burst";
+      aiPromptButton.innerHTML =
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><path d="M8 9h8"></path><path d="M8 13h6"></path></svg>';
+      aiPromptButton.style.backgroundColor = "hsl(262 83% 58%)";
+      aiPromptButton.onclick = (event) => {
+        createParticleAnimation(event);
+        generateAIPrompt(info);
+      };
+      aiPromptButton.title = "Generar mensaje para el propietario";
+
+      // Add/Delete button
+      const addButton = document.createElement("button");
+      addButton.className = "analyzer-add-btn analyzer-add-btn--compact";
+
+      if (isLoading) {
+        // Disable button during loading
+        addButton.innerHTML =
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>';
+        addButton.style.color = "hsl(var(--muted-foreground))";
+        addButton.disabled = true;
+        addButton.title = "Cargando...";
+      } else if (isAlreadyAdded) {
+        addButton.innerHTML =
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>';
+        addButton.style.color = "hsl(var(--destructive))";
+        addButton.disabled = false;
+        addButton.classList.add("delete-mode");
+        addButton.onclick = () => {
+          const propertyInfo = extractPropertyInfo();
+          showDeleteConfirmation(propertyInfo);
+        };
+        addButton.title = "Eliminar del gestor de propiedades";
+      } else {
+        addButton.innerHTML =
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
+        addButton.style.color = "hsl(var(--primary))";
+        addButton.onclick = () => {
+          const propertyInfo = extractPropertyInfo();
+          addToManager(propertyInfo);
+        };
+        addButton.title = "Agregar al gestor de propiedades";
+      }
+
+      row.appendChild(aiPromptButton);
+      row.appendChild(addButton);
     }
-    row.appendChild(aiPromptButton);
-    row.appendChild(addButton);
     container.appendChild(row);
     return container;
   }
 
   // Function to add property to manager
   function addToManager(info) {
-    // Send property data to background script
+    console.log('🚀 Sending property data to popup clean architecture system:', {
+      action: 'addPropertyToCleanArchitecture',
+      property: {
+        url: info.url,
+        title: info.title,
+        price: info.price,
+        squareMeters: info.squareMeters,
+        rooms: info.rooms,
+        bathrooms: info.bathrooms,
+        floor: info.floor,
+        heating: info.heating,
+        elevator: info.elevator,
+        furnished: info.furnished,
+        parking: info.parking,
+        terrace: info.terrace,
+        balcony: info.balcony,
+        airConditioning: info.airConditioning,
+        energyCert: info.energyCert,
+        pricePerM2: info.pricePerM2,
+        deposit: info.deposit,
+        maintenance: info.maintenance,
+        professional: info.professional,
+        contactPerson: info.contactPerson,
+        image: info.image
+      }
+    });
+    
+    // Send property data to popup's clean architecture system
     chrome.runtime.sendMessage(
       {
-        action: "addProperty",
+        action: "addPropertyToCleanArchitecture",
         property: info,
       },
       (response) => {
@@ -1105,24 +1127,15 @@
           
           // Find the button that corresponds to this property
           for (const button of buttons) {
-            const card = button.closest('article.item');
-            if (card) {
-              const cardInfo = extractPropertyInfoFromCard(card);
-              if (cardInfo.url === info.url) {
-                targetButton = button;
-                break;
-              }
-            } else {
-              // Individual property page
-              targetButton = button;
-              break;
-            }
+            // Individual property page
+            targetButton = button;
+            break;
           }
 
           if (targetButton) {
             targetButton.innerHTML =
               '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>';
-            targetButton.style.backgroundColor = "hsl(var(--destructive))";
+            targetButton.style.color = "hsl(var(--destructive))";
             targetButton.disabled = false;
             targetButton.classList.add("delete-mode");
             targetButton.onclick = () => showDeleteConfirmation(info);
@@ -1133,14 +1146,14 @@
           const button = document.querySelector(".analyzer-add-btn");
           if (button) {
             const originalText = button.textContent;
-            const originalBg = button.style.backgroundColor;
+            const originalColor = button.style.color;
 
             button.textContent = "❌ Error";
-            button.style.backgroundColor = "hsl(var(--destructive))";
+            button.style.color = "hsl(var(--destructive))";
 
             setTimeout(() => {
               button.textContent = originalText;
-              button.style.backgroundColor = originalBg;
+              button.style.color = originalColor;
             }, 2000);
           }
         }
@@ -1239,97 +1252,19 @@
     };
   }
 
-  // Function to update property data with complete information
-  function updatePropertyData(info) {
-    console.log('Content: updatePropertyData called for URL:', info.url);
-    
-    // Get the property ID by URL first
-    chrome.runtime.sendMessage(
-      {
-        action: "getProperties",
-      },
-      (response) => {
-        console.log('Content: getProperties response:', response);
-        if (response && response.properties) {
-          const property = response.properties.find((p) => p.url === info.url);
-          console.log('Content: Found property:', property);
-          if (property) {
-            console.log('Content: Sending updateProperty for ID:', property.id);
-            // Send update request
-            chrome.runtime.sendMessage(
-              {
-                action: "updateProperty",
-                propertyId: property.id,
-                updatedProperty: info,
-              },
-              (updateResponse) => {
-                console.log('Content: updateProperty response:', updateResponse);
-                if (updateResponse && updateResponse.success) {
-                  console.log('Content: Property updated successfully');
-                  
-                  // Show success message
-                  const updateButton = document.querySelector(".analyzer-update-btn");
-                  if (updateButton) {
-                    const originalHTML = updateButton.innerHTML;
-                    const originalBg = updateButton.style.backgroundColor;
-                    const originalTitle = updateButton.title;
 
-                    updateButton.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
-                    updateButton.style.backgroundColor = "hsl(var(--success))";
-                    updateButton.title = "Datos actualizados correctamente";
-
-                    // Remove the button after showing success
-                    setTimeout(() => {
-                      if (updateButton.parentNode) {
-                        updateButton.parentNode.removeChild(updateButton);
-                      }
-                    }, 2000);
-                  }
-                } else {
-                  console.log('Content: Property update failed');
-                  // Show error message
-                  const updateButton = document.querySelector(".analyzer-update-btn");
-                  if (updateButton) {
-                    const originalHTML = updateButton.innerHTML;
-                    const originalBg = updateButton.style.backgroundColor;
-
-                    updateButton.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"></path></svg>';
-                    updateButton.style.backgroundColor = "hsl(var(--destructive))";
-
-                    setTimeout(() => {
-                      updateButton.innerHTML = originalHTML;
-                      updateButton.style.backgroundColor = originalBg;
-                    }, 2000);
-                  }
-                }
-              }
-            );
-          } else {
-            console.log('Content: Property not found in list');
-          }
-        } else {
-          console.log('Content: No properties response');
-        }
-      }
-    );
-  }
 
   // Function to remove property from manager
   function removeFromManager(info) {
-    console.log('Content: removeFromManager called for URL:', info.url);
-    
     // Get the property ID by URL first
     chrome.runtime.sendMessage(
       {
         action: "getProperties",
       },
       (response) => {
-        console.log('Content: getProperties response:', response);
         if (response && response.properties) {
           const property = response.properties.find((p) => p.url === info.url);
-          console.log('Content: Found property:', property);
           if (property) {
-            console.log('Content: Sending removeProperty for ID:', property.id);
             // Send remove request
             chrome.runtime.sendMessage(
               {
@@ -1337,15 +1272,13 @@
                 propertyId: property.id,
               },
               (removeResponse) => {
-                console.log('Content: removeProperty response:', removeResponse);
                 if (removeResponse && removeResponse.success) {
-                  console.log('Content: Property removed successfully');
                   // Update button to add mode immediately
                   const button = document.querySelector(".analyzer-add-btn");
                   if (button) {
                     button.innerHTML =
                       '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
-                    button.style.backgroundColor = "hsl(var(--primary))";
+                    button.style.color = "hsl(var(--primary))";
                     button.disabled = false;
                     button.classList.remove("delete-mode");
                     button.onclick = () => addToManager(info);
@@ -1357,29 +1290,28 @@
                     refreshButtonState();
                   }, 200);
                 } else {
-                  console.log('Content: Property removal failed');
                   // Show error message
                   const button = document.querySelector(".analyzer-add-btn");
                   if (button) {
                     const originalText = button.textContent;
-                    const originalBg = button.style.backgroundColor;
+                    const originalColor = button.style.color;
 
                     button.textContent = "❌ Error";
-                    button.style.backgroundColor = "hsl(var(--destructive))";
+                    button.style.color = "hsl(var(--destructive))";
 
                     setTimeout(() => {
                       button.textContent = originalText;
-                      button.style.backgroundColor = originalBg;
+                      button.style.color = originalColor;
                     }, 2000);
                   }
                 }
               }
             );
           } else {
-            console.log('Content: Property not found in list');
+            // Property not found in list
           }
         } else {
-          console.log('Content: No properties response');
+          // No properties response
         }
       }
     );
@@ -1478,339 +1410,20 @@ El mensaje debe ser natural, específico sobre esta propiedad y mostrar que has 
 
   // Function to initialize the analyzer
   async function initAnalyzer() {
-    const currentUrl = window.location.href;
-    
-    // Check if we're on an areas page (property list)
-    if (currentUrl.includes('/areas/')) {
-      await initAreasPageAnalyzer();
-    } else {
-      // Individual property page
-      await initPropertyPageAnalyzer();
-    }
+    // Only handle individual property pages
+    await initPropertyPageAnalyzer();
   }
 
-  // Function to initialize analyzer for areas pages (property lists)
-  async function initAreasPageAnalyzer() {
-    console.log('Initializing analyzer for areas page');
-    
-    // Remove any existing analyzer buttons
-    const existingButtons = document.querySelectorAll('.analyzer-add-btn');
-    existingButtons.forEach(btn => btn.remove());
 
-    // Find all property cards
-    const propertyCards = document.querySelectorAll('article.item');
-    console.log('Found property cards:', propertyCards.length);
-    
-    for (const card of propertyCards) {
-      await addAnalyzerButtonToCard(card);
-    }
 
-    // Set up observer for dynamically loaded cards
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === 1) { // Element node
-            // Check if the added node is a property card
-            if (node.classList && node.classList.contains('item')) {
-              addAnalyzerButtonToCard(node);
-            }
-            // Check if the added node contains property cards
-            const cards = node.querySelectorAll ? node.querySelectorAll('article.item') : [];
-            cards.forEach(card => addAnalyzerButtonToCard(card));
-          }
-        });
-      });
-    });
 
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
-  }
 
-  // Function to add analyzer button to a property card
-  async function addAnalyzerButtonToCard(card) {
-    // Skip if button already exists
-    if (card.querySelector('.analyzer-add-btn')) {
-      return;
-    }
 
-    // Extract property info from the card
-    const propertyInfo = extractPropertyInfoFromCard(card);
-    
-    if (!propertyInfo.url) {
-      console.log('Skipping card - no URL found');
-      return; // Skip if no URL found
-    }
 
-    console.log('Adding analyzer button to card:', propertyInfo.url);
 
-    // Check if property is already in the manager
-    const isAlreadyAdded = await checkIfPropertyExists(propertyInfo.url);
-
-    // Find the favorite button container
-    const favoriteBtn = card.querySelector('.favorite-btn');
-    if (!favoriteBtn) {
-      return;
-    }
-
-    // Create analyzer button
-    const analyzerBtn = document.createElement('button');
-    analyzerBtn.className = 'analyzer-add-btn analyzer-add-btn--compact';
-    analyzerBtn.style.cssText = `
-      margin-right: 16px;
-      margin-left: 0;
-      width: 32px;
-      height: 32px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 150ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      transform: translateZ(0);
-      backface-visibility: hidden;
-    `;
-
-    if (isAlreadyAdded) {
-      analyzerBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>';
-      analyzerBtn.style.backgroundColor = 'hsl(var(--destructive))';
-      analyzerBtn.classList.add('delete-mode');
-      analyzerBtn.onclick = () => showDeleteConfirmation(propertyInfo);
-      analyzerBtn.title = 'Eliminar del gestor de propiedades';
-    } else {
-      analyzerBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
-      analyzerBtn.style.backgroundColor = 'hsl(var(--primary))';
-      analyzerBtn.onclick = () => addToManager(propertyInfo);
-      analyzerBtn.title = 'Agregar al gestor de propiedades';
-    }
-
-    // Insert after the favorite button
-    favoriteBtn.parentNode.insertBefore(analyzerBtn, favoriteBtn.nextSibling);
-  }
-
-  // Function to extract property info from a card
-  function extractPropertyInfoFromCard(card) {
-    const info = {
-      url: null,
-      title: null,
-      price: null,
-      squareMeters: null,
-      rooms: null,
-      bathrooms: null,
-      floor: null,
-      orientation: null,
-      furnished: null,
-      heating: null,
-      elevator: null,
-      professional: null,
-      contactPerson: null,
-      lastUpdated: null,
-      monthsMentioned: [],
-      seasonal: null,
-      energyCert: null,
-      pricePerM2: null,
-      deposit: null,
-      desk: null,
-      googleMapsUrl: null,
-      image: null,
-      parking: null,
-      terrace: null,
-      balcony: null,
-      airConditioning: null,
-      garden: null,
-      pool: null,
-      accessible: null,
-      cleaningIncluded: null,
-      lgbtFriendly: null,
-      ownerNotPresent: null,
-      privateBathroom: null,
-      window: null,
-      couplesAllowed: null,
-      minorsAllowed: null,
-      builtInWardrobes: null,
-      garage: null,
-      storage: null,
-      condition: null,
-      propertySubType: null,
-      hasFloorPlan: null,
-      hasVirtualTour: null,
-      bankAd: null,
-      smokers: null,
-      bed: null,
-      roommates: null,
-      maintenance: null,
-      gender: null
-    };
-
-    // Extract URL from the card
-    const linkElement = card.querySelector('.item-link');
-    if (linkElement && linkElement.href) {
-      info.url = linkElement.href;
-    }
-
-    // Extract title from link element (prioritize link text over URL)
-    if (linkElement) {
-      let title = getTextContent(linkElement);
-      
-      // Clean up the title to make it more concise
-      // Remove "Piso en" prefix and keep only the address part
-      if (title.startsWith('Piso en ')) {
-        title = title.replace('Piso en ', '');
-      } else if (title.startsWith('Casa en ')) {
-        title = title.replace('Casa en ', '');
-      } else if (title.startsWith('Habitación en ')) {
-        title = title.replace('Habitación en ', '');
-      } else if (title.startsWith('Local en ')) {
-        title = title.replace('Local en ', '');
-      } else if (title.startsWith('Oficina en ')) {
-        title = title.replace('Oficina en ', '');
-      }
-      
-      // Remove the city name at the end if it's separated by comma
-      const commaIndex = title.lastIndexOf(',');
-      if (commaIndex !== -1) {
-        const beforeComma = title.substring(0, commaIndex).trim();
-        const afterComma = title.substring(commaIndex + 1).trim();
-        
-        // If what comes after the comma looks like a city name (no numbers), remove it
-        if (!/\d/.test(afterComma) && afterComma.length > 0) {
-          title = beforeComma;
-        }
-      }
-      
-      // Ensure the first letter is capitalized
-      info.title = title.charAt(0).toUpperCase() + title.slice(1);
-    }
-
-    // Extract price
-    const priceElement = card.querySelector('.item-price');
-    if (priceElement) {
-      const priceText = getTextContent(priceElement);
-      info.price = extractNumber(priceText);
-    }
-
-    // Extract basic details
-    const detailElements = card.querySelectorAll('.item-detail');
-    detailElements.forEach(detail => {
-      const text = getTextContent(detail);
-      
-      // Extract rooms
-      if (text.includes('hab.')) {
-        const roomsMatch = text.match(/(\d+)\s*hab\./);
-        if (roomsMatch) {
-          info.rooms = parseInt(roomsMatch[1]);
-        }
-      }
-      
-      // Extract square meters
-      if (text.includes('m²')) {
-        const m2Match = text.match(/(\d+)\s*m²/);
-        if (m2Match) {
-          info.squareMeters = parseInt(m2Match[1]);
-        }
-      }
-      
-      // Extract floor
-      if (text.includes('Planta')) {
-        const floorMatch = text.match(/Planta\s*(\d+)/);
-        if (floorMatch) {
-          info.floor = parseInt(floorMatch[1]);
-        }
-      }
-    });
-
-    // Extract first image from the gallery (skip map slides)
-    const imageGallery = card.querySelector('.item-gallery');
-    if (imageGallery) {
-      let imageUrl = null;
-      
-      // Try the simple structure first: .gallery-fallback picture
-      const galleryFallback = imageGallery.querySelector('.gallery-fallback picture');
-      if (galleryFallback) {
-        const imgElement = galleryFallback.querySelector('img');
-        if (imgElement && imgElement.src && !imgElement.src.includes('static-map-placeholder')) {
-          // Use the src property directly, just like individual property pages
-          imageUrl = imgElement.src;
-        }
-      }
-      
-      // If no image found, try the complex structure: .image-gallery-slides
-      if (!imageUrl) {
-        const imageGallerySlides = imageGallery.querySelector('.image-gallery-slides');
-        if (imageGallerySlides) {
-          const slides = imageGallerySlides.querySelectorAll('.image-gallery-slide');
-          for (const slide of slides) {
-            const imgElement = slide.querySelector('img');
-            if (imgElement && imgElement.src && !imgElement.src.includes('static-map-placeholder')) {
-              imageUrl = imgElement.src;
-              break; // Use the first non-map image
-            }
-          }
-        }
-      }
-      
-      // Process the image URL if found
-      if (imageUrl) {
-        console.log('Content: Raw image URL from areas page:', imageUrl);
-        
-        // Decode any HTML entities in the URL
-        let decodedImageUrl = imageUrl;
-        if (imageUrl.includes('&quot;')) {
-          decodedImageUrl = imageUrl.replace(/&quot;/g, '"');
-          console.log('Content: Decoded HTML entities:', decodedImageUrl);
-        }
-        
-        // Use the URL as-is, just like individual property pages do
-        info.image = decodedImageUrl;
-        console.log('Content: Final image URL stored:', info.image);
-      }
-    }
-
-    // Extract description for additional features
-    const descriptionElement = card.querySelector('.item-description');
-    if (descriptionElement) {
-      const descriptionText = getTextContent(descriptionElement).toLowerCase();
-      
-      // Extract features from description
-      if (descriptionText.includes('calefacción')) info.heating = true;
-      if (descriptionText.includes('amueblado')) info.furnished = true;
-      if (descriptionText.includes('ascensor')) info.elevator = true;
-      if (descriptionText.includes('temporada')) info.seasonal = true;
-      if (descriptionText.includes('parking')) info.parking = true;
-      if (descriptionText.includes('terraza')) info.terrace = true;
-      if (descriptionText.includes('balcón')) info.balcony = true;
-      if (descriptionText.includes('aire acondicionado')) info.airConditioning = true;
-      if (descriptionText.includes('jardín')) info.garden = true;
-      if (descriptionText.includes('piscina')) info.pool = true;
-      if (descriptionText.includes('garaje')) info.garage = true;
-      if (descriptionText.includes('trastero')) info.storage = true;
-      if (descriptionText.includes('armarios')) info.builtInWardrobes = true;
-      if (descriptionText.includes('baño privado')) info.privateBathroom = true;
-      if (descriptionText.includes('ventana')) info.window = true;
-      if (descriptionText.includes('cama')) info.bed = true;
-      if (descriptionText.includes('fumadores')) info.smokers = true;
-      if (descriptionText.includes('chico')) info.gender = 'chico';
-      if (descriptionText.includes('chica')) info.gender = 'chica';
-      if (descriptionText.includes('parejas')) info.couplesAllowed = true;
-      if (descriptionText.includes('menores')) info.minorsAllowed = true;
-      if (descriptionText.includes('lgbt')) info.lgbtFriendly = true;
-      if (descriptionText.includes('accesible')) info.accessible = true;
-      if (descriptionText.includes('limpieza incluida')) info.cleaningIncluded = true;
-      if (descriptionText.includes('sin propietario')) info.ownerNotPresent = true;
-      if (descriptionText.includes('banco')) info.bankAd = true;
-      if (descriptionText.includes('visita virtual')) info.hasVirtualTour = true;
-      if (descriptionText.includes('plano')) info.hasFloorPlan = true;
-    }
-
-    // Calculate price per m² if both price and square meters are available
-    if (info.price && info.squareMeters) {
-      info.pricePerM2 = Math.round(info.price / info.squareMeters);
-    }
-
-    return info;
-  }
+  // Track if we've already extracted property data for this page
+  let propertyDataExtracted = false;
+  let extractedPropertyInfo = null;
 
   // Function to initialize analyzer for individual property pages
   async function initPropertyPageAnalyzer() {
@@ -1820,28 +1433,59 @@ El mensaje debe ser natural, específico sobre esta propiedad y mostrar que has 
       existingTable.remove();
     }
 
-    // Extract property information
-    const propertyInfo = extractPropertyInfo();
-
-    // Debug logging
-    console.log("Property Info:", {
-      price: propertyInfo.price,
-      squareMeters: propertyInfo.squareMeters,
-      rooms: propertyInfo.rooms,
-      heating: propertyInfo.heating,
-    });
-
     // Check if property is already in the manager and get its data
-    const existingProperty = await getExistingProperty(propertyInfo.url);
+    const currentUrl = window.location.href;
+    const existingProperty = await getExistingProperty(currentUrl);
     const isAlreadyAdded = !!existingProperty;
 
-    // Check if property was added from areas page (has incomplete data)
-    const needsUpdate = existingProperty && isPropertyFromAreasPage(existingProperty);
+    // Check if page is ready for property extraction
+    const isPageReady = isPropertyPageReady();
+    
+    if (!isPageReady) {
+      // Show loading state
+      const table = createAnalysisTable(null, isAlreadyAdded, true); // true = loading state
+      insertTable(table);
+      return;
+    }
 
-    // Create and insert the analysis table
-    const table = createAnalysisTable(propertyInfo, isAlreadyAdded, needsUpdate);
+    // Page is ready, extract property data only once
+    if (!propertyDataExtracted) {
+      console.log('🏠 Page is ready, extracting property data...');
+      extractedPropertyInfo = extractPropertyInfo();
+      propertyDataExtracted = true;
+      console.log('✅ Property data extracted successfully');
+    }
 
-    // Insert before the detail-container
+    // Create and insert the analysis table with extracted data
+    const table = createAnalysisTable(extractedPropertyInfo, isAlreadyAdded, false); // false = not loading
+    insertTable(table);
+  }
+
+  // Function to check if the property page is ready for data extraction
+  function isPropertyPageReady() {
+    // Check if essential elements are present
+    const hasPrice = document.querySelector(".info-data-price");
+    const hasTitle = document.querySelector(".main-info__title-main, h1");
+    const hasFeatures = document.querySelector(".info-features");
+    const hasDetailContainer = document.querySelector(".detail-container");
+    
+    // Check if we have the minimum required data
+    const isReady = hasPrice && hasTitle && hasFeatures && hasDetailContainer;
+    
+    if (!isReady) {
+      console.log('⏳ Page not ready yet. Missing elements:', {
+        hasPrice: !!hasPrice,
+        hasTitle: !!hasTitle,
+        hasFeatures: !!hasFeatures,
+        hasDetailContainer: !!hasDetailContainer
+      });
+    }
+    
+    return isReady;
+  }
+
+  // Function to insert table in the correct location
+  function insertTable(table) {
     const detailContainer = document.querySelector(".detail-container");
     if (detailContainer) {
       detailContainer.parentNode.insertBefore(table, detailContainer);
@@ -1862,51 +1506,7 @@ El mensaje debe ser natural, específico sobre esta propiedad y mostrar que has 
     }
   }
 
-  // Function to check if property was added from areas page (has incomplete data)
-  function isPropertyFromAreasPage(property) {
-    // Properties from areas page typically have missing or incomplete data
-    // Check for indicators that suggest it was added from areas page
-    const hasIncompleteData = (
-      !property.imageUrl ||
-      !property.bathrooms ||
-      !property.floor ||
-      !property.orientation ||
-      !property.furnished ||
-      !property.heating ||
-      !property.elevator ||
-      !property.energyCert ||
-      !property.deposit ||
-      !property.maintenance ||
-      !property.parking ||
-      !property.terrace ||
-      !property.balcony ||
-      !property.airConditioning ||
-      !property.garden ||
-      !property.pool ||
-      !property.accessible ||
-      !property.cleaningIncluded ||
-      !property.lgbtFriendly ||
-      !property.ownerNotPresent ||
-      !property.privateBathroom ||
-      !property.window ||
-      !property.couplesAllowed ||
-      !property.minorsAllowed ||
-      !property.builtInWardrobes ||
-      !property.garage ||
-      !property.storage ||
-      !property.condition ||
-      !property.propertySubType ||
-      !property.hasFloorPlan ||
-      !property.hasVirtualTour ||
-      !property.bankAd ||
-      !property.smokers ||
-      !property.bed ||
-      !property.roommates ||
-      !property.gender
-    );
 
-    return hasIncompleteData;
-  }
 
   // Function to check if property already exists in manager
   async function checkIfPropertyExists(propertyUrl) {
@@ -1930,9 +1530,8 @@ El mensaje debe ser natural, específico sobre esta propiedad y mostrar que has 
   }
 
   // Listen for property updates from background script
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  chrome.runtime.onMessage.addListener((message) => {
     if (message.action === "propertiesUpdated") {
-      console.log('Content: Received propertiesUpdated, count:', message.properties.length);
       // Update button state based on current property
       updateButtonState(message.properties);
 
@@ -1940,33 +1539,14 @@ El mensaje debe ser natural, específico sobre esta propiedad y mostrar que has 
     }
     
     if (message.action === "propertyDeleted") {
-      console.log('Content: Received propertyDeleted for URL:', message.propertyUrl);
       // Force refresh of button states for the specific property
       const currentUrl = window.location.href;
       
-      if (currentUrl.includes('/areas/')) {
-        // Update all buttons and check if any match the deleted property
-        const buttons = document.querySelectorAll(".analyzer-add-btn");
-        buttons.forEach(button => {
-          const card = button.closest('article.item');
-          if (card) {
-            const propertyInfo = extractPropertyInfoFromCard(card);
-            if (propertyInfo.url === message.propertyUrl) {
-              // This button belongs to the deleted property, update it to add state
-              updateSingleButtonState(button, false, propertyInfo);
-              console.log('Content: Updated button for deleted property:', propertyInfo.url);
-            }
-          }
-        });
-      } else {
-        // Individual property page
-        if (currentUrl === message.propertyUrl) {
-          const button = document.querySelector(".analyzer-add-btn");
-          if (button) {
-            const propertyInfo = extractPropertyInfo();
-            updateSingleButtonState(button, false, propertyInfo);
-            console.log('Content: Updated button for deleted property on individual page');
-          }
+      // Individual property page
+      if (currentUrl === message.propertyUrl) {
+        const button = document.querySelector(".analyzer-add-btn");
+        if (button) {
+          updateSingleButtonState(button, false);
         }
       }
     }
@@ -1976,54 +1556,41 @@ El mensaje debe ser natural, específico sobre esta propiedad y mostrar que has 
   function updateButtonState(properties) {
     const currentUrl = window.location.href;
     
-    // Check if we're on an areas page or individual property page
-    if (currentUrl.includes('/areas/')) {
-      // Update all analyzer buttons on the page
-      const buttons = document.querySelectorAll(".analyzer-add-btn");
-      buttons.forEach(button => {
-        // Find the property card this button belongs to
-        const card = button.closest('article.item');
-        if (card) {
-          const propertyInfo = extractPropertyInfoFromCard(card);
-          const isAlreadyAdded = properties.some(
-            (property) => property.url === propertyInfo.url
-          );
-          
-          updateSingleButtonState(button, isAlreadyAdded, propertyInfo);
-        }
-      });
-    } else {
-      // Individual property page - single button
-      const isAlreadyAdded = properties.some(
-        (property) => property.url === currentUrl
-      );
-      
-      const button = document.querySelector(".analyzer-add-btn");
-      if (button) {
-        const propertyInfo = extractPropertyInfo();
-        updateSingleButtonState(button, isAlreadyAdded, propertyInfo);
-      }
+    // Individual property page - single button
+    const isAlreadyAdded = properties.some(
+      (property) => property.url === currentUrl
+    );
+    
+    const button = document.querySelector(".analyzer-add-btn");
+    if (button) {
+      updateSingleButtonState(button, isAlreadyAdded);
     }
   }
 
   // Function to update a single button state
-  function updateSingleButtonState(button, isAlreadyAdded, propertyInfo) {
+  function updateSingleButtonState(button, isAlreadyAdded) {
     if (isAlreadyAdded) {
       button.innerHTML =
         '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>';
-      button.style.backgroundColor = "hsl(var(--destructive))";
+      button.style.color = "hsl(var(--destructive))";
       button.disabled = false;
       button.classList.add("delete-mode");
       button.title = "Eliminar del gestor de propiedades";
-      button.onclick = () => showDeleteConfirmation(propertyInfo);
+      button.onclick = () => {
+        const propertyInfo = extractPropertyInfo();
+        showDeleteConfirmation(propertyInfo);
+      };
     } else {
       button.innerHTML =
         '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
-      button.style.backgroundColor = "hsl(var(--primary))";
+      button.style.color = "hsl(var(--primary))";
       button.disabled = false;
       button.classList.remove("delete-mode");
       button.title = "Agregar al gestor de propiedades";
-      button.onclick = () => addToManager(propertyInfo);
+      button.onclick = () => {
+        const propertyInfo = extractPropertyInfo();
+        addToManager(propertyInfo);
+      };
     }
   }
 
@@ -2044,40 +1611,19 @@ El mensaje debe ser natural, específico sobre esta propiedad y mostrar que has 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
-        const currentUrl = window.location.href;
-        
-        if (currentUrl.includes('/areas/')) {
-          // For areas pages, check for new property cards
-          const hasNewCards = Array.from(mutation.addedNodes).some(
-            (node) =>
-              node.nodeType === 1 &&
-              (node.classList?.contains("item") ||
-                node.querySelector?.("article.item"))
-          );
+        // For individual property pages, check if detail-container was added
+        const hasDetailContainer = Array.from(mutation.addedNodes).some(
+          (node) =>
+            node.nodeType === 1 &&
+            (node.classList?.contains("detail-container") ||
+              node.querySelector?.(".detail-container"))
+        );
 
-          if (hasNewCards) {
-            setTimeout(() => {
-              // Add buttons to new cards
-              const allCards = document.querySelectorAll('article.item');
-              allCards.forEach(card => {
-                if (!card.querySelector('.analyzer-add-btn')) {
-                  addAnalyzerButtonToCard(card);
-                }
-              });
-            }, 500);
-          }
-        } else {
-          // For individual property pages, check if detail-container was added
-          const hasDetailContainer = Array.from(mutation.addedNodes).some(
-            (node) =>
-              node.nodeType === 1 &&
-              (node.classList?.contains("detail-container") ||
-                node.querySelector?.(".detail-container"))
-          );
-
-          if (hasDetailContainer) {
-            setTimeout(initAnalyzer, 1000); // Small delay to ensure content is loaded
-          }
+        if (hasDetailContainer) {
+          // Reset extraction state for new page
+          propertyDataExtracted = false;
+          extractedPropertyInfo = null;
+          setTimeout(initAnalyzer, 1000); // Small delay to ensure content is loaded
         }
       }
     });
@@ -2088,6 +1634,9 @@ El mensaje debe ser natural, específico sobre esta propiedad y mostrar que has 
   setInterval(() => {
     if (window.location.href !== currentUrl) {
       currentUrl = window.location.href;
+      // Reset extraction state for new URL
+      propertyDataExtracted = false;
+      extractedPropertyInfo = null;
       setTimeout(initAnalyzer, 500);
     }
   }, 1000);

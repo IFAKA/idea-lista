@@ -21,12 +21,6 @@
       "js": ["content.js"],
       "css": ["styles.css"],
       "run_at": "document_end"
-    },
-    {
-      "matches": ["https://www.idealista.com/areas/*"],
-      "js": ["content.js"],
-      "css": ["styles.css"],
-      "run_at": "document_end"
     }
   ],
   "action": {

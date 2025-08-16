@@ -802,8 +802,8 @@ body {
 
 /* Add button */
 .analyzer-add-btn--compact {
-    background-color: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
+    background-color: transparent;
+    color: hsl(var(--primary));
     border: none;
     padding: 4px 8px;
     border-radius: 6px;
@@ -816,7 +816,7 @@ body {
     transform: translateZ(0);
     backface-visibility: hidden;
     will-change: transform, background-color;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -851,19 +851,20 @@ body {
 }
 
 .analyzer-add-btn--compact:hover { 
-    background-color: hsl(var(--primary) / 0.9); 
+    background-color: hsl(var(--accent)); 
+    color: hsl(var(--accent-foreground));
     transform: translateZ(0) scale(1.02);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: none;
 }
 
 /* Dark mode specific styles */
 @media (prefers-color-scheme: dark) {
     .analyzer-add-btn--compact {
-        box-shadow: 0 1px 3px rgba(255, 255, 255, 0.1);
+        box-shadow: none;
     }
     
     .analyzer-add-btn--compact:hover {
-        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+        box-shadow: none;
     }
 }
 
@@ -884,36 +885,38 @@ body {
 
 /* Specific styles for added state */
 .analyzer-add-btn--compact[disabled] {
-    background-color: var(--color-success) !important;
-    color: var(--text-inverse) !important;
+    background-color: transparent !important;
+    color: var(--color-success) !important;
     opacity: 1 !important;
     cursor: not-allowed !important;
 }
 
 /* Delete button hover state */
 .analyzer-add-btn--compact.delete-mode:hover {
-    background-color: #c82333 !important;
+    background-color: hsl(var(--destructive) / 0.1) !important;
+    color: hsl(var(--destructive)) !important;
     transform: var(--transform-base) scale(1.02);
-    box-shadow: var(--shadow-md);
+    box-shadow: none;
 }
 
 /* Dark mode delete button hover state */
 @media (prefers-color-scheme: dark) {
     .analyzer-add-btn--compact.delete-mode:hover {
-        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15);
+        box-shadow: none;
     }
 }
 
 /* Delete button active state */
 .analyzer-add-btn--compact.delete-mode:active {
-    background-color: #bd2130 !important;
+    background-color: hsl(var(--destructive) / 0.2) !important;
+    color: hsl(var(--destructive)) !important;
     transform: var(--transform-base) scale(0.98);
 }
 
 /* Dark mode delete button active state */
 @media (prefers-color-scheme: dark) {
     .analyzer-add-btn--compact.delete-mode:active {
-        box-shadow: 0 2px 6px rgba(255, 255, 255, 0.1);
+        box-shadow: none;
     }
 }
 

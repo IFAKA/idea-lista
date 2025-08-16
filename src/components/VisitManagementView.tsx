@@ -29,30 +29,37 @@ interface VisitManagementViewProps {
 const getStatusColor = (status: ContactStatus | PropertyStatus | VisitStatus) => {
   switch (status) {
     case 'pending':
-    case 'requested':
-      return 'bg-yellow-100 text-yellow-800'
-    case 'contacted':
-    case 'confirmed':
-      return 'bg-blue-100 text-blue-800'
-    case 'responded':
-    case 'completed':
-      return 'bg-green-100 text-green-800'
-    case 'scheduled':
-    case 'visited':
-      return 'bg-purple-100 text-purple-800'
-    case 'no_response':
-    case 'cancelled':
       return 'bg-red-100 text-red-800'
-    case 'not_interested':
-      return 'bg-gray-100 text-gray-800'
-    case 'available':
+    case 'requested':
+      return 'bg-blue-100 text-blue-800'
+    case 'contacted':
+      return 'bg-indigo-100 text-indigo-800'
+    case 'confirmed':
+      return 'bg-cyan-100 text-cyan-800'
+    case 'responded':
       return 'bg-green-100 text-green-800'
+    case 'completed':
+      return 'bg-emerald-100 text-emerald-800'
+    case 'scheduled':
+      return 'bg-purple-100 text-purple-800'
+    case 'visited':
+      return 'bg-violet-100 text-violet-800'
+    case 'no_response':
+      return 'bg-gray-100 text-gray-800'
+    case 'cancelled':
+      return 'bg-slate-100 text-slate-800'
+    case 'not_interested':
+      return 'bg-zinc-100 text-zinc-800'
+    case 'available':
+      return 'bg-teal-100 text-teal-800'
     case 'under_contract':
       return 'bg-orange-100 text-orange-800'
     case 'sold':
-      return 'bg-red-100 text-red-800'
+      return 'bg-rose-100 text-rose-800'
     case 'off_market':
-      return 'bg-gray-100 text-gray-800'
+      return 'bg-neutral-100 text-neutral-800'
+    case 'rescheduled':
+      return 'bg-fuchsia-100 text-fuchsia-800'
     default:
       return 'bg-gray-100 text-gray-800'
   }
@@ -88,6 +95,7 @@ export const VisitManagementView: React.FC<VisitManagementViewProps> = ({
   // Use the property prop directly
   const updatedProperty = property
   const [showAddModal, setShowAddModal] = useState(false)
+  const [extractedContactName, setExtractedContactName] = useState<string>('')
   const [newRecord, setNewRecord] = useState({
     status: 'requested' as VisitStatus,
     scheduledTime: '',
@@ -95,51 +103,91 @@ export const VisitManagementView: React.FC<VisitManagementViewProps> = ({
     notes: ''
   })
 
+  // Extract contact person name when component mounts
+  React.useEffect(() => {
+    const name = extractContactPersonName()
+    setExtractedContactName(name)
+  }, [])
+
   // Extract contact person name from property post
   const extractContactPersonName = (): string => {
     try {
+      // Try to access parent window if this is a Chrome extension
+      let targetDocument = document
+      try {
+        if (window.parent && window.parent !== window) {
+          targetDocument = window.parent.document
+        }
+      } catch (e) {
+        // Cannot access parent window (CORS restriction)
+      }
+      
       // First try to find the hidden input with user-name
-      const userNameInput = document.querySelector('input[name="user-name"]') as HTMLInputElement
+      const userNameInput = targetDocument.querySelector('input[name="user-name"]') as HTMLInputElement
       if (userNameInput && userNameInput.value) {
         return userNameInput.value.trim()
       }
       
-      // Fallback: Look for the chat info banner text in the current page
-      const chatInfoBanner = document.querySelector('.chat-info-banner-text')
+      // Look for the chat info banner text in the current page
+      // This specifically targets the text: "Si tienes alguna duda recuerda que puedes hablar con <strong>Sellmi</strong> por chat."
+      const chatInfoBanner = targetDocument.querySelector('.chat-info-banner-text')
+      
       if (chatInfoBanner) {
         const strongElement = chatInfoBanner.querySelector('strong')
+        
         if (strongElement) {
-          return strongElement.textContent?.trim() || ''
+          const extractedName = strongElement.textContent?.trim() || ''
+          if (extractedName) {
+            // Found contact name in chat banner
+            return extractedName
+          }
         }
       }
       
       // Additional fallback: Look for the professional-name div structure
-      const professionalNameDiv = document.querySelector('.professional-name .name')
+      const professionalNameDiv = targetDocument.querySelector('.professional-name .name')
       if (professionalNameDiv) {
-        return professionalNameDiv.textContent?.trim() || ''
+        const name = professionalNameDiv.textContent?.trim() || ''
+        if (name) {
+          // Found contact name in professional name
+          return name
+        }
       }
+      
+      // Additional fallback: Look for any strong tag with a name-like pattern
+      const allStrongElements = targetDocument.querySelectorAll('strong')
+      
+      for (const strong of allStrongElements) {
+        const text = strong.textContent?.trim() || ''
+        
+        // Check if it looks like a name (not empty, not too long, not common words)
+        if (text && text.length > 0 && text.length < 50 && 
+            !['Si', 'tienes', 'alguna', 'duda', 'recuerda', 'que', 'puedes', 'hablar', 'con', 'por', 'chat'].includes(text)) {
+          // Found contact name in strong element
+          return text
+        }
+      }
+      
+              // No contact name found in DOM
     } catch (error) {
-      console.warn('Could not extract contact person name:', error)
+      console.error('Error extracting contact person name:', error)
     }
     return ''
   }
 
   // Get the contact person name for the first registro
-  const getInitialContactPerson = (): string => {
+  const getInitialContactPerson = React.useCallback((): string => {
     const visits = updatedProperty.visits || []
     if (visits.length === 0) {
-      // First registro - use property's contact person or extract from page
-      const contactPerson = updatedProperty.contactPerson || extractContactPersonName()
-      console.log('Modal opened - Property contactPerson:', updatedProperty.contactPerson)
-      console.log('Modal opened - Extracted contactPerson:', extractContactPersonName())
-      console.log('Modal opened - Final contactPerson value:', contactPerson)
+      // First registro - prioritize property's stored contact person, then extracted name
+      const contactPerson = updatedProperty.contactPerson || extractedContactName || ''
       return contactPerson
     } else {
       // Use the last contact person from previous registros
       const lastVisit = visits[visits.length - 1]
       return lastVisit.contactPerson || ''
     }
-  }
+  }, [updatedProperty.visits, updatedProperty.contactPerson, extractedContactName])
 
   const handleAddRecord = () => {
     // Validate required fields
@@ -219,7 +267,7 @@ export const VisitManagementView: React.FC<VisitManagementViewProps> = ({
                              completedContactStatuses.includes(updatedProperty.contactStatus || 'pending')
 
   // Get available status options based on current visit progression
-  const getAvailableStatusOptions = (): VisitStatus[] => {
+  const getAvailableStatusOptions = React.useCallback((): VisitStatus[] => {
     const visits = updatedProperty.visits || []
     
     // Check if any visit has a final state (completed or cancelled)
@@ -256,29 +304,30 @@ export const VisitManagementView: React.FC<VisitManagementViewProps> = ({
       default:
         return ['requested']
     }
-  }
+  }, [updatedProperty.visits])
 
   const availableStatusOptions = getAvailableStatusOptions()
-
-  // Debug logging for contact person
-  console.log('Component render - newRecord.contactPerson:', newRecord.contactPerson)
-  console.log('Component render - updatedProperty.contactPerson:', updatedProperty.contactPerson)
 
   // Update initial status when modal opens
   React.useEffect(() => {
     if (showAddModal) {
       const availableOptions = getAvailableStatusOptions()
       if (availableOptions.length > 0) {
-        const initialContactPerson = getInitialContactPerson()
-        console.log('Modal useEffect - Setting newRecord with contactPerson:', initialContactPerson)
-        setNewRecord(prev => ({
-          ...prev,
-          status: availableOptions[0],
-          contactPerson: initialContactPerson
-        }))
+        // Add a small delay to ensure DOM is fully loaded
+        setTimeout(() => {
+          const initialContactPerson = getInitialContactPerson()
+          
+          // Setting contact person for new record
+          
+          setNewRecord(prev => ({
+            ...prev,
+            status: availableOptions[0],
+            contactPerson: initialContactPerson
+          }))
+        }, 100) // Small delay to ensure DOM is ready
       }
     }
-  }, [showAddModal])
+  }, [showAddModal, extractedContactName, getAvailableStatusOptions, getInitialContactPerson])
 
   return (
     <div className="w-96 h-[600px] bg-background text-foreground flex flex-col">
@@ -429,7 +478,6 @@ export const VisitManagementView: React.FC<VisitManagementViewProps> = ({
                 value={newRecord.contactPerson}
                 onChange={(e) => setNewRecord({ ...newRecord, contactPerson: e.target.value })}
                 placeholder="Nombre del agente/propietario"
-                disabled={updatedProperty.visits && updatedProperty.visits.length === 0}
               />
             </div>
 

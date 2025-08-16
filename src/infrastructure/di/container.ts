@@ -5,8 +5,8 @@ import { defaultPropertyTypeConfigs } from '../../domain/use-cases/default-confi
 
 class Container {
   private static instance: Container
-  private repositories: Map<string, any> = new Map()
-  private services: Map<string, any> = new Map()
+  private repositories: Map<string, PropertyRepository> = new Map()
+  private services: Map<string, PropertyApplicationService> = new Map()
 
   private constructor() {
     this.initializeDependencies()
@@ -29,11 +29,11 @@ class Container {
   }
 
   getPropertyRepository(): PropertyRepository {
-    return this.repositories.get('PropertyRepository')
+    return this.repositories.get('PropertyRepository')!
   }
 
   getPropertyApplicationService(): PropertyApplicationService {
-    return this.services.get('PropertyApplicationService')
+    return this.services.get('PropertyApplicationService')!
   }
 
   // Method to reset container (useful for testing)

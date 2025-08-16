@@ -1,10 +1,15 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Property, PropertyFeatureState, ContactStatus, PropertyStatus, VisitStatus } from "@/domain/entities/Property";
-import { ScoringConfig } from "@/domain/entities/PropertyType";
+import React, { useMemo } from 'react'
+import { motion } from "motion/react"
+import { MapPin, Trash2, Calendar, Clock, Users, UserX } from 'lucide-react'
+import { CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { formatPrice } from '@/lib/utils'
+import { Property } from '@/domain/entities/Property'
+import { ScoringConfig } from '@/domain/entities/PropertyType'
+import { PropertyFeatureState, ContactStatus, PropertyStatus, VisitStatus } from "@/domain/entities/Property";
 import { defaultViviendaConfig } from "@/domain/use-cases/default-configs";
-import { motion } from "motion/react";
+import { formatDate, truncateText } from "@/lib/utils";
 import {
   Accessibility,
   ArrowUpDown,
@@ -13,7 +18,6 @@ import {
   Bed,
   CalendarDays,
   Car,
-  Clock,
   Clock3,
   Compass,
   DoorOpen,
@@ -25,7 +29,6 @@ import {
   Image,
   Layers,
   Link,
-  MapPin,
   Monitor,
   Ruler,
   Shield,
@@ -33,15 +36,11 @@ import {
   Sofa,
   Sparkles,
   Sun,
-  Trash2,
   Trees,
-  Users,
-  UserX,
   Waves,
   Wind,
   Wrench,
   Zap,
-  Calendar,
   Phone,
 } from "lucide-react";
 
@@ -54,6 +53,7 @@ interface PropertyDetail {
   weight?: number;
 }
 
+// Helper function to add feature details
 const addFeatureDetail = (
   details: PropertyDetail[],
   state: PropertyFeatureState | null | undefined,
@@ -64,7 +64,6 @@ const addFeatureDetail = (
   negativeCopy: string,
   weight: number
 ) => {
-  // Only add to details if the feature is explicitly mentioned (has or not_has)
   if (state === 'has' || state === 'not_has') {
     details.push({
       key,
@@ -75,19 +74,17 @@ const addFeatureDetail = (
       weight
     })
   }
-  // If state is null or undefined, don't add to details (not mentioned/not found)
 }
 
+// Helper function to get size value
 const getSizeValue = (property: Property): string | number => {
-  if (property.squareMeters !== undefined && property.squareMeters !== null) {
-    return property.squareMeters;
-  }
   if (property.squareMeters !== undefined && property.squareMeters !== null) {
     return property.squareMeters;
   }
   return 'N/A';
 };
 
+// Helper function to format property title
 const formatPropertyTitle = (title: string): string => {
   return title
     .replace(/^Avenida de\s+la\s+/i, '')
@@ -111,6 +108,7 @@ const formatPropertyTitle = (title: string): string => {
     .replace(/^Ronda\s+/i, '');
 };
 
+// Helper function to get property details
 const getPropertyDetails = (property: Property, formatPrice: (price: number) => string, currentConfig?: ScoringConfig): PropertyDetail[] => {
   const config = currentConfig || defaultViviendaConfig;
   const details: PropertyDetail[] = [
@@ -209,11 +207,9 @@ const getPropertyDetails = (property: Property, formatPrice: (price: number) => 
       key: "notes",
       icon: FileText,
       title: "Notas",
-      value: property.notes.length > 20 ? `${property.notes.substring(0, 20)}...` : property.notes,
+      value: truncateText(property.notes, 20),
     });
   }
-
-
 
   // MEDIUM PRIORITY - Additional features
   if (property.desk && property.desk > 0) {
@@ -240,7 +236,7 @@ const getPropertyDetails = (property: Property, formatPrice: (price: number) => 
       key: "updatedAt",
       icon: Clock,
       title: "Última actualización",
-      value: new Date(property.updatedAt).toLocaleDateString("es-ES"),
+      value: formatDate(property.updatedAt),
     });
   }
 
@@ -252,8 +248,6 @@ const getPropertyDetails = (property: Property, formatPrice: (price: number) => 
       value: "Temporal",
     });
   }
-
-
 
   // MEDIUM PRIORITY - Financial information
   if (property.deposit) {
@@ -314,8 +308,6 @@ const getPropertyDetails = (property: Property, formatPrice: (price: number) => 
     });
   }
 
-  // (duplicates removed below)
-
   // LOW PRIORITY - Room-specific features (for room rentals)
   if (property.privateBathroom === 'has') {
     details.push({
@@ -372,14 +364,12 @@ const getPropertyDetails = (property: Property, formatPrice: (price: number) => 
     });
   }
 
-
-
   if (property.publicationDate) {
     details.push({
       key: "publicationDate",
       icon: CalendarDays,
       title: "Fecha de publicación",
-      value: new Date(property.publicationDate).toLocaleDateString("es-ES"),
+      value: formatDate(property.publicationDate),
     });
   }
 
@@ -389,42 +379,142 @@ const getPropertyDetails = (property: Property, formatPrice: (price: number) => 
     .sort((a, b) => (b.weight || 0) - (a.weight || 0));
 };
 
+// Helper function to get score color
+const getScoreColor = (score: number, allProperties?: Property[]): string => {
+  if (!allProperties || allProperties.length === 0) {
+    if (score >= 80) return "bg-green-500";
+    if (score >= 60) return "bg-yellow-500";
+    return "bg-red-500";
+  }
+
+  const validScores = allProperties
+    .map(p => p.score)
+    .filter(s => !isNaN(s) && s !== undefined && s !== null)
+    .sort((a, b) => b - a);
+
+  if (validScores.length === 0) {
+    return "bg-gray-500";
+  }
+
+  const scoreIndex = validScores.findIndex(s => s === score);
+  if (scoreIndex === -1) {
+    return "bg-gray-500";
+  }
+
+  if (validScores.length === 1) {
+    return "bg-green-500";
+  }
+  
+  const relativePosition = scoreIndex / (validScores.length - 1);
+
+  if (relativePosition <= 0.33) return "bg-green-500";
+  if (relativePosition <= 0.66) return "bg-yellow-500";
+  return "bg-red-500";
+};
+
+// Helper function to get status color
+const getStatusColorForAnyStatus = (status: ContactStatus | PropertyStatus | VisitStatus): string => {
+  const statusColors: Record<string, string> = {
+    pending: 'bg-red-100 text-red-800',
+    requested: 'bg-blue-100 text-blue-800',
+    contacted: 'bg-indigo-100 text-indigo-800',
+    confirmed: 'bg-cyan-100 text-cyan-800',
+    responded: 'bg-green-100 text-green-800',
+    completed: 'bg-emerald-100 text-emerald-800',
+    scheduled: 'bg-purple-100 text-purple-800',
+    visited: 'bg-violet-100 text-violet-800',
+    no_response: 'bg-gray-100 text-gray-800',
+    cancelled: 'bg-slate-100 text-slate-800',
+    not_interested: 'bg-zinc-100 text-zinc-800',
+    available: 'bg-teal-100 text-teal-800',
+    under_contract: 'bg-orange-100 text-orange-800',
+    sold: 'bg-rose-100 text-rose-800',
+    off_market: 'bg-neutral-100 text-neutral-800',
+    rescheduled: 'bg-fuchsia-100 text-fuchsia-800'
+  };
+  return statusColors[status] || 'bg-gray-100 text-gray-800';
+};
+
+// Helper function to get status label
+const getStatusLabelForAnyStatus = (status: ContactStatus | PropertyStatus | VisitStatus): string => {
+  const labels: Record<string, string> = {
+    pending: 'Pendiente',
+    contacted: 'Contactado',
+    responded: 'Respondido',
+    scheduled: 'Agendado',
+    visited: 'Visitado',
+    no_response: 'Sin Respuesta',
+    not_interested: 'No Interesado',
+    requested: 'Solicitado',
+    confirmed: 'Confirmado',
+    completed: 'Completado',
+    cancelled: 'Cancelado',
+    rescheduled: 'Reprogramado',
+    available: 'Disponible',
+    under_contract: 'En Contrato',
+    sold: 'Vendido',
+    off_market: 'Fuera de Mercado'
+  };
+  return labels[status] || status;
+};
+
 interface PropertyCardProps {
   property: Property;
   onDelete: (id: string) => void;
   currentConfig?: ScoringConfig;
   onManageVisits?: (property: Property) => void;
+  allProperties?: Property[];
 }
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({
   property,
   onDelete,
   currentConfig,
-  onManageVisits
+  onManageVisits,
+  allProperties
 }) => {
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("es-ES", {
-      style: "currency",
-      currency: "EUR",
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "bg-green-500";
-    if (score >= 60) return "bg-yellow-500";
-    return "bg-red-500";
-  };
+  // Memoize expensive calculations
+  const propertyDetails = useMemo(() => 
+    getPropertyDetails(property, formatPrice, currentConfig), 
+    [property, currentConfig]
+  );
 
+  const scoreColor = useMemo(() => 
+    getScoreColor(property.score || 0, allProperties), 
+    [property.score, allProperties]
+  );
 
+  const hasImage = useMemo(() => !!(property.imageUrl), [property.imageUrl]);
+  const imageUrl = useMemo(() => 
+    property.imageUrl ? property.imageUrl.replace(/&quot;/g, '"') : null, 
+    [property.imageUrl]
+  );
 
-  // Check if property has an image
-  const hasImage = !!(property.imageUrl);
-  
-  // Get the image URL and decode any HTML entities
-  const imageUrl = property.imageUrl ? property.imageUrl.replace(/&quot;/g, '"') : null;
+  // Get latest record status
+  const latestRecordStatus = useMemo(() => {
+    const allRecords = [
+      ...(property.visits || []),
+      ...(property.contacts || [])
+    ];
+    
+    const sortedRecords = allRecords.sort((a, b) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      return dateB - dateA;
+    });
+    
+    const latestAddedRecord = sortedRecords[0];
+    return latestAddedRecord ? latestAddedRecord.status : property.contactStatus;
+  }, [property.visits, property.contacts, property.contactStatus]);
 
-
+  // Get visit count
+  const visitCount = useMemo(() => 
+    (property.visits || []).filter(visit => 
+      visit.status === 'scheduled' || visit.status === 'rescheduled'
+    ).length, 
+    [property.visits]
+  );
 
   return (
     <motion.div
@@ -432,6 +522,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.3 }}
+      data-property-id={property.id}
     >
       <div 
         className={`w-full relative overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm ${
@@ -471,7 +562,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 <Badge
                   variant="secondary"
                   hover={false}
-                  className={`${getScoreColor(property.score || 0)} text-white ${
+                  className={`${scoreColor} text-white ${
                     hasImage ? 'drop-shadow-lg' : ''
                   }`}
                 >
@@ -484,19 +575,20 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           <CardContent className="pt-0">
             {/* Main property details */}
             <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
-              {getPropertyDetails(property, formatPrice, currentConfig)
-                .map(({ key, icon: Icon, title, value, className }) => (
-                  <div 
-                    key={key} 
-                    className="flex items-center"
-                    title={title}
-                  >
-                    <Icon className="w-4 h-4 mr-2 text-muted-foreground" />
-                    <span className={className}>
-                      {value}
-                    </span>
-                  </div>
-                ))}
+              {propertyDetails.map(({ key, icon: Icon, title, value, className }) => (
+                <div 
+                  key={key} 
+                  className="flex items-center"
+                  title={title}
+                >
+                  <Icon className={`w-4 h-4 mr-2 ${
+                    hasImage ? 'text-white' : 'text-muted-foreground'
+                  }`} />
+                  <span className={className}>
+                    {value}
+                  </span>
+                </div>
+              ))}
             </div>
 
             {property.notes && (
@@ -514,101 +606,19 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 {/* Visit tracking status badges container */}
                 <div className="flex flex-wrap gap-2">
                   {/* Contact status based on latest added record */}
-                  {(() => {
-                    const allRecords = [
-                      ...(property.visits || []),
-                      ...(property.contacts || [])
-                    ]
-                    
-                    // Sort by creation date (most recent first)
-                    const sortedRecords = allRecords.sort((a, b) => {
-                      const dateA = new Date(a.date).getTime()
-                      const dateB = new Date(b.date).getTime()
-                      return dateB - dateA // Descending order (newest first)
-                    })
-                    
-                    const latestAddedRecord = sortedRecords[0]
-                    // Use the latest record status, but fallback to property contactStatus if no records exist
-                    const contactStatus = latestAddedRecord ? latestAddedRecord.status : property.contactStatus
-                    
-                    // Helper function to get status color for any status type
-                    const getStatusColorForAnyStatus = (status: ContactStatus | PropertyStatus | VisitStatus) => {
-                      switch (status) {
-                        case 'pending':
-                        case 'requested':
-                          return 'bg-yellow-100 text-yellow-800'
-                        case 'contacted':
-                        case 'confirmed':
-                          return 'bg-blue-100 text-blue-800'
-                        case 'responded':
-                        case 'completed':
-                          return 'bg-green-100 text-green-800'
-                        case 'scheduled':
-                        case 'visited':
-                          return 'bg-purple-100 text-purple-800'
-                        case 'no_response':
-                        case 'cancelled':
-                          return 'bg-red-100 text-red-800'
-                        case 'not_interested':
-                          return 'bg-gray-100 text-gray-800'
-                        case 'available':
-                          return 'bg-green-100 text-green-800'
-                        case 'under_contract':
-                          return 'bg-orange-100 text-orange-800'
-                        case 'sold':
-                          return 'bg-red-100 text-red-800'
-                        case 'off_market':
-                          return 'bg-gray-100 text-gray-800'
-                        case 'rescheduled':
-                          return 'bg-purple-100 text-purple-800'
-                        default:
-                          return 'bg-gray-100 text-gray-800'
-                      }
-                    }
-                    
-                    // Helper function to get status label for any status type
-                    const getStatusLabelForAnyStatus = (status: ContactStatus | PropertyStatus | VisitStatus) => {
-                      const labels: Record<string, string> = {
-                        pending: 'Pendiente',
-                        contacted: 'Contactado',
-                        responded: 'Respondido',
-                        scheduled: 'Agendado',
-                        visited: 'Visitado',
-                        no_response: 'Sin Respuesta',
-                        not_interested: 'No Interesado',
-                        requested: 'Solicitado',
-                        confirmed: 'Confirmado',
-                        completed: 'Completado',
-                        cancelled: 'Cancelado',
-                        rescheduled: 'Reprogramado',
-                        available: 'Disponible',
-                        under_contract: 'En Contrato',
-                        sold: 'Vendido',
-                        off_market: 'Fuera de Mercado'
-                      }
-                      return labels[status] || status
-                    }
-                    
-                    return contactStatus && (
-                      <Badge className={`text-xs ${getStatusColorForAnyStatus(contactStatus)}`}>
-                        {getStatusLabelForAnyStatus(contactStatus)}
-                      </Badge>
-                    )
-                  })()}
+                  {latestRecordStatus && (
+                    <Badge className={`text-xs ${getStatusColorForAnyStatus(latestRecordStatus)}`}>
+                      {getStatusLabelForAnyStatus(latestRecordStatus)}
+                    </Badge>
+                  )}
                   
                   {/* Visit count based on scheduled/rescheduled records */}
-                  {(() => {
-                    const visitCount = (property.visits || []).filter(visit => 
-                      visit.status === 'scheduled' || visit.status === 'rescheduled'
-                    ).length
-                    
-                    return visitCount > 0 && (
-                      <Badge className="text-xs bg-purple-100 text-purple-800">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        {visitCount} visita{visitCount > 1 ? 's' : ''}
-                      </Badge>
-                    )
-                  })()}
+                  {visitCount > 0 && (
+                    <Badge className="text-xs bg-purple-100 text-purple-800">
+                      <Calendar className="w-3 h-3 mr-1" />
+                      {visitCount} visita{visitCount > 1 ? 's' : ''}
+                    </Badge>
+                  )}
                   
                   {/* Contact count */}
                   {property.contacts && property.contacts.length > 0 && (

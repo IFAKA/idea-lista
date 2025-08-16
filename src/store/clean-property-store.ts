@@ -3,6 +3,16 @@ import { Property as StoreProperty } from './property-store'
 import { PropertyApplicationService, PropertyMetrics } from '../application/services/PropertyApplicationService'
 import { PropertyAdapter } from '../infrastructure/adapters/PropertyAdapter'
 import { container } from '../infrastructure/di/container'
+import { PropertyData, VisitRecord, ContactRecord } from '../domain/entities/Property'
+import { PropertyTypeConfigs } from '../domain/entities/PropertyType'
+
+interface ExportOptions {
+  format?: 'tsv' | 'json'
+  includeVisits?: boolean
+  includeContacts?: boolean
+  sortBy?: 'score' | 'price' | 'date'
+  sortOrder?: 'asc' | 'desc'
+}
 
 interface CleanPropertyStore {
   // State
@@ -17,35 +27,76 @@ interface CleanPropertyStore {
   // Actions
   initialize: () => Promise<void>
   refreshProperties: () => Promise<void>
-  addProperty: (propertyData: Omit<StoreProperty, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>
-  updateProperty: (id: string, updates: Partial<StoreProperty>) => Promise<void>
+  addProperty: (propertyData: Omit<PropertyData, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>
+  updateProperty: (id: string, updates: Partial<PropertyData>) => Promise<void>
   removeProperty: (id: string) => Promise<void>
   clearProperties: () => Promise<void>
   
   // Visit and Contact Actions
-  addVisit: (propertyId: string, visit: any) => Promise<void>
-  updateVisit: (propertyId: string, visitId: string, updates: any) => Promise<void>
-  addContact: (propertyId: string, contact: any) => Promise<void>
-  updateContact: (propertyId: string, contactId: string, updates: any) => Promise<void>
+  addVisit: (propertyId: string, visit: Omit<VisitRecord, 'id'>) => Promise<void>
+  updateVisit: (propertyId: string, visitId: string, updates: Partial<VisitRecord>) => Promise<void>
+  addContact: (propertyId: string, contact: Omit<ContactRecord, 'id'>) => Promise<void>
+  updateContact: (propertyId: string, contactId: string, updates: Partial<ContactRecord>) => Promise<void>
   updatePropertyStatus: (propertyId: string, status: StoreProperty['propertyStatus']) => Promise<void>
   updatePropertyPriority: (propertyId: string, priority: StoreProperty['priority']) => Promise<void>
   
   // Export Actions
-  exportProperties: (options?: any) => Promise<string>
+  exportProperties: (options?: ExportOptions) => Promise<string>
   exportVisitData: () => Promise<string>
   
   // Configuration Actions
-  updateScoringConfig: (configs: any) => Promise<void>
-  getScoringConfig: () => Promise<any>
+  updateScoringConfig: (configs: PropertyTypeConfigs) => Promise<void>
+  getScoringConfig: () => Promise<PropertyTypeConfigs>
   
   // Utility Actions
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
+  
+  // Migration Actions
+  recalculateAllScores: () => Promise<void>
+  
+  // Scoring Actions
+  calculateAndUpdatePropertyScore: (propertyId: string) => Promise<void>
 }
 
-export const useCleanPropertyStore = create<CleanPropertyStore>((set, get) => {
+export const useCleanPropertyStore = create<CleanPropertyStore>((set) => {
   // Get the application service from the DI container
   const applicationService = container.getPropertyApplicationService()
+
+  // Private method to load properties and metrics
+  const loadPropertiesAndMetrics = async () => {
+    set({ isLoading: true, error: null })
+    try {
+      const domainProperties = await applicationService.getPropertiesSortedByScore()
+      const properties = domainProperties.map(p => PropertyAdapter.toStore(p))
+      const metrics = await applicationService.calculateMetrics()
+      
+      set({ 
+        properties, 
+        metrics, 
+        isLoading: false 
+      })
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Unknown error', 
+        isLoading: false 
+      })
+    }
+  }
+
+  // Private method to handle async operations with error handling
+  const handleAsyncOperation = async (operation: () => Promise<unknown>) => {
+    set({ isLoading: true, error: null })
+    try {
+      await operation()
+      await loadPropertiesAndMetrics()
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Unknown error', 
+        isLoading: false 
+      })
+    }
+  }
 
   return {
     properties: [],
@@ -87,219 +138,64 @@ export const useCleanPropertyStore = create<CleanPropertyStore>((set, get) => {
     applicationService,
 
     initialize: async () => {
-      set({ isLoading: true, error: null })
-      try {
-        // Load properties from storage
-        const domainProperties = await applicationService.getAllProperties()
-        
-        // Convert to store properties
-        const properties = domainProperties.map(p => PropertyAdapter.toStore(p))
-        
-        // Calculate metrics
-        const metrics = await applicationService.calculateMetrics()
-        
-        set({ 
-          properties, 
-          metrics, 
-          isLoading: false 
-        })
-      } catch (error) {
-        set({ 
-          error: error instanceof Error ? error.message : 'Unknown error', 
-          isLoading: false 
-        })
-      }
+      await loadPropertiesAndMetrics()
     },
 
     refreshProperties: async () => {
-      set({ isLoading: true })
-      try {
-        const domainProperties = await applicationService.getAllProperties()
-        const properties = domainProperties.map(p => PropertyAdapter.toStore(p))
-        const metrics = await applicationService.calculateMetrics()
-        
-        set({ properties, metrics, isLoading: false })
-      } catch (error) {
-        set({ 
-          error: error instanceof Error ? error.message : 'Unknown error', 
-          isLoading: false 
-        })
-      }
+      await loadPropertiesAndMetrics()
     },
 
     addProperty: async (propertyData) => {
-      set({ isLoading: true, error: null })
-      try {
-        // Convert store property to domain property
-        const domainProperty = PropertyAdapter.toDomain(propertyData as StoreProperty)
-        await applicationService.addProperty(domainProperty)
-        await get().refreshProperties()
-      } catch (error) {
-        set({ 
-          error: error instanceof Error ? error.message : 'Unknown error', 
-          isLoading: false 
-        })
-      }
+      await handleAsyncOperation(() => applicationService.addProperty(PropertyAdapter.toDomain(propertyData as StoreProperty)))
     },
 
     updateProperty: async (id, updates) => {
-      set({ isLoading: true, error: null })
-      try {
-        // Convert store property updates to domain property updates
-        const domainUpdates = updates as any
-        await applicationService.updateProperty(id, domainUpdates)
-        await get().refreshProperties()
-      } catch (error) {
-        set({ 
-          error: error instanceof Error ? error.message : 'Unknown error', 
-          isLoading: false 
-        })
-      }
+      await handleAsyncOperation(() => applicationService.updateProperty(id, updates))
     },
 
     removeProperty: async (id) => {
-      set({ isLoading: true, error: null })
-      try {
-        await applicationService.deleteProperty(id)
-        // Update state immediately like clearProperties does
-        const currentProperties = get().properties
-        const updatedProperties = currentProperties.filter(p => String(p.id) !== String(id))
-        const metrics = await applicationService.calculateMetrics()
-        set({ properties: updatedProperties, metrics, isLoading: false })
-      } catch (error) {
-        set({ 
-          error: error instanceof Error ? error.message : 'Unknown error', 
-          isLoading: false 
-        })
-      }
+      await handleAsyncOperation(() => applicationService.deleteProperty(id))
     },
 
     clearProperties: async () => {
-      set({ isLoading: true, error: null })
-      try {
-        await applicationService.clearAllProperties()
-        set({ properties: [], metrics: await applicationService.calculateMetrics(), isLoading: false })
-      } catch (error) {
-        set({ 
-          error: error instanceof Error ? error.message : 'Unknown error', 
-          isLoading: false 
-        })
-      }
+      await handleAsyncOperation(() => applicationService.clearAllProperties())
     },
 
     addVisit: async (propertyId, visit) => {
-      set({ isLoading: true, error: null })
-      try {
-        await applicationService.addVisit({
-          propertyId,
-          status: visit.status,
-          notes: visit.notes,
-          checklist: visit.checklist || [],
-          contactMethod: visit.contactMethod,
-          contactPerson: visit.contactPerson,
-          scheduledTime: visit.scheduledTime,
-          duration: visit.duration,
-          followUpDate: visit.followUpDate,
-          followUpNotes: visit.followUpNotes
-        })
-        await get().refreshProperties()
-      } catch (error) {
-        set({ 
-          error: error instanceof Error ? error.message : 'Unknown error', 
-          isLoading: false 
-        })
-      }
+      await handleAsyncOperation(() => applicationService.addVisit({ propertyId, ...visit }))
     },
 
     updateVisit: async (propertyId, visitId, updates) => {
-      set({ isLoading: true, error: null })
-      try {
-        await applicationService.updateVisit({
-          propertyId,
-          visitId,
-          updates
-        })
-        await get().refreshProperties()
-      } catch (error) {
-        set({ 
-          error: error instanceof Error ? error.message : 'Unknown error', 
-          isLoading: false 
-        })
-      }
+      await handleAsyncOperation(() => applicationService.updateVisit({ propertyId, visitId, updates }))
     },
 
     addContact: async (propertyId, contact) => {
-      set({ isLoading: true, error: null })
-      try {
-        await applicationService.addContact({
-          propertyId,
-          method: contact.method,
-          status: contact.status,
-          notes: contact.notes,
-          contactPerson: contact.contactPerson,
-          responseTime: contact.responseTime,
-          nextAction: contact.nextAction,
-          nextActionDate: contact.nextActionDate
-        })
-        await get().refreshProperties()
-      } catch (error) {
-        set({ 
-          error: error instanceof Error ? error.message : 'Unknown error', 
-          isLoading: false 
-        })
-      }
+      await handleAsyncOperation(() => applicationService.addContact({ propertyId, ...contact }))
     },
 
     updateContact: async (propertyId, contactId, updates) => {
-      set({ isLoading: true, error: null })
-      try {
-        await applicationService.updateContact({
-          propertyId,
-          contactId,
-          updates
-        })
-        await get().refreshProperties()
-      } catch (error) {
-        set({ 
-          error: error instanceof Error ? error.message : 'Unknown error', 
-          isLoading: false 
-        })
-      }
+      await handleAsyncOperation(() => applicationService.updateContact({ propertyId, contactId, updates }))
     },
 
     updatePropertyStatus: async (propertyId, status) => {
-      set({ isLoading: true, error: null })
-      try {
-        if (status) {
-          await applicationService.updatePropertyStatus(propertyId, status)
-          await get().refreshProperties()
-        }
-      } catch (error) {
-        set({ 
-          error: error instanceof Error ? error.message : 'Unknown error', 
-          isLoading: false 
-        })
-      }
+      await handleAsyncOperation(() => applicationService.updatePropertyStatus(propertyId, status))
     },
 
     updatePropertyPriority: async (propertyId, priority) => {
-      set({ isLoading: true, error: null })
-      try {
-        if (priority) {
-          await applicationService.updatePropertyPriority(propertyId, priority)
-          await get().refreshProperties()
-        }
-      } catch (error) {
-        set({ 
-          error: error instanceof Error ? error.message : 'Unknown error', 
-          isLoading: false 
-        })
-      }
+      await handleAsyncOperation(() => applicationService.updatePropertyPriority(propertyId, priority))
     },
 
-    exportProperties: async (options?: any) => {
+    exportProperties: async (options) => {
       try {
-        return await applicationService.exportProperties(options)
+        const exportOptions = {
+          format: 'tsv' as const,
+          sortBy: 'score' as const,
+          sortOrder: 'desc' as const,
+          includeVisits: true,
+          includeContacts: true,
+          ...options
+        }
+        return await applicationService.exportProperties(exportOptions)
       } catch (error) {
         set({ error: error instanceof Error ? error.message : 'Unknown error' })
         throw error
@@ -316,16 +212,7 @@ export const useCleanPropertyStore = create<CleanPropertyStore>((set, get) => {
     },
 
     updateScoringConfig: async (configs) => {
-      set({ isLoading: true, error: null })
-      try {
-        await applicationService.updateScoringConfig(configs)
-        await get().refreshProperties()
-      } catch (error) {
-        set({ 
-          error: error instanceof Error ? error.message : 'Unknown error', 
-          isLoading: false 
-        })
-      }
+      await handleAsyncOperation(() => applicationService.updateScoringConfig(configs))
     },
 
     getScoringConfig: async () => {
@@ -337,7 +224,20 @@ export const useCleanPropertyStore = create<CleanPropertyStore>((set, get) => {
       }
     },
 
-    setLoading: (loading) => set({ isLoading: loading }),
-    setError: (error) => set({ error })
+    setLoading: (loading) => {
+      set({ isLoading: loading })
+    },
+
+    setError: (error) => {
+      set({ error })
+    },
+
+    recalculateAllScores: async () => {
+      await handleAsyncOperation(() => applicationService.recalculateAllScores())
+    },
+
+    calculateAndUpdatePropertyScore: async (propertyId) => {
+      await handleAsyncOperation(() => applicationService.calculateAndUpdatePropertyScore(propertyId))
+    }
   }
 })

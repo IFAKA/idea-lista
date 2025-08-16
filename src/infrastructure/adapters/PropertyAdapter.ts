@@ -1,74 +1,116 @@
 import { Property as DomainProperty } from '../../domain/entities/Property'
 import { Property as StoreProperty } from '../../store/property-store'
 
+import { VisitStatus, ContactStatus } from '../../domain/entities/Property'
+
+import { VisitChecklistItem } from '../../domain/entities/Property'
+
+interface RawVisitRecord {
+  id: string
+  date: string | Date
+  status: string
+  notes?: string
+  checklist: VisitChecklistItem[]
+  contactMethod?: string
+  contactPerson?: string
+  scheduledTime?: string
+  actualTime?: string
+  duration?: number
+  followUpDate?: string | Date
+  followUpNotes?: string
+}
+
+interface RawContactRecord {
+  id: string
+  date: string | Date
+  method: string
+  status: string
+  notes?: string
+  contactPerson?: string
+  responseTime?: number
+  nextAction?: string
+  nextActionDate?: string | Date
+}
+
 export class PropertyAdapter {
   static toDomain(storeProperty: StoreProperty): DomainProperty {
-    return new DomainProperty(
-      String(storeProperty.id),
-      storeProperty.title || '',
-      storeProperty.price,
-      storeProperty.location || '',
-      storeProperty.rooms,
-      storeProperty.bathrooms,
-      storeProperty.floor || '',
-      storeProperty.url,
-      storeProperty.propertyType || 'vivienda',
-      storeProperty.squareMeters,
-      storeProperty.elevator,
-      storeProperty.parking,
-      storeProperty.terrace,
-      storeProperty.balcony,
-      storeProperty.airConditioning,
-      storeProperty.heating,
-      storeProperty.imageUrl,
-      storeProperty.score || 0,
-      storeProperty.notes,
-      storeProperty.createdAt ? new Date(storeProperty.createdAt) : new Date(),
-      storeProperty.updatedAt ? new Date(storeProperty.updatedAt) : new Date(),
-      storeProperty.contactStatus || 'pending',
-      storeProperty.propertyStatus || 'available',
-      storeProperty.priority || 'medium',
-      (storeProperty.visits || []).map((v: any) => ({ ...v, date: new Date(v.date) })),
-      (storeProperty.contacts || []).map((c: any) => ({ ...c, date: new Date(c.date) })),
-      storeProperty.visitNotes,
-      storeProperty.lastContactDate ? new Date(storeProperty.lastContactDate) : undefined,
-      storeProperty.nextFollowUpDate ? new Date(storeProperty.nextFollowUpDate) : undefined,
-      storeProperty.phone,
-      storeProperty.professional,
-      storeProperty.contactPerson,
-      storeProperty.energyCert,
-      storeProperty.furnished,
-      storeProperty.seasonal,
-      storeProperty.desk,
-      storeProperty.orientation,
-      storeProperty.pricePerM2,
-      storeProperty.deposit,
-      storeProperty.energy,
-      storeProperty.maintenance,
-      storeProperty.garden,
-      storeProperty.pool,
-      storeProperty.accessible,
-      storeProperty.cleaningIncluded,
-      storeProperty.lgbtFriendly,
-      storeProperty.ownerNotPresent,
-      storeProperty.privateBathroom,
-      storeProperty.window,
-      storeProperty.couplesAllowed,
-      storeProperty.minorsAllowed,
-      storeProperty.publicationDate,
-      storeProperty.builtInWardrobes,
-      storeProperty.garage,
-      storeProperty.storage,
-      storeProperty.condition,
-      storeProperty.propertySubType,
-      storeProperty.hasFloorPlan,
-      storeProperty.hasVirtualTour,
-      storeProperty.bankAd,
-      storeProperty.gender,
-      storeProperty.smokers,
-      storeProperty.bed,
-      storeProperty.roommates
-    )
+    return new DomainProperty({
+      id: String(storeProperty.id),
+      title: storeProperty.title || '',
+      price: storeProperty.price,
+      location: storeProperty.location || '',
+      rooms: storeProperty.rooms,
+      bathrooms: storeProperty.bathrooms,
+      floor: storeProperty.floor || '',
+      url: storeProperty.url,
+      propertyType: storeProperty.propertyType || 'vivienda',
+      squareMeters: storeProperty.squareMeters,
+      elevator: storeProperty.elevator,
+      parking: storeProperty.parking,
+      terrace: storeProperty.terrace,
+      balcony: storeProperty.balcony,
+      airConditioning: storeProperty.airConditioning,
+      heating: storeProperty.heating,
+      imageUrl: storeProperty.imageUrl,
+      score: storeProperty.score || 0,
+      notes: storeProperty.notes,
+      createdAt: storeProperty.createdAt ? new Date(storeProperty.createdAt) : new Date(),
+      updatedAt: storeProperty.updatedAt ? new Date(storeProperty.updatedAt) : new Date(),
+      contactStatus: storeProperty.contactStatus || 'pending',
+      propertyStatus: storeProperty.propertyStatus || 'available',
+      priority: storeProperty.priority || 'medium',
+      visits: (storeProperty.visits || []).map((v: RawVisitRecord) => ({ 
+        ...v, 
+        date: new Date(v.date),
+        status: v.status as VisitStatus,
+        followUpDate: v.followUpDate ? new Date(v.followUpDate) : undefined
+      })),
+      contacts: (storeProperty.contacts || []).map((c: RawContactRecord) => ({ 
+        ...c, 
+        date: new Date(c.date),
+        method: c.method as 'phone' | 'email' | 'whatsapp' | 'portal' | 'other',
+        status: c.status as ContactStatus,
+        nextActionDate: c.nextActionDate ? new Date(c.nextActionDate) : undefined
+      })),
+      visitNotes: storeProperty.visitNotes,
+      lastContactDate: storeProperty.lastContactDate ? new Date(storeProperty.lastContactDate) : undefined,
+      nextFollowUpDate: storeProperty.nextFollowUpDate ? new Date(storeProperty.nextFollowUpDate) : undefined,
+      phone: storeProperty.phone,
+      professional: storeProperty.professional,
+      contactPerson: storeProperty.contactPerson,
+      energyCert: storeProperty.energyCert,
+      furnished: storeProperty.furnished,
+      seasonal: storeProperty.seasonal,
+      desk: storeProperty.desk,
+      orientation: storeProperty.orientation,
+      pricePerM2: storeProperty.pricePerM2,
+      deposit: storeProperty.deposit,
+      energy: storeProperty.energy,
+      maintenance: storeProperty.maintenance,
+      garden: storeProperty.garden,
+      pool: storeProperty.pool,
+      accessible: storeProperty.accessible,
+      cleaningIncluded: storeProperty.cleaningIncluded,
+      lgbtFriendly: storeProperty.lgbtFriendly,
+      ownerNotPresent: storeProperty.ownerNotPresent,
+      privateBathroom: storeProperty.privateBathroom,
+      window: storeProperty.window,
+      couplesAllowed: storeProperty.couplesAllowed,
+      minorsAllowed: storeProperty.minorsAllowed,
+      publicationDate: storeProperty.publicationDate,
+      builtInWardrobes: storeProperty.builtInWardrobes,
+      garage: storeProperty.garage,
+      storage: storeProperty.storage,
+      condition: storeProperty.condition,
+      propertySubType: storeProperty.propertySubType,
+      hasFloorPlan: storeProperty.hasFloorPlan,
+      hasVirtualTour: storeProperty.hasVirtualTour,
+      bankAd: storeProperty.bankAd,
+      gender: storeProperty.gender,
+      smokers: storeProperty.smokers,
+      bed: storeProperty.bed,
+      roommates: storeProperty.roommates
+    })
   }
 
   static toStore(domainProperty: DomainProperty): StoreProperty {

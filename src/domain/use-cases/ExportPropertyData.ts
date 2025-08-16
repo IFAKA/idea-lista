@@ -117,7 +117,7 @@ export class ExportPropertyData {
     const sortedProperties = this.sortProperties(properties, options.sortBy, options.sortOrder)
     
     const exportData = sortedProperties.map(property => {
-      const baseData: any = {
+      const baseData: Record<string, unknown> = {
         id: property.id,
         title: property.title,
         price: property.price,
@@ -154,8 +154,8 @@ export class ExportPropertyData {
     if (!sortBy) return properties
 
     const sorted = [...properties].sort((a, b) => {
-      let aValue: any
-      let bValue: any
+      let aValue: number | Date
+      let bValue: number | Date
 
       switch (sortBy) {
         case 'score':

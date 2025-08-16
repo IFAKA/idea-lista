@@ -183,7 +183,7 @@ function updateBadge() {
         // Show the count as badge text
         chrome.action.setBadgeText({ text: count.toString() });
         // Set badge background color
-        chrome.action.setBadgeBackgroundColor({ color: '#3b82f6' }); // Blue color
+        chrome.action.setBadgeBackgroundColor({ color: '#ffffff' }); // White color
     } else {
         // Clear the badge when no properties
         chrome.action.setBadgeText({ text: '' });
@@ -298,6 +298,30 @@ async function migrateNumericIds() {
 // Listen for messages from content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'addProperty') {
+        console.log('📥 Background script received property data:', {
+            url: message.property.url,
+            title: message.property.title,
+            price: message.property.price,
+            squareMeters: message.property.squareMeters,
+            rooms: message.property.rooms,
+            bathrooms: message.property.bathrooms,
+            floor: message.property.floor,
+            heating: message.property.heating,
+            elevator: message.property.elevator,
+            furnished: message.property.furnished,
+            parking: message.property.parking,
+            terrace: message.property.terrace,
+            balcony: message.property.balcony,
+            airConditioning: message.property.airConditioning,
+            energyCert: message.property.energyCert,
+            pricePerM2: message.property.pricePerM2,
+            deposit: message.property.deposit,
+            maintenance: message.property.maintenance,
+            professional: message.property.professional,
+            contactPerson: message.property.contactPerson,
+            image: message.property.image
+        });
+        
         addProperty(message.property)
             .then(() => {
                 sendResponse({ success: true });
@@ -335,17 +359,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true;
     }
     
-    if (message.action === 'updateProperty') {
-        updateProperty(message.propertyId, message.updatedProperty)
-            .then(() => {
-                sendResponse({ success: true });
-            })
-            .catch((error) => {
-                console.error('Error updating property:', error);
-                sendResponse({ success: false, error: error.message });
-            });
-        return true;
-    }
+
     
     if (message.action === 'propertiesUpdated') {
         // Update the background script's properties list and notify all components
@@ -396,6 +410,35 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ id: id });
         return true;
     }
+
+    if (message.action === 'debugLog') {
+        console.log(message.message);
+        sendResponse({ success: true });
+        return true;
+    }
+    
+    if (message.action === 'addPropertyToCleanArchitecture') {
+        console.log('🔄 Using clean architecture system for property:', message.property.title || message.property.url);
+        
+        // Use the clean architecture system directly in background script
+        addPropertyWithCleanArchitecture(message.property)
+            .then(() => {
+                sendResponse({ success: true });
+            })
+            .catch((error) => {
+                console.error('Clean architecture failed, falling back to old system:', error);
+                // Fallback to old system if clean architecture fails
+                addProperty(message.property)
+                    .then(() => {
+                        sendResponse({ success: true });
+                    })
+                    .catch((fallbackError) => {
+                        console.error('Fallback also failed:', fallbackError);
+                        sendResponse({ success: false, error: fallbackError.message });
+                    });
+            });
+        return true;
+    }
     
     if (message.action === 'resetIdCounter') {
         // No longer needed since we use hash-based IDs
@@ -422,6 +465,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             })
             .catch((error) => {
                 console.error('Error saving configuration:', error);
+                sendResponse({ success: false, error: error.message });
+            });
+        return true;
+    }
+    
+    if (message.action === 'recalculateScore') {
+        recalculatePropertyScore(message.propertyId)
+            .then((newScore) => {
+                sendResponse({ success: true, newScore: newScore });
+            })
+            .catch((error) => {
+                console.error('Error recalculating score:', error);
                 sendResponse({ success: false, error: error.message });
             });
         return true;
@@ -473,30 +528,209 @@ function generateUniqueId() {
     return id.substring(0, 16); // Ensure exactly 16 characters
 }
 
+// Clean Architecture Property Addition
+async function addPropertyWithCleanArchitecture(propertyData) {
+    console.log('🎯 Clean Architecture: Adding property with proper scoring:', propertyData.title || propertyData.url);
+    
+    // Convert property data to clean architecture format
+    const cleanPropertyData = {
+        title: propertyData.title,
+        price: propertyData.price,
+        location: propertyData.location || '',
+        rooms: propertyData.rooms,
+        bathrooms: propertyData.bathrooms,
+        floor: propertyData.floor,
+        url: propertyData.url,
+        propertyType: 'vivienda',
+        squareMeters: propertyData.squareMeters,
+        elevator: propertyData.elevator ? 'has' : 'not_has',
+        parking: propertyData.parking ? 'has' : 'not_has',
+        terrace: propertyData.terrace ? 'has' : 'not_has',
+        balcony: propertyData.balcony ? 'has' : 'not_has',
+        airConditioning: propertyData.airConditioning ? 'has' : 'not_has',
+        heating: propertyData.heating ? 'has' : 'not_has',
+        imageUrl: propertyData.image,
+        notes: '',
+        contactStatus: 'pending',
+        propertyStatus: 'available',
+        priority: 'medium',
+        visits: [],
+        contacts: [],
+        visitNotes: '',
+        lastContactDate: undefined,
+        nextFollowUpDate: undefined,
+        phone: '',
+        professional: propertyData.professional,
+        contactPerson: propertyData.contactPerson,
+        energyCert: propertyData.energyCert,
+        furnished: propertyData.furnished ? 'has' : 'not_has',
+        seasonal: propertyData.seasonal ? 'has' : 'not_has',
+        desk: propertyData.desk,
+        orientation: propertyData.orientation,
+        pricePerM2: propertyData.pricePerM2,
+        deposit: propertyData.deposit,
+        energy: '',
+        maintenance: propertyData.maintenance,
+        garden: propertyData.garden ? 'has' : 'not_has',
+        pool: propertyData.pool ? 'has' : 'not_has',
+        accessible: propertyData.accessible ? 'has' : 'not_has',
+        cleaningIncluded: propertyData.cleaningIncluded ? 'has' : 'not_has',
+        lgbtFriendly: propertyData.lgbtFriendly ? 'has' : 'not_has',
+        ownerNotPresent: propertyData.ownerNotPresent ? 'has' : 'not_has',
+        privateBathroom: propertyData.privateBathroom ? 'has' : 'not_has',
+        window: propertyData.window ? 'has' : 'not_has',
+        couplesAllowed: propertyData.couplesAllowed ? 'has' : 'not_has',
+        minorsAllowed: propertyData.minorsAllowed ? 'has' : 'not_has',
+        publicationDate: propertyData.publicationDate,
+        builtInWardrobes: propertyData.builtInWardrobes ? 'has' : 'not_has',
+        garage: propertyData.garage ? 'has' : 'not_has',
+        storage: propertyData.storage ? 'has' : 'not_has',
+        condition: propertyData.condition,
+        propertySubType: propertyData.propertySubType,
+        hasFloorPlan: propertyData.hasFloorPlan ? 'has' : 'not_has',
+        hasVirtualTour: propertyData.hasVirtualTour ? 'has' : 'not_has',
+        bankAd: propertyData.bankAd ? 'has' : 'not_has',
+        gender: propertyData.gender,
+        smokers: propertyData.smokers ? 'has' : 'not_has',
+        bed: propertyData.bed ? 'has' : 'not_has',
+        roommates: propertyData.roommates
+    };
+    
+    // STEP 1: Calculate score BEFORE saving to state
+    console.log('🔍 Clean Architecture: Calculating score BEFORE saving...');
+    const score = await calculateCleanArchitectureScore(cleanPropertyData);
+    console.log('🎯 Clean Architecture: Score calculated:', score, 'Property:', cleanPropertyData.title);
+    
+    // STEP 2: Create property WITH the calculated score
+    const property = {
+        ...cleanPropertyData,
+        id: generateUniqueId(),
+        score: score, // Score is already calculated and included
+        addedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    };
+    
+    // STEP 3: Add to properties array with correct score
+    properties.push(property);
+    
+    // STEP 4: Sort by score (best first)
+    properties.sort((a, b) => (b.score || 0) - (a.score || 0));
+    console.log('✅ Clean Architecture: Property saved to state with score:', score, 'Property:', property.title);
+    
+    await saveProperties();
+    updateBadge();
+    await notifyAllComponents();
+}
+
+// Clean Architecture Scoring (same logic as PropertyApplicationService)
+async function calculateCleanArchitectureScore(property) {
+    console.log('🔍 Clean Architecture: Calculating score with proper configuration');
+    
+    // Use the default configuration (same as PropertyApplicationService)
+    const defaultConfig = {
+        weights: {
+            price: 2, // Essential
+            size: 2, // Essential
+            rooms: 2, // Essential
+            bathrooms: 2, // Essential
+            floor: 1, // Valuable
+            heating: 2, // Essential
+            elevator: 2, // Essential
+            airConditioning: 1, // Valuable
+            furnished: 1, // Valuable
+            parking: 2, // Essential
+            terrace: 1, // Valuable
+            balcony: 1, // Valuable
+            seasonal: 1, // Valuable
+            builtInWardrobes: 1, // Valuable
+            garage: 1, // Valuable
+            storage: 1, // Valuable
+            condition: 1, // Valuable
+            propertySubType: 1, // Valuable
+            desk: 1, // Valuable
+            orientation: 1, // Valuable
+            deposit: 1, // Valuable
+            maintenance: 1, // Valuable
+            energy: 1, // Valuable
+            garden: 1, // Valuable
+        },
+        priceRange: { min: 300, max: 2000 },
+        sizeRange: { min: 20, max: 200 },
+        roomRange: { min: 1, max: 6 },
+        bathroomRange: { min: 1, max: 4 }
+    };
+    
+    // Calculate score using the same algorithm as PropertyApplicationService
+    
+    // Use the existing scoring functions that expect the full config object
+    const scores = {
+        price: calculatePriceScore(property.price, defaultConfig),
+        size: calculateSizeScore(property.squareMeters, defaultConfig),
+        rooms: calculateRoomRangeScore(property.rooms ?? 0, defaultConfig),
+        bathrooms: calculateBathroomScore(property.bathrooms ?? 0, defaultConfig),
+        elevator: property.elevator === 'has' ? 1 : 0,
+        parking: property.parking === 'has' ? 1 : 0,
+        terrace: property.terrace === 'has' ? 1 : 0,
+        balcony: property.balcony === 'has' ? 1 : 0,
+        airConditioning: property.airConditioning === 'has' ? 1 : 0,
+        heating: property.heating === 'has' ? 1 : 0
+    };
+
+    // Calculate score based on 3-state importance (Essential = 2, Valuable = 1, Irrelevant = 0)
+    const totalScore = Object.entries(scores).reduce((total, [key, score]) => {
+        const importance = defaultConfig.weights[key] || 0
+        // Only count scores for properties that are not irrelevant
+        if (importance > 0) {
+            const score100 = Math.round(score * 100)
+            return total + (score100 * importance)
+        }
+        return total
+    }, 0)
+
+    const totalImportance = Object.values(defaultConfig.weights).reduce((sum, importance) => sum + importance, 0)
+    
+    // Calculate final score as percentage of total possible score
+    const finalScore = totalImportance > 0 ? Math.round(totalScore / totalImportance) : 0
+    
+
+    
+    console.log('🎯 Clean Architecture: Calculated score:', finalScore, 'Property:', property.title);
+    return finalScore;
+}
+
 async function addProperty(propertyData) {
-    console.log('Background: Adding property:', propertyData);
+    console.log('🎯 Background: addProperty function called with data:', propertyData);
     
     // Check if property already exists (by URL)
     const existingIndex = properties.findIndex(p => p.url === propertyData.url);
     
     if (existingIndex !== -1) {
         console.log('Background: Updating existing property');
-        // Update existing property with new data
+        // STEP 1: Calculate score BEFORE updating
+        const score = await calculateScore(propertyData);
+        console.log('🎯 Background: Score calculated for update:', score, 'Property:', propertyData.title);
+        
+        // STEP 2: Update existing property with calculated score
         const existingProperty = properties[existingIndex];
         const updatedProperty = {
             ...existingProperty,
             ...propertyData,
             updatedAt: new Date().toISOString(),
-            score: await calculateScore(propertyData)
+            score: score // Score is calculated before saving
         };
         properties[existingIndex] = updatedProperty;
     } else {
         console.log('Background: Adding new property');
+        // STEP 1: Calculate score BEFORE adding
+        const score = await calculateScore(propertyData);
+        console.log('🎯 Background: Score calculated for new property:', score, 'Property:', propertyData.title);
+        
+        // STEP 2: Create property with calculated score
         const property = {
             ...propertyData,
             id: generateUniqueId(),
             addedAt: new Date().toISOString(),
-            score: await calculateScore(propertyData)
+            score: score // Score is calculated before saving
         };
         properties.push(property);
     }
@@ -516,6 +750,8 @@ async function addProperty(propertyData) {
 
 // Professional property scoring algorithm
 async function calculateScore(property) {
+    console.log('🎯 Background: calculateScore function called for property:', property.title || property.url);
+    
     // Load current configuration
     const fullConfig = await getConfiguration();
     
@@ -523,13 +759,20 @@ async function calculateScore(property) {
     const isRoom = property.url && property.url.includes('/habitacion/');
     const config = isRoom ? fullConfig.habitacion : fullConfig.vivienda;
 
+    console.log('🔍 Adding property with configuration:', config);
+
+    let finalScore;
     if (isRoom) {
         // Room scoring algorithm
-        return calculateRoomScore(property, config);
+        finalScore = calculateRoomScore(property, config);
     } else {
         // Apartment/House scoring algorithm
-        return calculateViviendaScore(property, config);
+        finalScore = calculateViviendaScore(property, config);
     }
+    
+    console.log('🎯 Calculated score for new property:', finalScore, 'Property:', property.title || property.url);
+    
+    return finalScore;
 }
 
 // Room scoring algorithm - 3-state system
@@ -696,9 +939,11 @@ async function removeProperty(propertyId) {
     }
 }
 
-async function updateProperty(propertyId, updatedProperty) {
+
+
+async function recalculatePropertyScore(propertyId) {
     try {
-        console.log('Background: Updating property:', propertyId, updatedProperty);
+        console.log('Background: Recalculating score for property:', propertyId);
         
         // Find the property
         const propertyIndex = properties.findIndex(p => String(p.id) === String(propertyId));
@@ -706,19 +951,16 @@ async function updateProperty(propertyId, updatedProperty) {
             throw new Error('Property not found');
         }
         
-        // Update the property with new data
-        const existingProperty = properties[propertyIndex];
-        const mergedProperty = { ...existingProperty, ...updatedProperty };
+        const property = properties[propertyIndex];
+        console.log('Background: Property data before recalculation:', property);
         
-        // Recalculate score with updated data
-        mergedProperty.score = await calculateScore(mergedProperty);
-        mergedProperty.updatedAt = new Date().toISOString();
+        // Recalculate score
+        const newScore = await calculateScore(property);
+        console.log('Background: New calculated score:', newScore);
         
-        // Replace the property
-        properties[propertyIndex] = mergedProperty;
-        
-        // Re-sort properties by score
-        properties.sort((a, b) => (b.score || 0) - (a.score || 0));
+        // Update the property with new score
+        property.score = newScore;
+        property.updatedAt = new Date().toISOString();
         
         // Save to storage
         await saveProperties();
@@ -729,9 +971,10 @@ async function updateProperty(propertyId, updatedProperty) {
         // Notify all components of the update
         await notifyAllComponents();
         
-        console.log('Background: Property updated successfully');
+        console.log('Background: Property score recalculated successfully');
+        return newScore;
     } catch (error) {
-        console.error('Background: Error updating property:', error);
+        console.error('Background: Error recalculating property score:', error);
         throw error;
     }
 }
@@ -808,10 +1051,11 @@ async function saveProperties() {
 
 async function getConfiguration() {
     try {
-        console.log('Background: Loading configuration from storage');
         const result = await chrome.storage.local.get(['scoringConfig']);
         const config = result.scoringConfig || defaultConfig;
-        console.log('Background: Configuration loaded:', config);
+        if (result.scoringConfig) {
+            console.log('✅ Loaded saved configuration from storage:', result.scoringConfig);
+        }
         return config;
     } catch (error) {
         console.error('Background: Error loading configuration:', error);

@@ -11,7 +11,6 @@ import {
   PropertyTypeConfigs, 
   ScoringConfig, 
   ScoringImportance,
-  getDefaultLevels,
   convertLevelsToImportance
 } from '@/domain/entities/PropertyType'
 import { PropertyType } from '@/domain/entities/PropertyType'
@@ -141,21 +140,29 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   const confirmReset = () => {
     // Reset only the currently selected property type to all irrelevant
-    const defaultLevels = getDefaultLevels()
+    const resetConfigs = { ...localConfigs }
+    const propertyType = activeTab
     
-    setLocalConfigs(prev => ({
-      ...prev,
-      [activeTab]: {
-        ...prev[activeTab],
-        weights: convertLevelsToImportance(defaultLevels)
-      }
-    }))
+    // Convert all importance levels to 'irrelevante' (0)
+    const resetLevels: Record<keyof ScoringImportance, ImportanceLevel> = {} as Record<keyof ScoringImportance, ImportanceLevel>
+    Object.keys(configs[propertyType].weights).forEach(key => {
+      resetLevels[key as keyof ScoringImportance] = 'irrelevante'
+    })
     
+    // Update the importance levels state
     setImportanceLevels(prev => ({
       ...prev,
-      [activeTab]: defaultLevels
+      [propertyType]: resetLevels
     }))
     
+    // Convert to numeric importance values and update configs
+    const resetImportance = convertLevelsToImportance(resetLevels)
+    resetConfigs[propertyType] = {
+      ...resetConfigs[propertyType],
+      weights: resetImportance
+    }
+    
+    setLocalConfigs(resetConfigs)
     setShowResetConfirmation(false)
   }
 

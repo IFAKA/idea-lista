@@ -45,6 +45,7 @@ export class PropertyApplicationService {
   private managePropertyVisits: ManagePropertyVisits
   private exportPropertyData: ExportPropertyData
 
+
   constructor(
     private propertyRepository: PropertyRepository,
     initialConfigs: PropertyTypeConfigs
@@ -54,8 +55,27 @@ export class PropertyApplicationService {
     this.exportPropertyData = new ExportPropertyData(propertyRepository)
   }
 
+  // Initialize the service by loading saved configuration
+  async initialize(): Promise<void> {
+    try {
+      // Load saved configuration from storage
+      const savedConfig = await this.propertyRepository.getScoringConfig()
+      
+            if (savedConfig) {
+        // Update the scoring service with saved configuration
+        Object.entries(savedConfig).forEach(([propertyType, config]) => {
+          this.calculatePropertyScore.updateConfig(propertyType as PropertyType, config as ScoringConfig)
+        })
+        // Configuration loaded successfully
+      }
+      } catch (error) {
+      // Continue with default configuration if loading fails
+    }
+  }
+
   // Property Management
   async getAllProperties(): Promise<Property[]> {
+    await this.initialize()
     return this.propertyRepository.getAll()
   }
 
@@ -64,157 +84,122 @@ export class PropertyApplicationService {
   }
 
   async addProperty(propertyData: Omit<Property, 'id' | 'createdAt' | 'updatedAt'>): Promise<Property> {
+    // Step 1: Ensure configuration is loaded
+    await this.initialize()
+    
+    // Step 2: Create property data object
     const properties = await this.propertyRepository.getAll()
     const existingIds = properties.map(p => String(p.id))
     
-    const newProperty = new Property(
-      generateUniqueId(existingIds),
-      propertyData.title,
-      propertyData.price,
-      propertyData.location,
-      propertyData.rooms,
-      propertyData.bathrooms,
-      propertyData.floor,
-      propertyData.url,
-      propertyData.propertyType,
-      propertyData.squareMeters,
-      propertyData.elevator,
-      propertyData.parking,
-      propertyData.terrace,
-      propertyData.balcony,
-      propertyData.airConditioning,
-      propertyData.heating,
-      propertyData.imageUrl,
-      0, // Initial score will be calculated
-      propertyData.notes,
-      new Date(),
-      new Date(),
-      propertyData.contactStatus || 'pending',
-      propertyData.propertyStatus || 'available',
-      propertyData.priority || 'medium',
-      propertyData.visits || [],
-      propertyData.contacts || [],
-      propertyData.visitNotes,
-      propertyData.lastContactDate,
-      propertyData.nextFollowUpDate,
-      propertyData.phone,
-      propertyData.professional,
-      propertyData.contactPerson,
-      propertyData.energyCert,
-      propertyData.furnished,
-      propertyData.seasonal,
-      propertyData.desk,
-      propertyData.orientation,
-      propertyData.pricePerM2,
-      propertyData.deposit,
-      propertyData.energy,
-      propertyData.maintenance,
-      propertyData.garden,
-      propertyData.pool,
-      propertyData.accessible,
-      propertyData.cleaningIncluded,
-      propertyData.lgbtFriendly,
-      propertyData.ownerNotPresent,
-      propertyData.privateBathroom,
-      propertyData.window,
-      propertyData.couplesAllowed,
-      propertyData.minorsAllowed,
-      propertyData.publicationDate,
-      propertyData.builtInWardrobes,
-      propertyData.garage,
-      propertyData.storage,
-      propertyData.condition,
-      propertyData.propertySubType,
-      propertyData.hasFloorPlan,
-      propertyData.hasVirtualTour,
-      propertyData.bankAd,
-      propertyData.gender,
-      propertyData.smokers,
-      propertyData.bed,
-      propertyData.roommates
-    )
+    const newProperty = new Property({
+      id: generateUniqueId(existingIds),
+      title: propertyData.title,
+      price: propertyData.price,
+      location: propertyData.location,
+      rooms: propertyData.rooms,
+      bathrooms: propertyData.bathrooms,
+      floor: propertyData.floor,
+      url: propertyData.url,
+      propertyType: propertyData.propertyType,
+      squareMeters: propertyData.squareMeters,
+      elevator: propertyData.elevator,
+      parking: propertyData.parking,
+      terrace: propertyData.terrace,
+      balcony: propertyData.balcony,
+      airConditioning: propertyData.airConditioning,
+      heating: propertyData.heating,
+      imageUrl: propertyData.imageUrl,
+      score: 0, // Score will be calculated in step 3
+      notes: propertyData.notes,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      contactStatus: propertyData.contactStatus || 'pending',
+      propertyStatus: propertyData.propertyStatus || 'available',
+      priority: propertyData.priority || 'medium',
+      visits: propertyData.visits || [],
+      contacts: propertyData.contacts || [],
+      visitNotes: propertyData.visitNotes,
+      lastContactDate: propertyData.lastContactDate,
+      nextFollowUpDate: propertyData.nextFollowUpDate,
+      phone: propertyData.phone,
+      professional: propertyData.professional,
+      contactPerson: propertyData.contactPerson,
+      energyCert: propertyData.energyCert,
+      furnished: propertyData.furnished,
+      seasonal: propertyData.seasonal,
+      desk: propertyData.desk,
+      orientation: propertyData.orientation,
+      pricePerM2: propertyData.pricePerM2,
+      deposit: propertyData.deposit,
+      energy: propertyData.energy,
+      maintenance: propertyData.maintenance,
+      garden: propertyData.garden,
+      pool: propertyData.pool,
+      accessible: propertyData.accessible,
+      cleaningIncluded: propertyData.cleaningIncluded,
+      lgbtFriendly: propertyData.lgbtFriendly,
+      ownerNotPresent: propertyData.ownerNotPresent,
+      privateBathroom: propertyData.privateBathroom,
+      window: propertyData.window,
+      couplesAllowed: propertyData.couplesAllowed,
+      minorsAllowed: propertyData.minorsAllowed,
+      publicationDate: propertyData.publicationDate,
+      builtInWardrobes: propertyData.builtInWardrobes,
+      garage: propertyData.garage,
+      storage: propertyData.storage,
+      condition: propertyData.condition,
+      propertySubType: propertyData.propertySubType,
+      hasFloorPlan: propertyData.hasFloorPlan,
+      hasVirtualTour: propertyData.hasVirtualTour,
+      bankAd: propertyData.bankAd,
+      gender: propertyData.gender,
+      smokers: propertyData.smokers,
+      bed: propertyData.bed,
+      roommates: propertyData.roommates
+    })
 
-    // Calculate initial score
+    // Step 3: Calculate score for that property based on the data
     const score = this.calculatePropertyScore.execute(newProperty)
-    const propertyWithScore = newProperty.updateScore(score)
     
+    // Step 4: Add to list (save with calculated score)
+    const propertyWithScore = newProperty.updateScore(score)
     await this.propertyRepository.save(propertyWithScore)
+    
     return propertyWithScore
   }
 
+  // Separate method to calculate and update property score
+  async calculateAndUpdatePropertyScore(propertyId: string): Promise<void> {
+    await this.initialize()
+    
+    const property = await this.propertyRepository.getById(propertyId)
+    if (!property) {
+      throw new Error(`Property with id ${propertyId} not found`)
+    }
+
+    // Calculate score with properly loaded configuration
+    const score = this.calculatePropertyScore.execute(property)
+    
+    // Update property with calculated score
+    const propertyWithScore = property.updateScore(score)
+    await this.propertyRepository.update(propertyWithScore)
+  }
+
   async updateProperty(id: string, updates: Partial<Property>): Promise<Property> {
+    // Ensure configuration is loaded before updating property
+    await this.initialize()
+    
     const property = await this.propertyRepository.getById(id)
     if (!property) {
       throw new Error(`Property with id ${id} not found`)
     }
 
     // Create updated property with new values
-    const updatedProperty = new Property(
-      property.id,
-      updates.title ?? property.title,
-      updates.price ?? property.price,
-      updates.location ?? property.location,
-      updates.rooms ?? property.rooms,
-      updates.bathrooms ?? property.bathrooms,
-      updates.floor ?? property.floor,
-      updates.url ?? property.url,
-      updates.propertyType ?? property.propertyType,
-      updates.squareMeters ?? property.squareMeters,
-      updates.elevator ?? property.elevator,
-      updates.parking ?? property.parking,
-      updates.terrace ?? property.terrace,
-      updates.balcony ?? property.balcony,
-      updates.airConditioning ?? property.airConditioning,
-      updates.heating ?? property.heating,
-      updates.imageUrl ?? property.imageUrl,
-      property.score, // Score will be recalculated if needed
-      updates.notes ?? property.notes,
-      property.createdAt,
-      new Date(),
-      updates.contactStatus ?? property.contactStatus,
-      updates.propertyStatus ?? property.propertyStatus,
-      updates.priority ?? property.priority,
-      updates.visits ?? property.visits,
-      updates.contacts ?? property.contacts,
-      updates.visitNotes ?? property.visitNotes,
-      updates.lastContactDate ?? property.lastContactDate,
-      updates.nextFollowUpDate ?? property.nextFollowUpDate,
-      updates.phone ?? property.phone,
-      updates.professional ?? property.professional,
-      updates.contactPerson ?? property.contactPerson,
-      updates.energyCert ?? property.energyCert,
-      updates.furnished ?? property.furnished,
-      updates.seasonal ?? property.seasonal,
-      updates.desk ?? property.desk,
-      updates.orientation ?? property.orientation,
-      updates.pricePerM2 ?? property.pricePerM2,
-      updates.deposit ?? property.deposit,
-      updates.energy ?? property.energy,
-      updates.maintenance ?? property.maintenance,
-      updates.garden ?? property.garden,
-      updates.pool ?? property.pool,
-      updates.accessible ?? property.accessible,
-      updates.cleaningIncluded ?? property.cleaningIncluded,
-      updates.lgbtFriendly ?? property.lgbtFriendly,
-      updates.ownerNotPresent ?? property.ownerNotPresent,
-      updates.privateBathroom ?? property.privateBathroom,
-      updates.window ?? property.window,
-      updates.couplesAllowed ?? property.couplesAllowed,
-      updates.minorsAllowed ?? property.minorsAllowed,
-      updates.publicationDate ?? property.publicationDate,
-      updates.builtInWardrobes ?? property.builtInWardrobes,
-      updates.garage ?? property.garage,
-      updates.storage ?? property.storage,
-      updates.condition ?? property.condition,
-      updates.propertySubType ?? property.propertySubType,
-      updates.hasFloorPlan ?? property.hasFloorPlan,
-      updates.hasVirtualTour ?? property.hasVirtualTour,
-      updates.bankAd ?? property.bankAd,
-      updates.gender ?? property.gender,
-      updates.smokers ?? property.smokers,
-      updates.bed ?? property.bed,
-      updates.roommates ?? property.roommates
-    )
+    const updatedProperty = new Property({
+      ...property.toData(),
+      ...updates,
+      updatedAt: new Date()
+    })
 
     await this.propertyRepository.update(updatedProperty)
     return updatedProperty
@@ -230,6 +215,9 @@ export class PropertyApplicationService {
 
   // Scoring
   async recalculateAllScores(): Promise<void> {
+    // Ensure configuration is loaded before recalculating scores
+    await this.initialize()
+    
     const properties = await this.propertyRepository.getAll()
     const updatedProperties = properties.map(property => {
       const newScore = this.calculatePropertyScore.execute(property)
@@ -239,10 +227,16 @@ export class PropertyApplicationService {
     await this.propertyRepository.saveAll(updatedProperties)
   }
 
+  // Get properties sorted by score (highest first)
+  async getPropertiesSortedByScore(): Promise<Property[]> {
+    const properties = await this.propertyRepository.getAll()
+    return properties.sort((a, b) => (b.score || 0) - (a.score || 0))
+  }
+
   async updateScoringConfig(configs: PropertyTypeConfigs): Promise<void> {
     // Update the scoring service configuration
     Object.entries(configs).forEach(([propertyType, config]) => {
-      this.calculatePropertyScore.updateConfig(propertyType as any, config)
+      this.calculatePropertyScore.updateConfig(propertyType as PropertyType, config)
     })
     
     // Save configuration to storage
@@ -253,12 +247,14 @@ export class PropertyApplicationService {
   }
 
   async getScoringConfig(): Promise<PropertyTypeConfigs> {
+    await this.initialize()
     return this.calculatePropertyScore.getAllConfigs()
   }
 
   // Add missing methods for configuration access
-  getConfig(propertyType: PropertyType): ScoringConfig {
-    return this.calculatePropertyScore.getConfig(propertyType)
+  async getConfig(propertyType: PropertyType): Promise<ScoringConfig> {
+    await this.initialize()
+    return this.calculatePropertyScore.getAllConfigs()[propertyType]
   }
 
   getAllConfigs(): PropertyTypeConfigs {
@@ -425,5 +421,20 @@ export class PropertyApplicationService {
         low: priorityCounts.low || 0
       }
     }
+  }
+
+  // Debug method to test price premium feature
+  debugPricePremium(): void {
+    // Debug method implementation removed
+  }
+
+  // Debug method to analyze property scoring
+  async debugPropertyScoring(): Promise<void> {
+    // Debug method implementation removed
+  }
+
+  // Debug method to compare two properties
+  async debugPropertyComparison(): Promise<void> {
+    // Debug method implementation removed
   }
 }

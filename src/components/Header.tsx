@@ -5,7 +5,8 @@ import {
   Download, 
   Trash2, 
   Home,
-  FileText
+  FileText,
+  Share2
 } from 'lucide-react'
 
 
@@ -14,6 +15,7 @@ interface HeaderProps {
   onExport: () => void
   onClear: () => void
   onExportVisits?: () => void
+  onShare: () => void
   propertiesCount: number
 }
 
@@ -22,6 +24,7 @@ export const Header: React.FC<HeaderProps> = ({
   onExport,
   onClear,
   onExportVisits,
+  onShare,
   propertiesCount
 }) => {
   return (
@@ -31,7 +34,8 @@ export const Header: React.FC<HeaderProps> = ({
         <h1 className="text-lg font-semibold">Idea-lista</h1>
       </div>
       
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1
+      ">
         <Button
           variant="ghost"
           size="icon"
@@ -53,6 +57,17 @@ export const Header: React.FC<HeaderProps> = ({
           className="h-8 w-8"
         >
           <Download className="w-4 h-4" />
+        </Button>
+        
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onShare}
+          disabled={propertiesCount === 0}
+          title={propertiesCount === 0 ? "No hay propiedades para compartir" : "Compartir lista por WhatsApp"}
+          className="h-8 w-8"
+        >
+          <Share2 className="w-4 h-4" />
         </Button>
         
         {onExportVisits && (

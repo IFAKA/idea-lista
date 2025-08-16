@@ -1,4 +1,5 @@
 import { Property } from '../entities/Property'
+import { PropertyTypeConfigs } from '../entities/PropertyType'
 
 export interface PropertyRepository {
   // Basic CRUD operations
@@ -21,8 +22,8 @@ export interface PropertyRepository {
   getPropertiesNeedingFollowUp(): Promise<Property[]>
   
   // Configuration operations
-  saveScoringConfig(config: any): Promise<void>
-  getScoringConfig(): Promise<any>
+  saveScoringConfig(config: PropertyTypeConfigs): Promise<void>
+  getScoringConfig(): Promise<PropertyTypeConfigs>
   
   // Export operations
   exportVisitData(): Promise<string>

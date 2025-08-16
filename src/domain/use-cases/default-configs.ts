@@ -61,10 +61,10 @@ export const defaultViviendaConfig = {
     // Metadata
     publicationDate: 0 // Irrelevant
   },
-  priceRange: { min: null, max: null },
-  sizeRange: { min: null, max: null },
-  roomRange: { min: null, max: null },
-  bathroomRange: { min: null, max: null }
+  priceRange: { min: 300, max: 2000 },
+  sizeRange: { min: 20, max: 200 },
+  roomRange: { min: 1, max: 6 },
+  bathroomRange: { min: 1, max: 4 }
 }
 
 export const defaultHabitacionConfig = {
@@ -128,10 +128,10 @@ export const defaultHabitacionConfig = {
     // Metadata
     publicationDate: 0 // Irrelevant
   },
-  priceRange: { min: null, max: null },
-  sizeRange: { min: null, max: null },
-  roomRange: { min: null, max: null },
-  bathroomRange: { min: null, max: null }
+  priceRange: { min: 200, max: 800 },
+  sizeRange: { min: 10, max: 50 },
+  roomRange: { min: 1, max: 1 },
+  bathroomRange: { min: 1, max: 2 }
 }
 
 // Default configurations for both property types
