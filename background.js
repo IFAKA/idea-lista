@@ -1,7 +1,6 @@
 // Background script for Property Manager
 let properties = [];
 let isInitialized = false;
-let nextId = 1; // Counter for generating unique IDs
 
 // Default configuration for apartments/houses
 const defaultViviendaConfig = {
@@ -155,7 +154,10 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 // Also load properties when the service worker starts
-loadProperties();
+loadProperties().then(() => {
+    // Migrate any properties with numeric IDs to hash-based IDs
+    migrateNumericIds();
+});
 
 // Listen for storage changes to keep all components in sync
 chrome.storage.onChanged.addListener((changes, namespace) => {
@@ -163,10 +165,30 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
         console.log('Background: Storage changed, updating properties');
         properties = changes.properties.newValue || [];
         
+        // Update the badge with the number of properties
+        updateBadge();
+        
         // Notify all components of the change
         notifyAllComponents();
     }
 });
+
+/**
+ * Updates the extension badge to show the number of saved properties
+ * The badge displays the count when there are properties, or is hidden when empty
+ */
+function updateBadge() {
+    const count = properties.length;
+    if (count > 0) {
+        // Show the count as badge text
+        chrome.action.setBadgeText({ text: count.toString() });
+        // Set badge background color
+        chrome.action.setBadgeBackgroundColor({ color: '#3b82f6' }); // Blue color
+    } else {
+        // Clear the badge when no properties
+        chrome.action.setBadgeText({ text: '' });
+    }
+}
 
 async function notifyAllComponents() {
     console.log('Background: Notifying all components, properties count:', properties.length);
@@ -228,16 +250,48 @@ async function notifyPropertyDeleted(propertyUrl) {
 async function loadProperties() {
     try {
         console.log('Background: Loading properties from storage...');
-        const result = await chrome.storage.local.get(['properties', 'nextId']);
+        const result = await chrome.storage.local.get(['properties']);
         properties = result.properties || [];
-        nextId = result.nextId || 1;
         isInitialized = true;
-        console.log('Background: Loaded', properties.length, 'properties from storage, nextId:', nextId);
+        console.log('Background: Loaded', properties.length, 'properties from storage');
+        
+        // Update the badge with the loaded properties count
+        updateBadge();
     } catch (error) {
         console.error('Background: Error loading properties:', error);
         properties = [];
-        nextId = 1;
         isInitialized = true;
+        
+        // Update the badge (will show empty since properties is empty)
+        updateBadge();
+    }
+}
+
+async function migrateNumericIds() {
+    try {
+        console.log('Background: Checking for properties with numeric IDs...');
+        let needsMigration = false;
+        
+        for (let i = 0; i < properties.length; i++) {
+            const property = properties[i];
+            if (property.id && /^\d+$/.test(property.id)) {
+                console.log(`🔄 Migrating property "${property.title}" from ID "${property.id}" to hash-based ID`);
+                const newId = generateUniqueId();
+                properties[i] = { ...property, id: newId };
+                needsMigration = true;
+            }
+        }
+        
+        if (needsMigration) {
+            console.log('Background: Migrating properties with numeric IDs...');
+            await saveProperties();
+            await notifyAllComponents();
+            console.log('✅ Migration completed!');
+        } else {
+            console.log('Background: No properties with numeric IDs found');
+        }
+    } catch (error) {
+        console.error('Background: Error during migration:', error);
     }
 }
 
@@ -296,6 +350,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'propertiesUpdated') {
         // Update the background script's properties list and notify all components
         properties = message.properties || [];
+        
+        // Update the badge with the new property count
+        updateBadge();
+        
         notifyAllComponents()
             .then(() => {
                 sendResponse({ success: true });
@@ -340,15 +398,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     
     if (message.action === 'resetIdCounter') {
-        nextId = 1;
-        saveProperties()
-            .then(() => {
-                sendResponse({ success: true, nextId: nextId });
-            })
-            .catch((error) => {
-                console.error('Error resetting ID counter:', error);
-                sendResponse({ success: false, error: error.message });
-            });
+        // No longer needed since we use hash-based IDs
+        sendResponse({ success: true, message: 'Hash-based IDs are now used, no counter needed' });
         return true;
     }
     
@@ -415,28 +466,38 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Generate unique ID for properties
 function generateUniqueId() {
-    const id = nextId;
-    nextId++;
-    return id;
+    // Use hash-based ID generation instead of incremental numbers
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substring(2, 8);
+    const id = `${timestamp}-${random}`.padEnd(16, '0');
+    return id.substring(0, 16); // Ensure exactly 16 characters
 }
 
 async function addProperty(propertyData) {
     console.log('Background: Adding property:', propertyData);
-    const property = {
-        ...propertyData,
-        id: generateUniqueId(),
-        addedAt: new Date().toISOString(),
-        score: await calculateScore(propertyData)
-    };
-    console.log('Background: Property with score:', property.score);
-
+    
     // Check if property already exists (by URL)
-    const existingIndex = properties.findIndex(p => p.url === property.url);
+    const existingIndex = properties.findIndex(p => p.url === propertyData.url);
+    
     if (existingIndex !== -1) {
         console.log('Background: Updating existing property');
-        properties[existingIndex] = property;
+        // Update existing property with new data
+        const existingProperty = properties[existingIndex];
+        const updatedProperty = {
+            ...existingProperty,
+            ...propertyData,
+            updatedAt: new Date().toISOString(),
+            score: await calculateScore(propertyData)
+        };
+        properties[existingIndex] = updatedProperty;
     } else {
         console.log('Background: Adding new property');
+        const property = {
+            ...propertyData,
+            id: generateUniqueId(),
+            addedAt: new Date().toISOString(),
+            score: await calculateScore(propertyData)
+        };
         properties.push(property);
     }
 
@@ -445,6 +506,9 @@ async function addProperty(propertyData) {
     console.log('Background: Properties after sort:', properties.length);
 
     await saveProperties();
+    
+    // Update the badge with the new property count
+    updateBadge();
     
     // Notify all components of the update
     await notifyAllComponents();
@@ -620,6 +684,9 @@ async function removeProperty(propertyId) {
     properties = properties.filter(p => String(p.id) !== String(propertyId));
     await saveProperties();
     
+    // Update the badge with the new property count
+    updateBadge();
+    
     // Notify all components of the update
     await notifyAllComponents();
     
@@ -655,6 +722,9 @@ async function updateProperty(propertyId, updatedProperty) {
         
         // Save to storage
         await saveProperties();
+        
+        // Update the badge with the new property count
+        updateBadge();
         
         // Notify all components of the update
         await notifyAllComponents();
@@ -700,6 +770,9 @@ async function importProperties(importedProperties) {
     // Save to storage
     await saveProperties();
     
+    // Update the badge with the new property count
+    updateBadge();
+    
     // Notify all components of the update
     await notifyAllComponents();
     
@@ -713,6 +786,9 @@ async function clearProperties() {
     properties = [];
     await saveProperties();
     
+    // Update the badge with the new property count
+    updateBadge();
+    
     // Notify all components of the update
     await notifyAllComponents();
 }
@@ -721,10 +797,9 @@ async function saveProperties() {
     try {
         console.log('Background: Saving', properties.length, 'properties to storage');
         await chrome.storage.local.set({ 
-            properties: properties,
-            nextId: nextId
+            properties: properties
         });
-        console.log('Background: Properties saved successfully, nextId:', nextId);
+        console.log('Background: Properties saved successfully');
     } catch (error) {
         console.error('Background: Error saving properties:', error);
         throw error;
@@ -764,6 +839,9 @@ async function saveConfiguration(newConfig) {
             
             // Save updated properties
             await saveProperties();
+            
+            // Update the badge with the new property count
+            updateBadge();
             
             // Notify all components of the update
             await notifyAllComponents();

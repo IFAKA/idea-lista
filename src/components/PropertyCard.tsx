@@ -438,8 +438,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           hasImage ? 'bg-cover bg-center bg-no-repeat' : ''
         }`}
         style={hasImage ? {
-          backgroundImage: `url(${imageUrl})`,
-          minHeight: '200px'
+          backgroundImage: `url(${imageUrl})`
         } : undefined}
       >
         {/* Dark overlay for better text readability when image is present */}
@@ -450,7 +449,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         {/* Content with proper contrast */}
         <div className={`relative z-10 ${hasImage ? 'text-white' : ''}`}>
           <CardHeader className="pb-3">
-            <div className="flex items-start justify-between">
+            <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <CardTitle 
                   className={`text-lg font-semibold truncate ${
@@ -459,17 +458,16 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 >
                   {formatPropertyTitle(property.title || '')}
                 </CardTitle>
+              </div>
+              <div className="flex flex-col items-end gap-2 ml-4">
                 {property.location && (
-                  <div className={`flex items-center text-sm mt-1 ${
+                  <div className={`flex items-center text-sm ${
                     hasImage ? 'text-white/90 drop-shadow-md' : 'text-muted-foreground'
                   }`}>
                     <MapPin className="w-4 h-4 mr-1" />
-                    <span className="truncate">{property.location}</span>
+                    <span className="truncate max-w-32">{property.location}</span>
                   </div>
                 )}
-              </div>
-              {/* --- PropertyCard: Actions & Score Section --- */}
-              <div className="flex items-center gap-2 ml-2">
                 <Badge
                   variant="secondary"
                   hover={false}
@@ -479,44 +477,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 >
                   {isNaN(property.score) ? 'N/A' : Math.round(property.score)}
                 </Badge>
-                {onManageVisits && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onManageVisits(property)}
-                    className={`h-8 w-8 ${
-                      hasImage ? 'text-white hover:bg-white/20' : ''
-                    }`}
-                    title="Gestionar visitas"
-                  >
-                    <Calendar className="w-4 h-4" />
-                  </Button>
-                )}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => property.url && window.open(property.url, '_blank')}
-                  className={`h-8 w-8 ${
-                    hasImage ? 'text-white hover:bg-white/20' : ''
-                  }`}
-                  disabled={!property.url}
-                  title="Ver anuncio"
-                >
-                  <Link className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onDelete(String(property.id))}
-                  className={`h-8 w-8 ${
-                    hasImage ? 'text-red-300 hover:text-red-200 hover:bg-red-500/20' : 'text-destructive hover:text-destructive'
-                  }`}
-                  title="Eliminar propiedad"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
               </div>
-              {/* --- End PropertyCard: Actions & Score Section --- */}
             </div>
           </CardHeader>
 
@@ -527,143 +488,178 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 .map(({ key, icon: Icon, title, value, className }) => (
                   <div 
                     key={key} 
-                    className={`flex items-center ${
-                      hasImage && className?.includes('text-destructive') ? 'bg-black/40 px-2 py-1 rounded-full' : ''
-                    }`}
+                    className="flex items-center"
                     title={title}
                   >
-                    <Icon className={`w-4 h-4 mr-2 ${
-                      hasImage && className?.includes('text-destructive') ? 'text-destructive' : 
-                      hasImage ? 'text-white/80' : 'text-muted-foreground'
-                    }`} />
-                    <span className={`${className} ${
-                      hasImage && !className?.includes('text-destructive') ? 'text-white/90 drop-shadow-sm' : ''
-                    }`}>
+                    <Icon className="w-4 h-4 mr-2 text-muted-foreground" />
+                    <span className={className}>
                       {value}
                     </span>
                   </div>
                 ))}
             </div>
 
-            {/* Visit tracking status badges */}
-            <div className="flex flex-wrap gap-2 mt-3">
-              {/* Contact status based on latest added record */}
-              {(() => {
-                const allRecords = [
-                  ...(property.visits || []),
-                  ...(property.contacts || [])
-                ]
-                
-                // Sort by creation date (most recent first)
-                const sortedRecords = allRecords.sort((a, b) => {
-                  const dateA = new Date(a.date).getTime()
-                  const dateB = new Date(b.date).getTime()
-                  return dateB - dateA // Descending order (newest first)
-                })
-                
-                const latestAddedRecord = sortedRecords[0]
-                // Use the latest record status, but fallback to property contactStatus if no records exist
-                const contactStatus = latestAddedRecord ? latestAddedRecord.status : property.contactStatus
-                
-                // Helper function to get status color for any status type
-                const getStatusColorForAnyStatus = (status: ContactStatus | PropertyStatus | VisitStatus) => {
-                  switch (status) {
-                    case 'pending':
-                    case 'requested':
-                      return 'bg-yellow-100 text-yellow-800'
-                    case 'contacted':
-                    case 'confirmed':
-                      return 'bg-blue-100 text-blue-800'
-                    case 'responded':
-                    case 'completed':
-                      return 'bg-green-100 text-green-800'
-                    case 'scheduled':
-                    case 'visited':
-                      return 'bg-purple-100 text-purple-800'
-                    case 'no_response':
-                    case 'cancelled':
-                      return 'bg-red-100 text-red-800'
-                    case 'not_interested':
-                      return 'bg-gray-100 text-gray-800'
-                    case 'available':
-                      return 'bg-green-100 text-green-800'
-                    case 'under_contract':
-                      return 'bg-orange-100 text-orange-800'
-                    case 'sold':
-                      return 'bg-red-100 text-red-800'
-                    case 'off_market':
-                      return 'bg-gray-100 text-gray-800'
-                    case 'rescheduled':
-                      return 'bg-purple-100 text-purple-800'
-                    default:
-                      return 'bg-gray-100 text-gray-800'
-                  }
-                }
-                
-                // Helper function to get status label for any status type
-                const getStatusLabelForAnyStatus = (status: ContactStatus | PropertyStatus | VisitStatus) => {
-                  const labels: Record<string, string> = {
-                    pending: 'Pendiente',
-                    contacted: 'Contactado',
-                    responded: 'Respondido',
-                    scheduled: 'Agendado',
-                    visited: 'Visitado',
-                    no_response: 'Sin Respuesta',
-                    not_interested: 'No Interesado',
-                    requested: 'Solicitado',
-                    confirmed: 'Confirmado',
-                    completed: 'Completado',
-                    cancelled: 'Cancelado',
-                    rescheduled: 'Reprogramado',
-                    available: 'Disponible',
-                    under_contract: 'En Contrato',
-                    sold: 'Vendido',
-                    off_market: 'Fuera de Mercado'
-                  }
-                  return labels[status] || status
-                }
-                
-                return contactStatus && (
-                  <Badge className={`text-xs ${getStatusColorForAnyStatus(contactStatus)}`}>
-                    {getStatusLabelForAnyStatus(contactStatus)}
-                  </Badge>
-                )
-              })()}
-              
-              {/* Visit count based on scheduled/rescheduled records */}
-              {(() => {
-                const visitCount = (property.visits || []).filter(visit => 
-                  visit.status === 'scheduled' || visit.status === 'rescheduled'
-                ).length
-                
-                return visitCount > 0 && (
-                  <Badge className="text-xs bg-purple-100 text-purple-800">
-                    <Calendar className="w-3 h-3 mr-1" />
-                    {visitCount} visita{visitCount > 1 ? 's' : ''}
-                  </Badge>
-                )
-              })()}
-              
-              {/* Contact count */}
-              {property.contacts && property.contacts.length > 0 && (
-                <Badge className="text-xs bg-blue-100 text-blue-800">
-                  <Phone className="w-3 h-3 mr-1" />
-                  {property.contacts.length} contacto{property.contacts.length > 1 ? 's' : ''}
-                </Badge>
-              )}
-            </div>
-
             {property.notes && (
-              <div className={`mt-3 p-2 rounded-md ${
-                hasImage ? 'bg-black/40 backdrop-blur-sm' : 'bg-muted'
-              }`}>
-                <p className={`text-sm ${
-                  hasImage ? 'text-white/90' : 'text-muted-foreground'
-                }`}>
+              <div className="mt-3 p-2 rounded-md bg-muted">
+                <p className="text-sm text-muted-foreground">
                   {property.notes}
                 </p>
               </div>
             )}
+
+            {/* Bottom section container */}
+            <div className="mt-4 pt-3 border-t">
+              {/* Inner container with space-between */}
+              <div className="flex justify-between items-center">
+                {/* Visit tracking status badges container */}
+                <div className="flex flex-wrap gap-2">
+                  {/* Contact status based on latest added record */}
+                  {(() => {
+                    const allRecords = [
+                      ...(property.visits || []),
+                      ...(property.contacts || [])
+                    ]
+                    
+                    // Sort by creation date (most recent first)
+                    const sortedRecords = allRecords.sort((a, b) => {
+                      const dateA = new Date(a.date).getTime()
+                      const dateB = new Date(b.date).getTime()
+                      return dateB - dateA // Descending order (newest first)
+                    })
+                    
+                    const latestAddedRecord = sortedRecords[0]
+                    // Use the latest record status, but fallback to property contactStatus if no records exist
+                    const contactStatus = latestAddedRecord ? latestAddedRecord.status : property.contactStatus
+                    
+                    // Helper function to get status color for any status type
+                    const getStatusColorForAnyStatus = (status: ContactStatus | PropertyStatus | VisitStatus) => {
+                      switch (status) {
+                        case 'pending':
+                        case 'requested':
+                          return 'bg-yellow-100 text-yellow-800'
+                        case 'contacted':
+                        case 'confirmed':
+                          return 'bg-blue-100 text-blue-800'
+                        case 'responded':
+                        case 'completed':
+                          return 'bg-green-100 text-green-800'
+                        case 'scheduled':
+                        case 'visited':
+                          return 'bg-purple-100 text-purple-800'
+                        case 'no_response':
+                        case 'cancelled':
+                          return 'bg-red-100 text-red-800'
+                        case 'not_interested':
+                          return 'bg-gray-100 text-gray-800'
+                        case 'available':
+                          return 'bg-green-100 text-green-800'
+                        case 'under_contract':
+                          return 'bg-orange-100 text-orange-800'
+                        case 'sold':
+                          return 'bg-red-100 text-red-800'
+                        case 'off_market':
+                          return 'bg-gray-100 text-gray-800'
+                        case 'rescheduled':
+                          return 'bg-purple-100 text-purple-800'
+                        default:
+                          return 'bg-gray-100 text-gray-800'
+                      }
+                    }
+                    
+                    // Helper function to get status label for any status type
+                    const getStatusLabelForAnyStatus = (status: ContactStatus | PropertyStatus | VisitStatus) => {
+                      const labels: Record<string, string> = {
+                        pending: 'Pendiente',
+                        contacted: 'Contactado',
+                        responded: 'Respondido',
+                        scheduled: 'Agendado',
+                        visited: 'Visitado',
+                        no_response: 'Sin Respuesta',
+                        not_interested: 'No Interesado',
+                        requested: 'Solicitado',
+                        confirmed: 'Confirmado',
+                        completed: 'Completado',
+                        cancelled: 'Cancelado',
+                        rescheduled: 'Reprogramado',
+                        available: 'Disponible',
+                        under_contract: 'En Contrato',
+                        sold: 'Vendido',
+                        off_market: 'Fuera de Mercado'
+                      }
+                      return labels[status] || status
+                    }
+                    
+                    return contactStatus && (
+                      <Badge className={`text-xs ${getStatusColorForAnyStatus(contactStatus)}`}>
+                        {getStatusLabelForAnyStatus(contactStatus)}
+                      </Badge>
+                    )
+                  })()}
+                  
+                  {/* Visit count based on scheduled/rescheduled records */}
+                  {(() => {
+                    const visitCount = (property.visits || []).filter(visit => 
+                      visit.status === 'scheduled' || visit.status === 'rescheduled'
+                    ).length
+                    
+                    return visitCount > 0 && (
+                      <Badge className="text-xs bg-purple-100 text-purple-800">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        {visitCount} visita{visitCount > 1 ? 's' : ''}
+                      </Badge>
+                    )
+                  })()}
+                  
+                  {/* Contact count */}
+                  {property.contacts && property.contacts.length > 0 && (
+                    <Badge className="text-xs bg-blue-100 text-blue-800">
+                      <Phone className="w-3 h-3 mr-1" />
+                      {property.contacts.length} contacto{property.contacts.length > 1 ? 's' : ''}
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Actions buttons container */}
+                <div className="flex items-center gap-2">
+                  {onManageVisits && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onManageVisits(property)}
+                      className={`h-8 w-8 ${
+                        hasImage ? 'text-white hover:bg-white/20' : ''
+                      }`}
+                      title="Gestionar visitas"
+                    >
+                      <Calendar className="w-4 h-4" />
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => property.url && window.open(property.url, '_blank')}
+                    className={`h-8 w-8 ${
+                      hasImage ? 'text-white hover:bg-white/20' : ''
+                    }`}
+                    disabled={!property.url}
+                    title="Ver anuncio"
+                  >
+                    <Link className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onDelete(String(property.id))}
+                    className={`h-8 w-8 ${
+                      hasImage ? 'text-red-300 hover:text-red-200 hover:bg-red-500/20' : 'text-destructive hover:text-destructive'
+                    }`}
+                    title="Eliminar propiedad"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </div>
       </div>

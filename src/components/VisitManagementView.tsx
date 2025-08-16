@@ -98,13 +98,25 @@ export const VisitManagementView: React.FC<VisitManagementViewProps> = ({
   // Extract contact person name from property post
   const extractContactPersonName = (): string => {
     try {
-      // Look for the chat info banner text in the current page
+      // First try to find the hidden input with user-name
+      const userNameInput = document.querySelector('input[name="user-name"]') as HTMLInputElement
+      if (userNameInput && userNameInput.value) {
+        return userNameInput.value.trim()
+      }
+      
+      // Fallback: Look for the chat info banner text in the current page
       const chatInfoBanner = document.querySelector('.chat-info-banner-text')
       if (chatInfoBanner) {
         const strongElement = chatInfoBanner.querySelector('strong')
         if (strongElement) {
           return strongElement.textContent?.trim() || ''
         }
+      }
+      
+      // Additional fallback: Look for the professional-name div structure
+      const professionalNameDiv = document.querySelector('.professional-name .name')
+      if (professionalNameDiv) {
+        return professionalNameDiv.textContent?.trim() || ''
       }
     } catch (error) {
       console.warn('Could not extract contact person name:', error)
@@ -300,16 +312,7 @@ export const VisitManagementView: React.FC<VisitManagementViewProps> = ({
               </div>
             )}
 
-            {availableStatusOptions.length === 0 && !isPropertyCancelled && (
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  {updatedProperty.visits && updatedProperty.visits.some(visit => visit.status === 'completed' || visit.status === 'cancelled')
-                    ? "No se pueden agregar más registros porque ya existe un registro con estado 'Completado' o 'Cancelado'."
-                    : "El proceso de visita ha sido completado. No se pueden agregar más registros."
-                  }
-                </p>
-              </div>
-            )}
+
 
             {allRecords.length > 0 ? (
               <div className="space-y-5 flex flex-col">
@@ -367,11 +370,9 @@ export const VisitManagementView: React.FC<VisitManagementViewProps> = ({
         title={
           isPropertyCancelled 
             ? "No se pueden agregar registros cuando la propiedad está cancelada" 
-            : updatedProperty.visits && updatedProperty.visits.some(visit => visit.status === 'completed' || visit.status === 'cancelled')
-              ? "No se pueden agregar más registros porque ya existe un registro con estado 'Completado' o 'Cancelado'"
-              : availableStatusOptions.length === 0
-                ? "No se pueden agregar más registros"
-                : ""
+            : availableStatusOptions.length === 0
+              ? "No se pueden agregar más registros"
+              : ""
         }
       >
         <Plus className="w-6 h-6" />

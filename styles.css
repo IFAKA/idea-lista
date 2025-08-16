@@ -856,6 +856,17 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+/* Dark mode specific styles */
+@media (prefers-color-scheme: dark) {
+    .analyzer-add-btn--compact {
+        box-shadow: 0 1px 3px rgba(255, 255, 255, 0.1);
+    }
+    
+    .analyzer-add-btn--compact:hover {
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+    }
+}
+
 .analyzer-add-btn--compact:active {
     transform: var(--transform-base) scale(0.98);
     transition: all var(--animation-fast) var(--easing-ease-in);
@@ -886,10 +897,24 @@ body {
     box-shadow: var(--shadow-md);
 }
 
+/* Dark mode delete button hover state */
+@media (prefers-color-scheme: dark) {
+    .analyzer-add-btn--compact.delete-mode:hover {
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15);
+    }
+}
+
 /* Delete button active state */
 .analyzer-add-btn--compact.delete-mode:active {
     background-color: #bd2130 !important;
     transform: var(--transform-base) scale(0.98);
+}
+
+/* Dark mode delete button active state */
+@media (prefers-color-scheme: dark) {
+    .analyzer-add-btn--compact.delete-mode:active {
+        box-shadow: 0 2px 6px rgba(255, 255, 255, 0.1);
+    }
 }
 
 /* Update button styles */
@@ -928,6 +953,17 @@ body {
     background-color: hsl(48 96% 45%) !important; 
     transform: translateZ(0) scale(1.02);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark mode update button styles */
+@media (prefers-color-scheme: dark) {
+    .analyzer-update-btn--compact {
+        box-shadow: 0 1px 3px rgba(255, 255, 255, 0.1);
+    }
+    
+    .analyzer-update-btn--compact:hover {
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+    }
 }
 
 .analyzer-update-btn--compact:active {

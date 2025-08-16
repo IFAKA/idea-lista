@@ -451,11 +451,26 @@
 
     // Extract contact person name
     try {
-      const chatInfoBanner = document.querySelector(".chat-info-banner-text");
-      if (chatInfoBanner) {
-        const strongElement = chatInfoBanner.querySelector("strong");
-        if (strongElement) {
-          info.contactPerson = strongElement.textContent?.trim() || "";
+      // First try to find the hidden input with user-name
+      const userNameInput = document.querySelector('input[name="user-name"]');
+      if (userNameInput && userNameInput.value) {
+        info.contactPerson = userNameInput.value.trim();
+      } else {
+        // Fallback: Look for the chat info banner text
+        const chatInfoBanner = document.querySelector(".chat-info-banner-text");
+        if (chatInfoBanner) {
+          const strongElement = chatInfoBanner.querySelector("strong");
+          if (strongElement) {
+            info.contactPerson = strongElement.textContent?.trim() || "";
+          }
+        }
+        
+        // Additional fallback: Look for the professional-name div structure
+        if (!info.contactPerson) {
+          const professionalNameDiv = document.querySelector('.professional-name .name');
+          if (professionalNameDiv) {
+            info.contactPerson = professionalNameDiv.textContent?.trim() || "";
+          }
         }
       }
     } catch (error) {
