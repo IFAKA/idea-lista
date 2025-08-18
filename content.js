@@ -394,6 +394,36 @@
           addButton.style.background = '#059669';
           addButton.disabled = true;
           
+          // Show the actual score that was stored
+          if (response.score !== undefined) {
+            const scoreElement = document.getElementById('idea-lista-score');
+            if (scoreElement) {
+              const score = response.score;
+              let scoreColor = '#dc2626'; // red
+              let scoreText = '🔴 Pobre';
+              
+              if (score >= 80) {
+                scoreColor = '#059669'; // green
+                scoreText = '🟢 Excelente';
+              } else if (score >= 60) {
+                scoreColor = '#2563eb'; // blue
+                scoreText = '🔵 Bueno';
+              } else if (score >= 40) {
+                scoreColor = '#d97706'; // yellow
+                scoreText = '🟡 Promedio';
+              }
+              
+              scoreElement.innerHTML = `
+                <div style="font-size: 18px; font-weight: 600; color: ${scoreColor};">
+                  ${score}/100
+                </div>
+                <div style="font-size: 12px; color: #6b7280;">
+                  ${scoreText} (Guardado)
+                </div>
+              `;
+            }
+          }
+          
           setTimeout(() => {
             const analyzer = document.getElementById('idea-lista-analyzer');
             if (analyzer) {

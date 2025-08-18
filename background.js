@@ -172,6 +172,15 @@ async function addProperty(propertyData) {
     const result = await chrome.storage.local.get([PROPERTIES_KEY]);
     const properties = result[PROPERTIES_KEY] || [];
     
+    // Get scoring configuration
+    const configResult = await chrome.storage.local.get([CONFIG_KEY]);
+    const configs = configResult[CONFIG_KEY] || defaultConfigs;
+    const config = configs.vivienda; // Default to vivienda config
+    
+    // Calculate score for the property
+    const calculatedScore = calculatePropertyScore(propertyData, config);
+    console.log('Calculated score for property:', calculatedScore);
+    
     // Check if property already exists (by URL)
     const existingIndex = properties.findIndex(p => p.url === propertyData.url);
     
@@ -180,12 +189,14 @@ async function addProperty(propertyData) {
       properties[existingIndex] = {
         ...properties[existingIndex],
         ...propertyData,
+        score: calculatedScore, // Ensure score is updated
         updatedAt: new Date().toISOString()
       };
     } else {
       // Add new property
       const newProperty = {
         ...propertyData,
+        score: calculatedScore, // Ensure score is included
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         visits: [],
@@ -200,7 +211,7 @@ async function addProperty(propertyData) {
     // Notify popup about the update
     chrome.runtime.sendMessage({ action: 'propertiesUpdated' });
     
-    return { success: true };
+    return { success: true, score: calculatedScore };
   } catch (error) {
     console.error('Error adding property:', error);
     return { success: false, error: error.message };
