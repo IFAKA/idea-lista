@@ -320,12 +320,27 @@
 
   // Calculate property score and display it
   function calculateAndDisplayScore(propertyData) {
+    console.log('Sending calculateScore message to background script');
     // Send message to background script to calculate score
     chrome.runtime.sendMessage({
       action: 'calculateScore',
       propertyData: propertyData
     }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.error('Error sending message:', chrome.runtime.lastError);
+        const scoreElement = document.getElementById('idea-lista-score');
+        if (scoreElement) {
+          scoreElement.innerHTML = `
+            <div style="font-size: 12px; color: #dc2626;">
+              Error: No se pudo calcular la puntuación
+            </div>
+          `;
+        }
+        return;
+      }
+      
       if (response && response.score !== undefined) {
+        console.log('Received score response:', response);
         const scoreElement = document.getElementById('idea-lista-score');
         if (scoreElement) {
           const score = response.score;
@@ -352,17 +367,27 @@
             </div>
           `;
         }
+      } else {
+        console.error('Invalid response from background script:', response);
       }
     });
   }
 
   // Add property to the user's list
   function addPropertyToList(propertyData) {
+    console.log('Sending addProperty message to background script');
     chrome.runtime.sendMessage({
       action: 'addProperty',
       propertyData: propertyData
     }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.error('Error sending addProperty message:', chrome.runtime.lastError);
+        alert('Error: No se pudo conectar con la extensión. Por favor, recarga la página.');
+        return;
+      }
+      
       if (response && response.success) {
+        console.log('Property added successfully:', response);
         const addButton = document.getElementById('idea-lista-add');
         if (addButton) {
           addButton.textContent = '✅ Agregado';
@@ -377,7 +402,8 @@
           }, 2000);
         }
       } else {
-        alert('Error al agregar la propiedad a la lista');
+        console.error('Failed to add property:', response);
+        alert('Error al agregar la propiedad a la lista: ' + (response?.error || 'Error desconocido'));
       }
     });
   }

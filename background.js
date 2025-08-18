@@ -1,6 +1,8 @@
 // Background script for Idea-lista Chrome extension
 // Handles property data storage and scoring calculations
 
+console.log('🎯 Idea-lista background script loaded successfully!');
+
 // Default scoring configuration
 const defaultConfigs = {
   vivienda: {
@@ -207,6 +209,8 @@ async function addProperty(propertyData) {
 
 // Message listener
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log('Background script received message:', message);
+  
   if (message.action === 'calculateScore') {
     // Get config for property type (default to vivienda)
     chrome.storage.local.get([CONFIG_KEY], (result) => {
@@ -214,13 +218,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const config = configs.vivienda; // Default to vivienda config
       
       const score = calculatePropertyScore(message.propertyData, config);
+      console.log('Calculated score:', score);
       sendResponse({ score });
     });
     return true; // Keep message channel open for async response
   }
   
   if (message.action === 'addProperty') {
-    addProperty(message.propertyData).then(sendResponse);
+    console.log('Adding property:', message.propertyData);
+    addProperty(message.propertyData).then((result) => {
+      console.log('Property added result:', result);
+      sendResponse(result);
+    }).catch((error) => {
+      console.error('Error in addProperty:', error);
+      sendResponse({ success: false, error: error.message });
+    });
     return true; // Keep message channel open for async response
   }
   
@@ -265,6 +277,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
     return true;
   }
+  
+  // If no action matches, send an error response
+  console.warn('Unknown action:', message.action);
+  sendResponse({ success: false, error: 'Unknown action' });
 });
 
 // Handle extension icon click
