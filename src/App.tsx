@@ -31,8 +31,7 @@ const App: React.FC = () => {
     exportProperties,
     exportVisitData,
     initialize,
-    refreshProperties,
-    recalculateAllScores
+    refreshProperties
   } = usePropertyStore()
   
   const [deleteConfirmation, setDeleteConfirmation] = useState<DeleteConfirmationState>({
@@ -41,7 +40,6 @@ const App: React.FC = () => {
     propertyTitle: ''
   })
   const [clearConfirmation, setClearConfirmation] = useState(false)
-  const [migrationConfirmation, setMigrationConfirmation] = useState(false)
 
   // Add ref for scrolling container
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -137,14 +135,7 @@ const App: React.FC = () => {
     setClearConfirmation(false)
   }, [clearProperties])
 
-  const handleMigration = useCallback(() => {
-    setMigrationConfirmation(true)
-  }, [])
 
-  const confirmMigration = useCallback(async () => {
-    await recalculateAllScores()
-    setMigrationConfirmation(false)
-  }, [recalculateAllScores])
 
   // Initialize app
   useEffect(() => {
@@ -274,23 +265,7 @@ const App: React.FC = () => {
         </div>
       </div>
       
-      {/* Migration Button - Temporary */}
-      {properties.length > 0 && (
-        <motion.button
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handleMigration}
-          disabled={isLoading}
-          className="fixed bottom-4 left-4 z-50 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white rounded-full p-3 shadow-lg transition-all duration-200"
-          title="Recalculate all property scores with new algorithm"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-        </motion.button>
-      )}
+
         
       <ConfirmationModal
         isOpen={deleteConfirmation.isOpen}
@@ -314,16 +289,7 @@ const App: React.FC = () => {
         variant="destructive"
       />
 
-      <ConfirmationModal
-        isOpen={migrationConfirmation}
-        onClose={() => setMigrationConfirmation(false)}
-        onConfirm={confirmMigration}
-        title="Actualizar Puntuaciones"
-        message="¿Estás seguro de que quieres recalcular todas las puntuaciones de propiedades con el nuevo algoritmo? Esto actualizará las puntuaciones de todas las propiedades existentes."
-        confirmText="Actualizar"
-        cancelText="Cancelar"
-        variant="default"
-      />
+
     </>
   )
 }
