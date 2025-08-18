@@ -24,7 +24,7 @@ rm -f popup.html popup.js popup.css
 
 # Copy built files to root for Chrome extension
 echo "📁 Copying built files to root..."
-cp dist/src/popup.html ./popup.html
+cp dist/popup.html ./popup.html
 cp dist/popup.js ./
 cp dist/popup.css ./
 
