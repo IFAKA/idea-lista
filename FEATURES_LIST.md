@@ -53,7 +53,7 @@
 ### 7. User Interface Features
 - **Modern responsive design** with Tailwind CSS
 - **Dark/light theme** support with system detection
-- **Smooth animations** using Framer Motion
+- **Smooth animations** using Motion
 - **Auto-scroll to current property** when popup opens
 - **Visual highlighting** of current property
 - **Loading states** and error handling
