@@ -38,7 +38,6 @@ echo "📁 Copying extension files..."
 cp manifest.json ./
 cp background.js ./
 cp content.js ./
-cp styles.css ./
 
 # Copy static assets
 echo "📁 Copying static assets..."
@@ -46,7 +45,7 @@ cp icon*.png . 2>/dev/null || echo "⚠️ Icon files not found, skipping..."
 
 # Verify all required files exist
 echo "✅ Verifying build..."
-required_files=("manifest.json" "popup.html" "popup.js" "popup.css" "background.js" "content.js" "styles.css")
+required_files=("manifest.json" "popup.html" "popup.js" "popup.css" "background.js" "content.js")
 missing_files=()
 
 for file in "${required_files[@]}"; do

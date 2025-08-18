@@ -1,17 +1,12 @@
-import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react'
+import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { motion } from "motion/react"
 import { Header } from '@/components/Header'
 import { PropertyCard } from '@/components/PropertyCard'
 import { EmptyState } from '@/components/EmptyState'
-import { SettingsView } from '@/components/SettingsView'
 import { StatsBar } from '@/components/StatsBar'
-import { VisitManagementView } from '@/components/VisitManagementView'
 import { ConfirmationModal } from '@/components/ui/confirmation-modal'
-import { useCleanPropertyStore } from '@/store/clean-property-store'
-import { Property, VisitChecklistItem } from '@/domain/entities/Property'
-import { PropertyAdapter } from '@/infrastructure/adapters/PropertyAdapter'
+import { usePropertyStore } from '@/store/property-store'
 import { initializeTheme } from '@/lib/theme'
-import { ScoringConfig, PropertyTypeConfigs } from '@/domain/entities/PropertyType'
 
 interface ChromeMessage {
   action: string
@@ -25,11 +20,6 @@ interface DeleteConfirmationState {
   propertyTitle: string
 }
 
-interface VisitManagementState {
-  isOpen: boolean
-  property: Property | null
-}
-
 const App: React.FC = () => {
   const {
     properties,
@@ -40,17 +30,11 @@ const App: React.FC = () => {
     clearProperties,
     exportProperties,
     exportVisitData,
-    updateProperty,
-    addVisit,
     initialize,
     refreshProperties,
     recalculateAllScores
-  } = useCleanPropertyStore()
+  } = usePropertyStore()
   
-  const [currentConfig, setCurrentConfig] = useState<ScoringConfig | undefined>(undefined)
-  const [settingsConfigs, setSettingsConfigs] = useState<PropertyTypeConfigs | undefined>(undefined)
-
-  const [showSettings, setShowSettings] = useState(false)
   const [deleteConfirmation, setDeleteConfirmation] = useState<DeleteConfirmationState>({
     isOpen: false,
     propertyId: null,
@@ -58,18 +42,9 @@ const App: React.FC = () => {
   })
   const [clearConfirmation, setClearConfirmation] = useState(false)
   const [migrationConfirmation, setMigrationConfirmation] = useState(false)
-  const [visitManagementView, setVisitManagementView] = useState<VisitManagementState>({
-    isOpen: false,
-    property: null
-  })
 
   // Add ref for scrolling container
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-
-  // Memoized handlers
-  const handleConfig = useCallback(() => {
-    setShowSettings(true)
-  }, [])
 
   const handleExport = useCallback(async () => {
     try {
@@ -77,8 +52,7 @@ const App: React.FC = () => {
         format: 'tsv',
         sortBy: 'score',
         sortOrder: 'desc',
-        includeVisits: true,
-        includeContacts: true
+        includeVisits: true
       })
       const blob = new Blob([tsvContent], { type: 'text/tab-separated-values' })
       const url = URL.createObjectURL(blob)
@@ -110,22 +84,19 @@ const App: React.FC = () => {
   const handleShare = useCallback(() => {
     if (properties.length === 0) return
 
-    // Create a summary of properties for sharing
-    const sortedProperties = properties
-      .sort((a, b) => b.score - a.score)
-
+    const sortedProperties = properties.sort((a, b) => b.score - a.score)
     let shareText = `Mi Lista de Propiedades (${properties.length} propiedades)\n\n`
     
     sortedProperties.forEach((property, index) => {
       shareText += `${index + 1}. ${property.title}\n`
       const details = []
-      if (property.price && property.price > 0) details.push(`${property.price}€`)
+      if (property.price > 0) details.push(`${property.price}€`)
       if (property.squareMeters && property.squareMeters > 0) details.push(`${property.squareMeters}m²`)
-      if (property.rooms && property.rooms > 0) details.push(`${property.rooms}hab`)
-      if (property.bathrooms && property.bathrooms > 0) details.push(`${property.bathrooms}baño`)
-      if (property.floor && property.floor.trim() && property.floor !== '') details.push(`p${property.floor}`)
-      if (property.location && property.location.trim() && property.location !== '') details.push(property.location)
-      if (property.score !== undefined && property.score !== null) details.push(`${property.score.toFixed(1)}`)
+      if (property.rooms > 0) details.push(`${property.rooms}hab`)
+      if (property.bathrooms > 0) details.push(`${property.bathrooms}baño`)
+      if (property.floor && property.floor.trim()) details.push(`p${property.floor}`)
+      if (property.location && property.location.trim()) details.push(property.location)
+      if (property.score !== undefined) details.push(`${property.score.toFixed(1)}`)
       
       if (details.length > 0) {
         shareText += `   ${details.join(' • ')}\n`
@@ -136,11 +107,8 @@ const App: React.FC = () => {
       shareText += '\n'
     })
 
-    // Create WhatsApp share URL
     const encodedText = encodeURIComponent(shareText)
     const whatsappUrl = `https://wa.me/?text=${encodedText}`
-    
-    // Open WhatsApp in a new tab
     window.open(whatsappUrl, '_blank')
   }, [properties])
 
@@ -178,144 +146,51 @@ const App: React.FC = () => {
     setMigrationConfirmation(false)
   }, [recalculateAllScores])
 
-  const handleSaveSettings = useCallback(async (newConfigs: PropertyTypeConfigs) => {
-    try {
-      await useCleanPropertyStore.getState().updateScoringConfig(newConfigs)
-      // Update the current config with the new vivienda config
-      setCurrentConfig(newConfigs.vivienda)
-      setSettingsConfigs(newConfigs)
-      setShowSettings(false)
-    } catch (error) {
-      console.error('Failed to save settings:', error)
-    }
-  }, [])
-
-  const handleManageVisits = useCallback((property: Property) => {
-    setVisitManagementView({
-      isOpen: true,
-      property
-    })
-  }, [])
-
-  const handleCloseVisitManagement = useCallback(() => {
-    setVisitManagementView({
-      isOpen: false,
-      property: null
-    })
-  }, [])
-
-  const handleUpdateProperty = useCallback(async (updates: Partial<Property>) => {
-    if (visitManagementView.property) {
-      await updateProperty(String(visitManagementView.property.id), updates)
-    }
-  }, [visitManagementView.property, updateProperty])
-
-  const handleAddVisit = useCallback(async (visit: {
-    status: 'requested' | 'confirmed' | 'scheduled' | 'completed' | 'cancelled' | 'rescheduled'
-    date: Date
-    notes?: string
-    checklist: VisitChecklistItem[]
-    contactMethod?: string
-    contactPerson?: string
-    scheduledTime?: string
-    duration?: number
-    followUpDate?: Date
-    followUpNotes?: string
-  }) => {
-    if (visitManagementView.property) {
-      await addVisit(String(visitManagementView.property.id), visit)
-      // Refresh the property data in the visit management view
-      const updatedProperties = await useCleanPropertyStore.getState().applicationService.getAllProperties()
-      const updatedProperty = updatedProperties.find(p => String(p.id) === String(visitManagementView.property!.id))
-      if (updatedProperty) {
-        setVisitManagementView(prev => ({
-          ...prev,
-          property: PropertyAdapter.toStore(updatedProperty)
-        }))
-      }
-    }
-  }, [visitManagementView.property, addVisit])
-
-  // Memoized values
-  const hasProperties = useMemo(() => properties.length > 0, [properties.length])
-
+  // Initialize app
   useEffect(() => {
-    // Initialize theme system
     initializeTheme()
-    
-    // Initialize the clean architecture store and load configuration
-    const initApp = async () => {
-      await initialize()
-      // Load current configuration
-      try {
-        const config = await useCleanPropertyStore.getState().applicationService.getConfig('vivienda')
-        const allConfigs = await useCleanPropertyStore.getState().applicationService.getScoringConfig()
-        setCurrentConfig(config)
-        setSettingsConfigs(allConfigs)
-      } catch (error) {
-        console.error('Failed to load configuration:', error)
-      }
-    }
-    
-    initApp()
+    initialize()
     
     // Listen for property updates from background script
     const handleMessage = (message: ChromeMessage) => {
-      if (message.action === 'propertiesUpdated') {
-        // Refresh the properties list when a new property is added
-        refreshProperties()
-      } else if (message.action === 'propertyDeleted') {
-        // Refresh the properties list when a property is deleted
+      if (message.action === 'propertiesUpdated' || message.action === 'propertyDeleted') {
         refreshProperties()
       }
     }
 
-    // Add message listener
     chrome.runtime.onMessage.addListener(handleMessage)
-    
-    // Cleanup function to remove listener
-    return () => {
-      chrome.runtime.onMessage.removeListener(handleMessage)
-    }
-
+    return () => chrome.runtime.onMessage.removeListener(handleMessage)
   }, [initialize, refreshProperties])
 
-  // Add effect to scroll to current property when popup opens
+  // Auto-scroll to current property when popup opens
   useEffect(() => {
     const scrollToCurrentProperty = async () => {
       if (properties.length === 0 || isLoading) return
 
       try {
-        // Get the active tab to check if we're on a property page
         const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true })
         
         if (!activeTab.url || !activeTab.url.includes('idealista.com/inmueble/')) {
-          return // Not on a property page
+          return
         }
 
-        // Find the property that matches the current URL
         const currentProperty = properties.find(property => property.url === activeTab.url)
         
         if (currentProperty && scrollContainerRef.current) {
           const containerElement = scrollContainerRef.current
-          
-          // Find the property card element by its data attribute
           const cardElement = containerElement.querySelector(`[data-property-id="${currentProperty.id}"]`) as HTMLElement
           
           if (cardElement) {
-            // Calculate the scroll position to center the card
             const containerRect = containerElement.getBoundingClientRect()
             const cardRect = cardElement.getBoundingClientRect()
             
             const scrollTop = cardElement.offsetTop - containerElement.offsetTop - (containerRect.height / 2) + (cardRect.height / 2)
             
-            // Smooth scroll to the card
             containerElement.scrollTo({
               top: Math.max(0, scrollTop),
               behavior: 'smooth'
             })
             
-            // Add a subtle highlight effect
             cardElement.style.transition = 'box-shadow 0.3s ease'
             cardElement.style.boxShadow = '0 0 0 2px hsl(var(--primary))'
             
@@ -329,9 +204,7 @@ const App: React.FC = () => {
       }
     }
 
-    // Small delay to ensure the popup is fully rendered
     const timer = setTimeout(scrollToCurrentProperty, 100)
-    
     return () => clearTimeout(timer)
   }, [properties, isLoading])
 
@@ -364,64 +237,45 @@ const App: React.FC = () => {
 
   return (
     <>
-      {showSettings ? (
-        <SettingsView
-          configs={settingsConfigs || useCleanPropertyStore.getState().applicationService.getAllConfigs()}
-          currentPropertyType="vivienda"
-          onSave={handleSaveSettings}
-          onBack={() => setShowSettings(false)}
-          onPropertyTypeChange={() => {}}
+      <div className="w-96 h-[600px] bg-background text-foreground flex flex-col">
+        <Header
+          onConfig={() => {}} // TODO: Implement settings
+          onExport={handleExport}
+          onClear={handleClear}
+          onExportVisits={handleExportVisits}
+          onShare={handleShare}
+          propertiesCount={properties.length}
         />
-      ) : visitManagementView.property && visitManagementView.isOpen ? (
-        <VisitManagementView
-          property={visitManagementView.property}
-          onBack={handleCloseVisitManagement}
-          onUpdateProperty={handleUpdateProperty}
-          onAddVisit={handleAddVisit}
-        />
-      ) : (
-        <div className="w-96 h-[600px] bg-background text-foreground flex flex-col">
-          <Header
-            onConfig={handleConfig}
-            onExport={handleExport}
-            onClear={handleClear}
-            onExportVisits={handleExportVisits}
-            onShare={handleShare}
-            propertiesCount={properties.length}
-          />
-          
-          <div className="flex-1 overflow-hidden flex flex-col">
-            <div className="flex-1 overflow-y-auto px-4 pb-4" ref={scrollContainerRef}>
-              {properties.length === 0 ? (
-                <EmptyState />
-              ) : (
-                <>
-                  <StatsBar metrics={metrics} />
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="space-y-3"
-                  >
-                    {properties.map((property) => (
-                      <PropertyCard
-                        key={property.id}
-                        property={property}
-                        onDelete={handleDelete}
-                        currentConfig={currentConfig}
-                        onManageVisits={handleManageVisits}
-                        allProperties={properties}
-                      />
-                    ))}
-                  </motion.div>
-                </>
-              )}
-            </div>
+        
+        <div className="flex-1 overflow-hidden flex flex-col">
+          <div className="flex-1 overflow-y-auto px-4 pb-4" ref={scrollContainerRef}>
+            {properties.length === 0 ? (
+              <EmptyState />
+            ) : (
+              <>
+                <StatsBar metrics={metrics} />
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="space-y-3"
+                >
+                  {properties.map((property) => (
+                    <PropertyCard
+                      key={property.id}
+                      property={property}
+                      onDelete={handleDelete}
+                      onManageVisits={() => {}} // TODO: Implement visit management
+                    />
+                  ))}
+                </motion.div>
+              </>
+            )}
           </div>
         </div>
-      )}
+      </div>
       
       {/* Migration Button - Temporary */}
-      {hasProperties && (
+      {properties.length > 0 && (
         <motion.button
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}

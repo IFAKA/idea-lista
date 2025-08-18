@@ -2,29 +2,12 @@ import { Property } from '../entities/Property'
 import { PropertyTypeConfigs } from '../entities/PropertyType'
 
 export interface PropertyRepository {
-  // Basic CRUD operations
-  getAll(): Promise<Property[]>
-  getById(id: string): Promise<Property | null>
-  save(property: Property): Promise<void>
-  update(property: Property): Promise<void>
-  delete(id: string): Promise<void>
-  clear(): Promise<void>
-  
-  // Batch operations
-  saveAll(properties: Property[]): Promise<void>
-  
-  // Query operations
-  getByScore(minScore: number): Promise<Property[]>
-  getByStatus(status: Property['propertyStatus']): Promise<Property[]>
-  getByPriority(priority: Property['priority']): Promise<Property[]>
-  getByContactStatus(status: Property['contactStatus']): Promise<Property[]>
-  getUpcomingVisits(): Promise<Property[]>
-  getPropertiesNeedingFollowUp(): Promise<Property[]>
-  
-  // Configuration operations
-  saveScoringConfig(config: PropertyTypeConfigs): Promise<void>
+  getAllProperties(): Promise<Property[]>
+  addProperty(property: Property): Promise<void>
+  updateProperty(id: string, property: Property): Promise<void>
+  removeProperty(id: string): Promise<void>
+  clearProperties(): Promise<void>
   getScoringConfig(): Promise<PropertyTypeConfigs>
-  
-  // Export operations
-  exportVisitData(): Promise<string>
+  updateScoringConfig(config: PropertyTypeConfigs): Promise<void>
+  getConfig(type: string): Promise<any>
 }

@@ -1,15 +1,13 @@
 import { PropertyRepository } from '../../domain/repositories/PropertyRepository'
 import { ChromePropertyRepository } from '../repositories/ChromePropertyRepository'
 import { PropertyApplicationService } from '../../application/services/PropertyApplicationService'
-import { defaultPropertyTypeConfigs } from '../../domain/use-cases/default-configs'
 
 class Container {
   private static instance: Container
-  private repositories: Map<string, PropertyRepository> = new Map()
-  private services: Map<string, PropertyApplicationService> = new Map()
+  private services: Map<string, any> = new Map()
 
   private constructor() {
-    this.initializeDependencies()
+    this.initializeServices()
   }
 
   static getInstance(): Container {
@@ -19,28 +17,21 @@ class Container {
     return Container.instance
   }
 
-  private initializeDependencies(): void {
+  private initializeServices(): void {
     // Register repositories
-    this.repositories.set('PropertyRepository', new ChromePropertyRepository())
-
-    // Register services
-    const propertyRepository = this.repositories.get('PropertyRepository') as PropertyRepository
-    this.services.set('PropertyApplicationService', new PropertyApplicationService(propertyRepository, defaultPropertyTypeConfigs))
+    this.services.set('PropertyRepository', new ChromePropertyRepository())
+    
+    // Register application services
+    const propertyRepository = this.get<PropertyRepository>('PropertyRepository')
+    this.services.set('PropertyApplicationService', new PropertyApplicationService(propertyRepository))
   }
 
-  getPropertyRepository(): PropertyRepository {
-    return this.repositories.get('PropertyRepository')!
-  }
-
-  getPropertyApplicationService(): PropertyApplicationService {
-    return this.services.get('PropertyApplicationService')!
-  }
-
-  // Method to reset container (useful for testing)
-  reset(): void {
-    this.repositories.clear()
-    this.services.clear()
-    this.initializeDependencies()
+  get<T>(serviceName: string): T {
+    const service = this.services.get(serviceName)
+    if (!service) {
+      throw new Error(`Service ${serviceName} not found`)
+    }
+    return service as T
   }
 }
 

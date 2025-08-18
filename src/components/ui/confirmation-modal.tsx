@@ -6,8 +6,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from './dialog'
-import { Button } from './button'
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 
 interface ConfirmationModalProps {
   isOpen: boolean
@@ -17,7 +17,7 @@ interface ConfirmationModalProps {
   message: string
   confirmText?: string
   cancelText?: string
-  variant?: 'destructive' | 'default'
+  variant?: 'default' | 'destructive'
 }
 
 export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
@@ -28,27 +28,23 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   message,
   confirmText = 'Confirmar',
   cancelText = 'Cancelar',
-  variant = 'destructive'
+  variant = 'default'
 }) => {
-  const handleConfirm = () => {
-    onConfirm()
-    onClose()
-  }
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent aria-describedby="confirmation-description">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription id="confirmation-description">{message}</DialogDescription>
+          <DialogDescription>{message}</DialogDescription>
         </DialogHeader>
+        
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
             {cancelText}
           </Button>
           <Button 
-            variant={variant === 'destructive' ? 'destructive' : 'default'} 
-            onClick={handleConfirm}
+            variant={variant === 'destructive' ? 'destructive' : 'default'}
+            onClick={onConfirm}
           >
             {confirmText}
           </Button>

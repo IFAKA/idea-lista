@@ -1,49 +1,62 @@
-import React, { useState } from 'react'
-import { motion } from "motion/react"
-import { Badge } from '@/components/ui/badge'
-import { Home, BarChart3 } from 'lucide-react'
-import { PropertyMetrics } from '@/application/services/PropertyApplicationService'
-import { StatisticsModal } from './StatisticsModal'
+import React from 'react'
+import { formatPrice } from '@/lib/utils'
 
 interface StatsBarProps {
-  metrics: PropertyMetrics
+  metrics: {
+    totalProperties: number
+    averageScore: number
+    scoreDistribution: {
+      excellent: number
+      good: number
+      average: number
+      poor: number
+    }
+    bestProperty?: {
+      score: number
+      price: number
+    }
+  }
 }
 
 export const StatsBar: React.FC<StatsBarProps> = ({ metrics }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  if (metrics.totalProperties === 0) return null
 
   return (
-    <>
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-muted/50 rounded-lg p-2 mb-3"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Home className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium">
-                {metrics.totalProperties} {metrics.totalProperties === 1 ? 'propiedad' : 'propiedades'}
-              </span>
+    <div className="bg-muted/50 rounded-lg p-3 mb-4">
+      <div className="grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <div className="font-medium">Puntuación promedio</div>
+          <div className="text-2xl font-bold">{metrics.averageScore}</div>
+        </div>
+        
+        {metrics.bestProperty && (
+          <div>
+            <div className="font-medium">Mejor propiedad</div>
+            <div className="text-lg font-semibold">
+              {metrics.bestProperty.score} • {formatPrice(metrics.bestProperty.price)}
             </div>
           </div>
-          <Badge 
-            variant="secondary" 
-            className="text-xs cursor-pointer hover:bg-muted transition-colors"
-            onClick={() => setIsModalOpen(true)}
-          >
-            <BarChart3 className="w-3 h-3 mr-1" />
-            Estadísticas
-          </Badge>
+        )}
+      </div>
+      
+      <div className="flex justify-between mt-3 text-xs">
+        <div className="flex items-center space-x-1">
+          <span className="text-green-600">🟢</span>
+          <span>{metrics.scoreDistribution.excellent}</span>
         </div>
-      </motion.div>
-
-      <StatisticsModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        metrics={metrics}
-      />
-    </>
+        <div className="flex items-center space-x-1">
+          <span className="text-blue-600">🔵</span>
+          <span>{metrics.scoreDistribution.good}</span>
+        </div>
+        <div className="flex items-center space-x-1">
+          <span className="text-yellow-600">🟡</span>
+          <span>{metrics.scoreDistribution.average}</span>
+        </div>
+        <div className="flex items-center space-x-1">
+          <span className="text-red-600">🔴</span>
+          <span>{metrics.scoreDistribution.poor}</span>
+        </div>
+      </div>
+    </div>
   )
 }

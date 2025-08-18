@@ -1,20 +1,12 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
-import { 
-  Settings, 
-  Download, 
-  Trash2, 
-  Home,
-  FileText,
-  Share2
-} from 'lucide-react'
-
+import { Settings, Download, Trash2, Share2, FileText } from 'lucide-react'
 
 interface HeaderProps {
   onConfig: () => void
   onExport: () => void
   onClear: () => void
-  onExportVisits?: () => void
+  onExportVisits: () => void
   onShare: () => void
   propertiesCount: number
 }
@@ -28,72 +20,61 @@ export const Header: React.FC<HeaderProps> = ({
   propertiesCount
 }) => {
   return (
-    <header className="flex items-center justify-between p-4 border-b">
-      <div className="flex items-center gap-2">
-        <Home className="w-5 h-5" />
+    <div className="flex items-center justify-between p-4 border-b bg-background">
+      <div className="flex items-center space-x-2">
         <h1 className="text-lg font-semibold">Idea-lista</h1>
+        <span className="text-sm text-muted-foreground">
+          {propertiesCount} propiedades
+        </span>
       </div>
       
-      <div className="flex items-center gap-1
-      ">
+      <div className="flex items-center space-x-1">
         <Button
           variant="ghost"
-          size="icon"
-          onClick={onConfig}
-          title="Configurar parámetros de búsqueda"
-          className="h-8 w-8"
-        >
-          <Settings className="w-4 h-4" />
-        </Button>
-        
-
-        
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onExport}
-          disabled={propertiesCount === 0}
-          title={propertiesCount === 0 ? "No hay propiedades para exportar" : "Exportar propiedades"}
-          className="h-8 w-8"
-        >
-          <Download className="w-4 h-4" />
-        </Button>
-        
-        <Button
-          variant="ghost"
-          size="icon"
+          size="sm"
           onClick={onShare}
-          disabled={propertiesCount === 0}
-          title={propertiesCount === 0 ? "No hay propiedades para compartir" : "Compartir lista por WhatsApp"}
-          className="h-8 w-8"
+          title="Compartir lista"
         >
-          <Share2 className="w-4 h-4" />
+          <Share2 className="h-4 w-4" />
         </Button>
-        
-        {onExportVisits && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onExportVisits}
-            disabled={propertiesCount === 0}
-            title={propertiesCount === 0 ? "No hay propiedades para exportar visitas" : "Exportar datos de visitas"}
-            className="h-8 w-8"
-          >
-            <FileText className="w-4 h-4" />
-          </Button>
-        )}
         
         <Button
           variant="ghost"
-          size="icon"
-          onClick={onClear}
-          disabled={propertiesCount === 0}
-          title={propertiesCount === 0 ? "No hay propiedades para eliminar" : "Limpiar todas las propiedades"}
-          className="h-8 w-8 text-destructive hover:text-destructive"
+          size="sm"
+          onClick={onExport}
+          title="Exportar datos"
         >
-          <Trash2 className="w-4 h-4" />
+          <Download className="h-4 w-4" />
+        </Button>
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onExportVisits}
+          title="Exportar visitas"
+        >
+          <FileText className="h-4 w-4" />
+        </Button>
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onConfig}
+          title="Configuración"
+        >
+          <Settings className="h-4 w-4" />
+        </Button>
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClear}
+          title="Eliminar todo"
+          className="text-destructive hover:text-destructive"
+        >
+          <Trash2 className="h-4 w-4" />
         </Button>
       </div>
-    </header>
+    </div>
   )
 }

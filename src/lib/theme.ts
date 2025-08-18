@@ -1,38 +1,24 @@
-export function getSystemTheme(): 'light' | 'dark' {
-  if (typeof window === 'undefined') return 'light';
-  
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-export function applyTheme(theme: 'light' | 'dark') {
-  if (typeof window === 'undefined') return;
-  
-  const html = document.documentElement;
-  if (theme === 'dark') {
-    html.classList.add('dark');
-  } else {
-    html.classList.remove('dark');
-  }
-}
-
 export function initializeTheme() {
-  // Apply current system theme
-  applyTheme(getSystemTheme());
+  // Check for saved theme preference or default to system preference
+  const savedTheme = localStorage.getItem('theme')
+  const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  const theme = savedTheme || systemTheme
+
+  // Apply theme to document
+  document.documentElement.classList.toggle('dark', theme === 'dark')
   
-  // Listen for system theme changes
-  if (typeof window !== 'undefined' && window.matchMedia) {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    const handleChange = () => {
-      applyTheme(getSystemTheme());
-    };
-    
-    // Modern browsers
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', handleChange);
-    } else {
-      // Fallback for older browsers
-      mediaQuery.addListener(handleChange);
-    }
-  }
+  // Save theme preference
+  localStorage.setItem('theme', theme)
+}
+
+export function toggleTheme() {
+  const currentTheme = localStorage.getItem('theme') || 'light'
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light'
+  
+  document.documentElement.classList.toggle('dark', newTheme === 'dark')
+  localStorage.setItem('theme', newTheme)
+}
+
+export function getCurrentTheme(): 'light' | 'dark' {
+  return (localStorage.getItem('theme') as 'light' | 'dark') || 'light'
 }
