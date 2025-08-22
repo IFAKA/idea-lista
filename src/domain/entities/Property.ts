@@ -149,7 +149,7 @@ export class Property {
   }
 
   public getVisitCount(): number {
-    return this.visits.filter(visit => visit.status === 'scheduled' || visit.status === 'rescheduled').length
+    return this.visits.length
   }
 
   public getCompletedVisits(): number {
@@ -217,7 +217,11 @@ export class Property {
       notes: data.notes,
       createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
       updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
-      visits: data.visits || [],
+      visits: data.visits ? data.visits.map((visit: any) => ({
+        ...visit,
+        date: visit.date ? new Date(visit.date) : new Date(),
+        followUpDate: visit.followUpDate ? new Date(visit.followUpDate) : undefined
+      })) : [],
       phone: data.phone,
       professional: data.professional,
       contactPerson: data.contactPerson,

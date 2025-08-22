@@ -5,8 +5,11 @@ import { PropertyCard } from '@/components/PropertyCard'
 import { EmptyState } from '@/components/EmptyState'
 import { StatsBar } from '@/components/StatsBar'
 import { ConfirmationModal } from '@/components/ui/confirmation-modal'
+import { SettingsView } from '@/components/SettingsView'
+import { VisitManagementView } from '@/components/VisitManagementView'
 import { usePropertyStore } from '@/store/property-store'
 import { initializeTheme } from '@/lib/theme'
+import { Property } from '@/domain/entities/Property'
 
 interface ChromeMessage {
   action: string
@@ -40,11 +43,16 @@ const App: React.FC = () => {
     propertyTitle: ''
   })
   const [clearConfirmation, setClearConfirmation] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [visitManagementOpen, setVisitManagementOpen] = useState(false)
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
 
   // Add ref for scrolling container
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   const handleExport = useCallback(async () => {
+    if (properties.length === 0) return
+    
     try {
       const tsvContent = await exportProperties({
         format: 'tsv',
@@ -65,6 +73,8 @@ const App: React.FC = () => {
   }, [exportProperties])
 
   const handleExportVisits = useCallback(async () => {
+    if (properties.length === 0) return
+    
     try {
       const visitData = await exportVisitData()
       const blob = new Blob([visitData], { type: 'application/json' })
@@ -80,8 +90,6 @@ const App: React.FC = () => {
   }, [exportVisitData])
 
   const handleShare = useCallback(() => {
-    if (properties.length === 0) return
-
     const sortedProperties = properties.sort((a, b) => b.score - a.score)
     let shareText = `Mi Lista de Propiedades (${properties.length} propiedades)\n\n`
     
@@ -122,6 +130,11 @@ const App: React.FC = () => {
       propertyTitle: property?.title || 'esta propiedad'
     })
   }, [properties])
+
+  const handleManageVisits = useCallback((property: Property) => {
+    setSelectedProperty(property)
+    setVisitManagementOpen(true)
+  }, [])
 
   const confirmDelete = useCallback(async () => {
     if (deleteConfirmation.propertyId) {
@@ -228,42 +241,53 @@ const App: React.FC = () => {
 
   return (
     <>
-      <div className="w-96 h-[600px] bg-background text-foreground flex flex-col">
-        <Header
-          onConfig={() => {}} // TODO: Implement settings
-          onExport={handleExport}
-          onClear={handleClear}
-          onExportVisits={handleExportVisits}
-          onShare={handleShare}
-          propertiesCount={properties.length}
-        />
-        
-        <div className="flex-1 overflow-hidden flex flex-col">
-          <div className="flex-1 overflow-y-auto px-4 pb-4" ref={scrollContainerRef}>
-            {properties.length === 0 ? (
-              <EmptyState />
-            ) : (
-              <>
-                <StatsBar metrics={metrics} />
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="space-y-3"
-                >
-                  {properties.map((property) => (
-                    <PropertyCard
-                      key={property.id}
-                      property={property}
-                      onDelete={handleDelete}
-                      onManageVisits={() => {}} // TODO: Implement visit management
-                    />
-                  ))}
-                </motion.div>
-              </>
-            )}
+      {!settingsOpen && !visitManagementOpen && (
+        <div className="w-96 h-[600px] bg-background text-foreground flex flex-col">
+          <Header
+            onConfig={() => setSettingsOpen(true)}
+            onExport={handleExport}
+            onClear={handleClear}
+            onExportVisits={handleExportVisits}
+            onShare={handleShare}
+            propertiesCount={properties.length}
+            mode="list"
+          />
+          
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <div className="flex-1 overflow-y-auto px-4 pb-4" ref={scrollContainerRef}>
+              {properties.length === 0 ? (
+                <EmptyState />
+              ) : (
+                <>
+                  <StatsBar metrics={metrics} />
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="space-y-3"
+                  >
+                    {properties.map((property) => (
+                      <PropertyCard
+                        key={property.id}
+                        property={property}
+                        onDelete={handleDelete}
+                        onManageVisits={handleManageVisits}
+                      />
+                    ))}
+                  </motion.div>
+                </>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {settingsOpen && (
+        <SettingsView onBack={() => setSettingsOpen(false)} />
+      )}
+
+      {visitManagementOpen && selectedProperty && (
+        <VisitManagementView onBack={() => { setVisitManagementOpen(false); setSelectedProperty(null) }} property={selectedProperty} />
+      )}
       
 
         
@@ -289,6 +313,7 @@ const App: React.FC = () => {
         variant="destructive"
       />
 
+      
 
     </>
   )

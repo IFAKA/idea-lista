@@ -5,6 +5,27 @@ import { PropertyTypeConfigs, defaultConfigs } from '../../domain/entities/Prope
 export class ChromePropertyRepository implements PropertyRepository {
   private readonly PROPERTIES_KEY = 'idea-lista-properties'
   private readonly CONFIG_KEY = 'idea-lista-config'
+  private readonly BACKUPS_KEY = 'idea-lista-properties-backups'
+
+  // Keep up to this many snapshots
+  private readonly MAX_BACKUPS = 10
+
+  private async backupSnapshot(rawProperties: any[]): Promise<void> {
+    try {
+      const result = await chrome.storage.local.get(this.BACKUPS_KEY)
+      const backups = Array.isArray(result[this.BACKUPS_KEY]) ? result[this.BACKUPS_KEY] : []
+      const newBackups = [
+        ...backups,
+        { timestamp: new Date().toISOString(), properties: rawProperties }
+      ]
+      // Keep only the last MAX_BACKUPS snapshots
+      const trimmed = newBackups.slice(-this.MAX_BACKUPS)
+      await chrome.storage.local.set({ [this.BACKUPS_KEY]: trimmed })
+    } catch (error) {
+      // Backup failures must never block normal operation
+      console.warn('Warning: failed to create backup snapshot', error)
+    }
+  }
 
   async getAllProperties(): Promise<Property[]> {
     try {
@@ -13,13 +34,16 @@ export class ChromePropertyRepository implements PropertyRepository {
       return propertiesData.map((data: any) => Property.fromRawData(data))
     } catch (error) {
       console.error('Error getting properties:', error)
-      return []
+      // Surface the error so callers don't overwrite storage with partial data
+      throw error
     }
   }
 
   async addProperty(property: Property): Promise<void> {
     try {
       const properties = await this.getAllProperties()
+      // Backup current state before mutating
+      await this.backupSnapshot(properties.map(p => p.toData()))
       const existingIndex = properties.findIndex(p => p.url === property.url)
       
       if (existingIndex >= 0) {
@@ -40,6 +64,8 @@ export class ChromePropertyRepository implements PropertyRepository {
   async updateProperty(id: string, property: Property): Promise<void> {
     try {
       const properties = await this.getAllProperties()
+      // Backup current state before mutating
+      await this.backupSnapshot(properties.map(p => p.toData()))
       const index = properties.findIndex(p => p.id === id)
       
       if (index >= 0) {
@@ -55,6 +81,8 @@ export class ChromePropertyRepository implements PropertyRepository {
   async removeProperty(id: string): Promise<void> {
     try {
       const properties = await this.getAllProperties()
+      // Backup current state before mutating
+      await this.backupSnapshot(properties.map(p => p.toData()))
       const filteredProperties = properties.filter(p => p.id !== id)
       await chrome.storage.local.set({ [this.PROPERTIES_KEY]: filteredProperties.map(p => p.toData()) })
     } catch (error) {
@@ -65,6 +93,9 @@ export class ChromePropertyRepository implements PropertyRepository {
 
   async clearProperties(): Promise<void> {
     try {
+      // Backup current state before clearing
+      const current = await this.getAllProperties()
+      await this.backupSnapshot(current.map(p => p.toData()))
       await chrome.storage.local.remove(this.PROPERTIES_KEY)
     } catch (error) {
       console.error('Error clearing properties:', error)

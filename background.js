@@ -46,6 +46,25 @@ const defaultConfigs = {
 // Storage keys
 const PROPERTIES_KEY = 'idea-lista-properties';
 const CONFIG_KEY = 'idea-lista-config';
+const BACKUPS_KEY = 'idea-lista-properties-backups';
+
+// Keep up to this many snapshots
+const MAX_BACKUPS = 10;
+
+async function backupSnapshot(rawProperties) {
+  try {
+    const result = await chrome.storage.local.get([BACKUPS_KEY]);
+    const backups = Array.isArray(result[BACKUPS_KEY]) ? result[BACKUPS_KEY] : [];
+    const newBackups = [
+      ...backups,
+      { timestamp: new Date().toISOString(), properties: rawProperties }
+    ];
+    const trimmed = newBackups.slice(-MAX_BACKUPS);
+    await chrome.storage.local.set({ [BACKUPS_KEY]: trimmed });
+  } catch (error) {
+    console.warn('Warning: failed to create backup snapshot', error);
+  }
+}
 
 // Initialize storage with default configs
 chrome.runtime.onInstalled.addListener(() => {
@@ -170,7 +189,14 @@ async function addProperty(propertyData) {
   try {
     // Get current properties
     const result = await chrome.storage.local.get([PROPERTIES_KEY]);
-    const properties = result[PROPERTIES_KEY] || [];
+    const propertiesRaw = result[PROPERTIES_KEY];
+    if (!Array.isArray(propertiesRaw)) {
+      console.error('Storage data is not an array. Aborting add to avoid data loss.');
+      return { success: false, error: 'Datos de almacenamiento inconsistentes. No se agregó la propiedad para evitar pérdida de datos.' };
+    }
+    const properties = propertiesRaw;
+    // Backup before mutation
+    await backupSnapshot(properties);
     
     // Get scoring configuration
     const configResult = await chrome.storage.local.get([CONFIG_KEY]);
@@ -256,21 +282,34 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   if (message.action === 'removeProperty') {
     chrome.storage.local.get([PROPERTIES_KEY], (result) => {
-      const properties = result[PROPERTIES_KEY] || [];
-      const filteredProperties = properties.filter(p => p.id !== message.propertyId);
-      
-      chrome.storage.local.set({ [PROPERTIES_KEY]: filteredProperties }, () => {
-        chrome.runtime.sendMessage({ action: 'propertyDeleted' });
-        sendResponse({ success: true });
+      const propertiesRaw = result[PROPERTIES_KEY];
+      if (!Array.isArray(propertiesRaw)) {
+        console.error('Storage data is not an array. Aborting delete to avoid data loss.');
+        sendResponse({ success: false, error: 'Datos de almacenamiento inconsistentes. No se eliminó para evitar pérdida de datos.' });
+        return;
+      }
+      const properties = propertiesRaw;
+      // Backup before mutation
+      backupSnapshot(properties).finally(() => {
+        const filteredProperties = properties.filter(p => p.id !== message.propertyId);
+        chrome.storage.local.set({ [PROPERTIES_KEY]: filteredProperties }, () => {
+          chrome.runtime.sendMessage({ action: 'propertyDeleted' });
+          sendResponse({ success: true });
+        });
       });
     });
     return true;
   }
   
   if (message.action === 'clearProperties') {
-    chrome.storage.local.remove([PROPERTIES_KEY], () => {
-      chrome.runtime.sendMessage({ action: 'propertiesUpdated' });
-      sendResponse({ success: true });
+    chrome.storage.local.get([PROPERTIES_KEY], (result) => {
+      const properties = Array.isArray(result[PROPERTIES_KEY]) ? result[PROPERTIES_KEY] : [];
+      backupSnapshot(properties).finally(() => {
+        chrome.storage.local.remove([PROPERTIES_KEY], () => {
+          chrome.runtime.sendMessage({ action: 'propertiesUpdated' });
+          sendResponse({ success: true });
+        });
+      });
     });
     return true;
   }

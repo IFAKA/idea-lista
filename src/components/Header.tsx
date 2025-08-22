@@ -1,6 +1,6 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
-import { Settings, Download, Trash2, Share2, FileText } from 'lucide-react'
+import { Settings, Download, Trash2, Share2, FileText, ArrowLeft } from 'lucide-react'
 
 interface HeaderProps {
   onConfig: () => void
@@ -9,6 +9,9 @@ interface HeaderProps {
   onExportVisits: () => void
   onShare: () => void
   propertiesCount: number
+  onBack?: () => void
+  titleOverride?: string
+  mode?: 'list' | 'detail'
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -17,23 +20,37 @@ export const Header: React.FC<HeaderProps> = ({
   onClear,
   onExportVisits,
   onShare,
-  propertiesCount
+  propertiesCount,
+  onBack,
+  titleOverride,
+  mode = 'list'
 }) => {
+  const hasProperties = propertiesCount > 0
+
   return (
     <div className="flex items-center justify-between p-4 border-b bg-background">
       <div className="flex items-center space-x-2">
-        <h1 className="text-lg font-semibold">Idea-lista</h1>
-        <span className="text-sm text-muted-foreground">
-          {propertiesCount} propiedades
-        </span>
+        {onBack && (
+          <Button variant="ghost" size="sm" onClick={onBack} title="Volver">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        )}
+        <h1 className="text-lg font-semibold">{titleOverride || 'Idea-lista'}</h1>
+        {mode === 'list' && (
+          <span className="text-sm text-muted-foreground">
+            {propertiesCount} propiedades
+          </span>
+        )}
       </div>
       
-      <div className="flex items-center space-x-1">
+      {mode === 'list' ? (
+        <div className="flex items-center space-x-1">
         <Button
           variant="ghost"
           size="sm"
           onClick={onShare}
-          title="Compartir lista"
+          disabled={!hasProperties}
+          title={hasProperties ? "Compartir lista" : "No hay propiedades para compartir"}
         >
           <Share2 className="h-4 w-4" />
         </Button>
@@ -42,7 +59,8 @@ export const Header: React.FC<HeaderProps> = ({
           variant="ghost"
           size="sm"
           onClick={onExport}
-          title="Exportar datos"
+          disabled={!hasProperties}
+          title={hasProperties ? "Exportar datos" : "No hay propiedades para exportar"}
         >
           <Download className="h-4 w-4" />
         </Button>
@@ -51,7 +69,8 @@ export const Header: React.FC<HeaderProps> = ({
           variant="ghost"
           size="sm"
           onClick={onExportVisits}
-          title="Exportar visitas"
+          disabled={!hasProperties}
+          title={hasProperties ? "Exportar visitas" : "No hay propiedades para exportar visitas"}
         >
           <FileText className="h-4 w-4" />
         </Button>
@@ -69,12 +88,16 @@ export const Header: React.FC<HeaderProps> = ({
           variant="ghost"
           size="sm"
           onClick={onClear}
-          title="Eliminar todo"
+          disabled={!hasProperties}
+          title={hasProperties ? "Eliminar todo" : "No hay propiedades para eliminar"}
           className="text-destructive hover:text-destructive"
         >
           <Trash2 className="h-4 w-4" />
         </Button>
-      </div>
+        </div>
+      ) : (
+        <div />
+      )}
     </div>
   )
 }
